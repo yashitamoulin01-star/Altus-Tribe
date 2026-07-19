@@ -1,0 +1,397 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import Link from "next/link";
+import { saveProfile } from "./actions";
+import {
+  composeFullName,
+  isFieldVisible,
+  validateField,
+  type EditableProfile,
+  type FieldVisibility,
+} from "@/lib/profile-fields";
+
+const fieldCls =
+  "w-full rounded border border-hairline bg-surface-sunk px-3.5 py-2.5 text-[15px] text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none focus:ring-2 focus:ring-red/40";
+const labelCls =
+  "font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted";
+
+// --- Module-scoped field primitives (defined once, so inputs keep focus) ---
+
+function EyeToggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={on}
+      className={`font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
+        on ? "text-ink" : "text-ink-muted"
+      }`}
+      title={on ? "Visible — click to hide" : "Hidden — click to show"}
+    >
+      {on ? "◉ Shown" : "○ Hidden"}
+    </button>
+  );
+}
+
+function FieldLabel({
+  label,
+  visOn,
+  onToggleVis,
+}: {
+  label: string;
+  visOn?: boolean;
+  onToggleVis?: () => void;
+}) {
+  return (
+    <span className="mb-1.5 flex items-center justify-between">
+      <span className={labelCls}>{label}</span>
+      {onToggleVis && <EyeToggle on={visOn ?? true} onClick={onToggleVis} />}
+    </span>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  error,
+  visOn,
+  onToggleVis,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+  error?: string | null;
+  visOn?: boolean;
+  onToggleVis?: () => void;
+}) {
+  return (
+    <label className="block">
+      <FieldLabel label={label} visOn={visOn} onToggleVis={onToggleVis} />
+      <input
+        type={type}
+        className={fieldCls}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      {error && <span className="mt-1 block text-[13px] text-red">{error}</span>}
+    </label>
+  );
+}
+
+function AreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  visOn,
+  onToggleVis,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  visOn?: boolean;
+  onToggleVis?: () => void;
+}) {
+  return (
+    <label className="block">
+      <FieldLabel label={label} visOn={visOn} onToggleVis={onToggleVis} />
+      <textarea
+        className={fieldCls + " min-h-[92px] resize-y leading-relaxed"}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+}) {
+  return (
+    <label className="block">
+      <span className={labelCls + " mb-1.5 block"}>{label}</span>
+      <select className={fieldCls} value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">—</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function Section({
+  title,
+  note,
+  children,
+}: {
+  title: string;
+  note?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="border-t border-hairline pt-6">
+      <div className="mb-5">
+        <h2 className="text-lg font-semibold text-ink">{title}</h2>
+        {note && <p className="mt-1 text-[13px] text-ink-muted">{note}</p>}
+      </div>
+      <div className="space-y-4">{children}</div>
+    </section>
+  );
+}
+
+// --- The composer ---------------------------------------------------------
+
+export default function EditFeature({
+  initial,
+  initialVisibility,
+  slug,
+  industries,
+  categories,
+  configured,
+}: {
+  initial: EditableProfile;
+  initialVisibility: FieldVisibility;
+  slug: string | null;
+  industries: string[];
+  categories: string[];
+  configured: boolean;
+}) {
+  const [d, setD] = useState<EditableProfile>(initial);
+  const [vis, setVis] = useState<FieldVisibility>(initialVisibility);
+  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [pending, start] = useTransition();
+
+  const set = <K extends keyof EditableProfile>(k: K, v: EditableProfile[K]) => {
+    setD((p) => ({ ...p, [k]: v }));
+    setStatus("idle");
+  };
+  const setAddr = (k: keyof EditableProfile["workAddress"], v: string) => {
+    setD((p) => ({ ...p, workAddress: { ...p.workAddress, [k]: v } }));
+    setStatus("idle");
+  };
+  const visProps = (key: string) => ({
+    visOn: isFieldVisible(vis, key),
+    onToggleVis: () => setVis((v) => ({ ...v, [key]: !isFieldVisible(v, key) })),
+  });
+
+  const save = () =>
+    start(async () => {
+      const r = await saveProfile(d, vis);
+      if (r.ok) setStatus("saved");
+      else {
+        setStatus("error");
+        setErrorMsg(r.error);
+      }
+    });
+
+  const fullName = composeFullName(d) || "Your name";
+  const addr = d.workAddress;
+
+  return (
+    <main className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-10 sm:px-10">
+      <nav className="mb-8 flex items-center justify-between">
+        <Link
+          href="/account"
+          className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
+        >
+          ← Account
+        </Link>
+        {slug && configured && (
+          <Link
+            href={`/m/${slug}`}
+            className="text-[14px] text-red transition-colors hover:text-red-hover"
+          >
+            View my feature →
+          </Link>
+        )}
+      </nav>
+
+      <header className="mb-8">
+        <p className="kicker mb-3">Edit feature</p>
+        <h1 className="text-3xl font-semibold tracking-[-0.015em] text-ink">
+          Compose your feature.
+        </h1>
+        {!configured && (
+          <p className="mt-3 text-[14px] text-ink-muted">
+            Preview mode — connect Supabase to save changes.
+          </p>
+        )}
+      </header>
+
+      <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-12">
+          <Section title="Identity">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <TextField label="First name" value={d.firstName} onChange={(v) => set("firstName", v.toUpperCase())} placeholder="YASHITA" />
+              <TextField label="Middle name" value={d.middleName} onChange={(v) => set("middleName", v.toUpperCase())} />
+              <TextField label="Last name" value={d.lastName} onChange={(v) => set("lastName", v.toUpperCase())} placeholder="MOULI" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField label="Role / title" value={d.roleTitle} onChange={(v) => set("roleTitle", v)} placeholder="Founder" />
+              <TextField label="City" value={d.city} onChange={(v) => set("city", v)} placeholder="Mumbai" />
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <SelectField label="Industry / sector" value={d.industry} onChange={(v) => set("industry", v)} options={industries} />
+              <SelectField label="Business category" value={d.category} onChange={(v) => set("category", v)} options={categories} />
+            </div>
+            <TextField label="Brand names (comma separated)" value={d.brandNames} onChange={(v) => set("brandNames", v)} />
+          </Section>
+
+          <Section title="Contact" note="Each field has a show/hide toggle.">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField label="Cell number" value={d.cellNo} onChange={(v) => set("cellNo", v)} placeholder="10-digit" error={validateField("cellNo", d.cellNo)} {...visProps("cell_no")} />
+              <TextField label="Alternate number" value={d.altNo} onChange={(v) => set("altNo", v)} placeholder="10-digit" error={validateField("altNo", d.altNo)} {...visProps("alt_no")} />
+              <TextField label="Work email" type="email" value={d.workEmail} onChange={(v) => set("workEmail", v)} error={validateField("workEmail", d.workEmail)} {...visProps("work_email")} />
+              <TextField label="Personal email" type="email" value={d.personalEmail} onChange={(v) => set("personalEmail", v)} error={validateField("personalEmail", d.personalEmail)} {...visProps("personal_email")} />
+            </div>
+          </Section>
+
+          <Section title="Work address" note="Shown or hidden as one block.">
+            <div className="mb-1 flex justify-end">
+              <EyeToggle on={isFieldVisible(vis, "work_address")} onClick={visProps("work_address").onToggleVis} />
+            </div>
+            <input className={fieldCls} placeholder="Unit / Floor / Plot" value={addr.line1} onChange={(e) => setAddr("line1", e.target.value)} />
+            <input className={fieldCls} placeholder="Building name" value={addr.line2} onChange={(e) => setAddr("line2", e.target.value)} />
+            <input className={fieldCls} placeholder="Street / Road" value={addr.line3} onChange={(e) => setAddr("line3", e.target.value)} />
+            <input className={fieldCls} placeholder="Area / Sector" value={addr.line4} onChange={(e) => setAddr("line4", e.target.value)} />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <input className={fieldCls} placeholder="Landmark" value={addr.landmark} onChange={(e) => setAddr("landmark", e.target.value)} />
+              <input className={fieldCls} placeholder="City" value={addr.city} onChange={(e) => setAddr("city", e.target.value)} />
+              <input className={fieldCls} placeholder="State" value={addr.state} onChange={(e) => setAddr("state", e.target.value)} />
+              <input className={fieldCls} placeholder="Country" value={addr.country} onChange={(e) => setAddr("country", e.target.value)} />
+              <input className={fieldCls} placeholder="Pincode" value={addr.pincode} onChange={(e) => setAddr("pincode", e.target.value.replace(/[^0-9]/g, ""))} />
+              <input className={fieldCls} placeholder="Google Maps link" value={addr.mapLink} onChange={(e) => setAddr("mapLink", e.target.value)} />
+            </div>
+          </Section>
+
+          <Section title="Headline">
+            <AreaField label="Positioning — what you do now" value={d.positioning} onChange={(v) => set("positioning", v)} />
+            <AreaField label="Known for — the one memorable thing" value={d.knownFor} onChange={(v) => set("knownFor", v)} />
+            <AreaField label="About" value={d.about} onChange={(v) => set("about", v)} />
+          </Section>
+
+          <Section title="Business">
+            <TextField label="Company name" value={d.businessName} onChange={(v) => set("businessName", v)} />
+            <AreaField label="What it does" value={d.businessDescription} onChange={(v) => set("businessDescription", v)} />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField label="Founded (year)" value={d.foundedYear} onChange={(v) => set("foundedYear", v.replace(/[^0-9]/g, ""))} placeholder="2018" error={validateField("foundedYear", d.foundedYear)} />
+              <TextField label="Team size" value={d.teamSize} onChange={(v) => set("teamSize", v)} placeholder="40 people" />
+            </div>
+            <TextField label="Company website" value={d.companyWebsite} onChange={(v) => set("companyWebsite", v)} placeholder="www.example.com" error={validateField("companyWebsite", d.companyWebsite)} />
+            <AreaField label="Nature of business" value={d.natureOfBusiness} onChange={(v) => set("natureOfBusiness", v)} />
+            <AreaField label="Biggest USP" value={d.usp} onChange={(v) => set("usp", v)} />
+          </Section>
+
+          <Section title="Expertise" note="Comma separated.">
+            <input
+              className={fieldCls}
+              value={d.expertise.join(", ")}
+              placeholder="Manufacturing, Exports, B2B Sales"
+              onChange={(e) => set("expertise", e.target.value.split(",").map((s) => s.trimStart()))}
+              onBlur={(e) => set("expertise", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
+            />
+          </Section>
+
+          <Section title="Presence">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField label="LinkedIn" value={d.linkedin} onChange={(v) => set("linkedin", v)} {...visProps("linkedin")} />
+              <TextField label="Business Instagram" value={d.businessInstagram} onChange={(v) => set("businessInstagram", v)} {...visProps("business_instagram")} />
+              <TextField label="Personal Instagram" value={d.personalInstagram} onChange={(v) => set("personalInstagram", v)} {...visProps("personal_instagram")} />
+              <TextField label="YouTube" value={d.youtube} onChange={(v) => set("youtube", v)} />
+              <TextField label="Best time to connect" value={d.bestTime} onChange={(v) => set("bestTime", v)} placeholder="10am–7pm Mon–Fri" />
+            </div>
+            <label className="mt-2 flex items-center justify-between">
+              <span className={labelCls}>Allow WhatsApp DM from the portal</span>
+              <span className="flex items-center gap-3">
+                <EyeToggle on={isFieldVisible(vis, "whatsapp")} onClick={visProps("whatsapp").onToggleVis} />
+                <input type="checkbox" checked={d.whatsappDm} onChange={(e) => set("whatsappDm", e.target.checked)} className="h-4 w-4 accent-[var(--color-red)]" />
+              </span>
+            </label>
+          </Section>
+
+          <Section title="Personal" note="Sensitive fields carry a toggle.">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField label="Birth date" type="date" value={d.birthDate} onChange={(v) => set("birthDate", v)} {...visProps("birth_date")} />
+              <TextField label="Anniversary" type="date" value={d.anniversary} onChange={(v) => set("anniversary", v)} {...visProps("anniversary")} />
+              <TextField label="Marital status" value={d.maritalStatus} onChange={(v) => set("maritalStatus", v)} {...visProps("marital_status")} />
+              <TextField label="Blood group" value={d.bloodGroup} onChange={(v) => set("bloodGroup", v)} placeholder="O+" />
+            </div>
+            <AreaField label="Areas of interest" value={d.areasOfInterest} onChange={(v) => set("areasOfInterest", v)} {...visProps("areas_of_interest")} />
+            <AreaField label="Associations affiliated with" value={d.networkGroups} onChange={(v) => set("networkGroups", v)} {...visProps("network_groups")} />
+            <AreaField label="Companies you can connect others to" value={d.canConnect} onChange={(v) => set("canConnect", v)} {...visProps("can_connect")} />
+            <AreaField label="Companies you want to connect with" value={d.wantConnect} onChange={(v) => set("wantConnect", v)} {...visProps("want_connect")} />
+            <AreaField label="Your purpose / success mantra" value={d.purpose} onChange={(v) => set("purpose", v)} />
+            <AreaField label="Favourite productivity tools" value={d.favouriteTools} onChange={(v) => set("favouriteTools", v)} />
+            <AreaField label="How can you contribute to the Tribe" value={d.contribution} onChange={(v) => set("contribution", v)} {...visProps("contribution")} />
+          </Section>
+        </div>
+
+        {/* Live preview */}
+        <aside className="hidden lg:block">
+          <div className="sticky top-8">
+            <p className="kicker mb-3">Live preview</p>
+            <div className="rounded border border-hairline bg-surface p-5">
+              <p className="text-xl font-semibold text-ink">{fullName}</p>
+              <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
+                {[d.roleTitle, d.industry, d.city].filter(Boolean).join("  /  ") ||
+                  "role / industry / city"}
+              </p>
+              {d.positioning && (
+                <p className="mt-4 text-[15px] leading-snug text-ink">{d.positioning}</p>
+              )}
+              {d.knownFor && (
+                <p className="mt-4 border-t border-hairline pt-4 text-[15px] text-ink-secondary">
+                  {d.knownFor}
+                </p>
+              )}
+              {d.expertise.filter(Boolean).length > 0 && (
+                <p className="mt-4 text-[13px] text-ink-muted">
+                  {d.expertise.filter(Boolean).join("  /  ")}
+                </p>
+              )}
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* Sticky save bar */}
+      <div className="sticky bottom-0 mt-10 flex items-center justify-between border-t border-hairline bg-paper/95 py-4 backdrop-blur">
+        <span className="text-[14px] text-ink-muted">
+          {status === "saved" && "✓ Saved"}
+          {status === "error" && (
+            <span className="text-red">Couldn&apos;t save: {errorMsg}</span>
+          )}
+        </span>
+        <button
+          type="button"
+          onClick={save}
+          disabled={pending}
+          className="rounded bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors duration-150 hover:bg-red-hover disabled:opacity-60"
+        >
+          {pending ? "Saving…" : "Save feature"}
+        </button>
+      </div>
+    </main>
+  );
+}

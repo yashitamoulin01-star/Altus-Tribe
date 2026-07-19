@@ -1,0 +1,201 @@
+// Client-safe profile editing infrastructure: the editable shape, the canonical
+// list of per-field privacy toggles (👁), and validation helpers. Shared by the
+// Edit composer (client) and the save action (server).
+
+export interface EditableAddress {
+  line1: string;
+  line2: string;
+  line3: string;
+  line4: string;
+  landmark: string;
+  city: string;
+  state: string;
+  country: string;
+  pincode: string;
+  mapLink: string;
+}
+
+export interface EditableProfile {
+  // Identity
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  roleTitle: string;
+  industry: string;
+  category: string;
+  city: string;
+  brandNames: string;
+  // Contact
+  cellNo: string;
+  altNo: string;
+  workEmail: string;
+  personalEmail: string;
+  // Work address
+  workAddress: EditableAddress;
+  // Headline / narrative
+  positioning: string;
+  knownFor: string;
+  about: string;
+  // Business
+  businessName: string;
+  businessDescription: string;
+  companyWebsite: string;
+  foundedYear: string;
+  teamSize: string;
+  natureOfBusiness: string;
+  usp: string;
+  // Expertise
+  expertise: string[];
+  // Presence
+  linkedin: string;
+  businessInstagram: string;
+  personalInstagram: string;
+  youtube: string;
+  whatsappDm: boolean;
+  bestTime: string;
+  // Personal
+  birthDate: string;
+  anniversary: string;
+  maritalStatus: string;
+  bloodGroup: string;
+  areasOfInterest: string;
+  purpose: string;
+  favouriteTools: string;
+  networkGroups: string;
+  canConnect: string;
+  wantConnect: string;
+  contribution: string;
+  interestedHelping: string;
+  interestedCoaching: string;
+  interestedNetworking: string;
+}
+
+const emptyAddress: EditableAddress = {
+  line1: "",
+  line2: "",
+  line3: "",
+  line4: "",
+  landmark: "",
+  city: "",
+  state: "",
+  country: "",
+  pincode: "",
+  mapLink: "",
+};
+
+export const emptyEditable: EditableProfile = {
+  firstName: "",
+  middleName: "",
+  lastName: "",
+  roleTitle: "",
+  industry: "",
+  category: "",
+  city: "",
+  brandNames: "",
+  cellNo: "",
+  altNo: "",
+  workEmail: "",
+  personalEmail: "",
+  workAddress: { ...emptyAddress },
+  positioning: "",
+  knownFor: "",
+  about: "",
+  businessName: "",
+  businessDescription: "",
+  companyWebsite: "",
+  foundedYear: "",
+  teamSize: "",
+  natureOfBusiness: "",
+  usp: "",
+  expertise: [],
+  linkedin: "",
+  businessInstagram: "",
+  personalInstagram: "",
+  youtube: "",
+  whatsappDm: false,
+  bestTime: "",
+  birthDate: "",
+  anniversary: "",
+  maritalStatus: "",
+  bloodGroup: "",
+  areasOfInterest: "",
+  purpose: "",
+  favouriteTools: "",
+  networkGroups: "",
+  canConnect: "",
+  wantConnect: "",
+  contribution: "",
+  interestedHelping: "",
+  interestedCoaching: "",
+  interestedNetworking: "",
+};
+
+// The fields a member can individually show/hide (spec "Permission to Show", 👁).
+// Keys are stored in profiles.field_visibility as { key: boolean } (true = show).
+export const VISIBILITY_FIELDS: { key: string; label: string }[] = [
+  { key: "cell_no", label: "Cell number" },
+  { key: "alt_no", label: "Alternate number" },
+  { key: "work_email", label: "Work email" },
+  { key: "personal_email", label: "Personal email" },
+  { key: "work_address", label: "Work address" },
+  { key: "linkedin", label: "LinkedIn" },
+  { key: "business_instagram", label: "Business Instagram" },
+  { key: "personal_instagram", label: "Personal Instagram" },
+  { key: "whatsapp", label: "WhatsApp" },
+  { key: "birth_date", label: "Birth date" },
+  { key: "anniversary", label: "Anniversary" },
+  { key: "marital_status", label: "Marital status" },
+  { key: "areas_of_interest", label: "Areas of interest" },
+  { key: "network_groups", label: "Associations" },
+  { key: "can_connect", label: "Can connect others to" },
+  { key: "want_connect", label: "Want to connect with" },
+  { key: "contribution", label: "Contribution to the Tribe" },
+];
+
+export type FieldVisibility = Record<string, boolean>;
+
+// A field is shown unless the member has explicitly turned it off.
+export function isFieldVisible(v: FieldVisibility, key: string): boolean {
+  return v[key] !== false;
+}
+
+// --- Validation ------------------------------------------------------------
+export const capsName = (s: string) => s.toUpperCase();
+
+export function validateField(
+  field: keyof EditableProfile | "pincode",
+  value: string,
+): string | null {
+  const v = value.trim();
+  if (!v) return null; // emptiness handled by "mandatory" separately
+  switch (field) {
+    case "cellNo":
+    case "altNo":
+      return /^\d{10}$/.test(v) ? null : "Enter a 10-digit number.";
+    case "workEmail":
+    case "personalEmail":
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : "Enter a valid email.";
+    case "companyWebsite":
+      return /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/\S*)?$/.test(v)
+        ? null
+        : "Enter a valid website (e.g. www.example.com).";
+    case "pincode":
+      return /^\d{4,6}$/.test(v) ? null : "Enter a valid pincode.";
+    case "foundedYear":
+      return /^\d{4}$/.test(v) ? null : "Enter a 4-digit year.";
+    default:
+      return null;
+  }
+}
+
+// Compose the display name from parts (names are stored ALL CAPS per spec).
+export function composeFullName(p: {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+}): string {
+  return [p.firstName, p.middleName, p.lastName]
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(" ");
+}
