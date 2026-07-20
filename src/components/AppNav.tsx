@@ -76,8 +76,15 @@ export default function AppNav() {
       {/* Desktop: slim top bar (>=1024px) */}
       <header className="fixed inset-x-0 top-0 z-40 hidden border-b border-hairline bg-paper/90 backdrop-blur lg:block">
         <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between px-6 sm:px-10">
-          <Link href="/home" className="font-mono text-xs uppercase tracking-[0.16em] text-ink">
-            Altus&nbsp;Tribe
+          <Link href="/home" className="flex items-center gap-1.5 no-underline">
+            <img
+              src="/logo-dark.png"
+              alt="Altus Corp"
+              style={{ height: '22px', width: 'auto', display: 'block' }}
+            />
+            <span className="font-mono text-xs uppercase tracking-[0.16em] text-ink">
+              Tribe
+            </span>
           </Link>
           <nav className="flex items-center gap-8">
             {DESTINATIONS.map((d) => {

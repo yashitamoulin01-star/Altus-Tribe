@@ -40,6 +40,9 @@ function CoverCard({ member }: { member: MemberCover }) {
             .filter(Boolean)
             .join("  /  ")}
         </p>
+        {member.businessName && (
+          <p className="mt-2 text-[13px] text-ink-muted">{member.businessName}</p>
+        )}
         <p className="mt-3 line-clamp-2 text-[15px] leading-snug text-ink-secondary">
           {member.positioning}
         </p>
@@ -73,34 +76,54 @@ function FilterChip({
   );
 }
 
+// Distinct, sorted, non-empty values for a facet across the member set.
+function facet(members: MemberCover[], pick: (m: MemberCover) => string) {
+  return [...new Set(members.map(pick).filter(Boolean))].sort();
+}
+
 export default function ExploreGallery({ members }: { members: MemberCover[] }) {
   const [query, setQuery] = useState("");
   const [industry, setIndustry] = useState<string | null>(null);
+  const [category, setCategory] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
 
-  const industries = useMemo(
-    () => [...new Set(members.map((m) => m.industry))].sort(),
-    [members],
-  );
-  const cities = useMemo(
-    () => [...new Set(members.map((m) => m.city))].sort(),
-    [members],
-  );
+  // Distinct, sorted facet values — only render a filter row if it has options.
+  const industries = useMemo(() => facet(members, (m) => m.industry), [members]);
+  const categories = useMemo(() => facet(members, (m) => m.category), [members]);
+  const cities = useMemo(() => facet(members, (m) => m.city), [members]);
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
     return members.filter((m) => {
       if (industry && m.industry !== industry) return false;
+      if (category && m.category !== category) return false;
       if (city && m.city !== city) return false;
       if (!q) return true;
-      return [m.fullName, m.roleTitle, m.industry, m.city, m.positioning]
+      // Search across member, business/company, industry, category, location,
+      // and interests (#157–163).
+      return [
+        m.fullName,
+        m.roleTitle,
+        m.businessName,
+        m.industry,
+        m.category,
+        m.city,
+        m.interests,
+        m.positioning,
+      ]
         .join(" ")
         .toLowerCase()
         .includes(q);
     });
-  }, [members, query, industry, city]);
+  }, [members, query, industry, category, city]);
 
-  const hasFilters = query.trim() || industry || city;
+  const hasFilters = Boolean(query.trim() || industry || category || city);
+  const clearAll = () => {
+    setQuery("");
+    setIndustry(null);
+    setCategory(null);
+    setCity(null);
+  };
 
   return (
     <div>
@@ -110,36 +133,53 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search by name, industry, city…"
+          placeholder="Search by name, business, industry, interest…"
           className="w-full rounded border border-hairline bg-surface-sunk px-4 py-3.5 text-[17px] text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none focus:ring-2 focus:ring-red/40"
-          aria-label="Search members"
+          aria-label="Search members by name, business, industry, category, location, or interest"
         />
       </div>
 
-      {/* Gentle filters */}
+      {/* Gentle filters — a row only appears when it has values */}
       <div className="mt-6 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="kicker mr-1">Industry</span>
-          {industries.map((v) => (
-            <FilterChip
-              key={v}
-              label={v}
-              selected={industry === v}
-              onClick={() => setIndustry(industry === v ? null : v)}
-            />
-          ))}
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="kicker mr-1">City</span>
-          {cities.map((v) => (
-            <FilterChip
-              key={v}
-              label={v}
-              selected={city === v}
-              onClick={() => setCity(city === v ? null : v)}
-            />
-          ))}
-        </div>
+        {industries.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="kicker mr-1">Industry</span>
+            {industries.map((v) => (
+              <FilterChip
+                key={v}
+                label={v}
+                selected={industry === v}
+                onClick={() => setIndustry(industry === v ? null : v)}
+              />
+            ))}
+          </div>
+        )}
+        {categories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="kicker mr-1">Category</span>
+            {categories.map((v) => (
+              <FilterChip
+                key={v}
+                label={v}
+                selected={category === v}
+                onClick={() => setCategory(category === v ? null : v)}
+              />
+            ))}
+          </div>
+        )}
+        {cities.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="kicker mr-1">City</span>
+            {cities.map((v) => (
+              <FilterChip
+                key={v}
+                label={v}
+                selected={city === v}
+                onClick={() => setCity(city === v ? null : v)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Result count + reset */}
@@ -150,11 +190,7 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
         {hasFilters && (
           <button
             type="button"
-            onClick={() => {
-              setQuery("");
-              setIndustry(null);
-              setCity(null);
-            }}
+            onClick={clearAll}
             className="text-[14px] text-red transition-colors hover:text-red-hover"
           >
             Clear
@@ -170,9 +206,20 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
           ))}
         </div>
       ) : (
-        <p className="mt-16 pb-24 text-center text-[17px] text-ink-secondary">
-          No one matches that yet. Try a broader search.
-        </p>
+        <div className="mt-16 pb-24 text-center">
+          <p className="text-[17px] text-ink-secondary">
+            No one matches that yet.
+          </p>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="mt-3 text-[14px] text-red transition-colors hover:text-red-hover"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

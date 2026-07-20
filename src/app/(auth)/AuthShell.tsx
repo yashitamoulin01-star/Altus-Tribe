@@ -32,15 +32,12 @@ export default function AuthShell({
         <div className="px-7 py-5">
           {/* Logo header */}
           <header className="mb-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2.5 no-underline">
-              <div
-                className="w-7 h-7 flex items-center justify-center flex-shrink-0"
-                style={{ background: '#c8102e' }}
-              >
-                <svg width="14" height="12" viewBox="0 0 16 14" fill="none" aria-hidden>
-                  <path d="M8 1L15 13H1L8 1Z" fill="white" />
-                </svg>
-              </div>
+            <Link href="/" className="flex items-center gap-2 no-underline">
+              <img
+                src="/logo-dark.png"
+                alt="Altus Corp"
+                style={{ height: '28px', width: 'auto', display: 'block' }}
+              />
               <span
                 style={{
                   fontSize: '16px',
@@ -49,7 +46,7 @@ export default function AuthShell({
                   color: '#111111',
                 }}
               >
-                Altus Tribe
+                Tribe
               </span>
             </Link>
             {showClose && (

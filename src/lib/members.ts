@@ -48,6 +48,8 @@ export interface Member {
     teamSize?: string;
     website?: string;
   } | null;
+  category?: string; // business category (directory filter)
+  interests?: string; // areas of interest (directory search)
   offerings: { title: string; description?: string }[]; // What I Do
   work: { kind: WorkKind; title: string; href: string }[]; // Work
   openTo: OpenToOption[];
@@ -73,6 +75,8 @@ export const sampleMembers: Member[] = [
     city: "Mumbai",
     positioning:
       "Helping Indian manufacturers build sustainable export businesses.",
+    category: "Products",
+    interests: "Sustainability, Exports, Manufacturing, Climate",
     knownFor: "Built India's first fully compostable FMCG packaging line.",
     about:
       "Yashita left a corporate supply-chain role in 2018 to prove that sustainable packaging could be profitable, not just principled. Today GreenWrap supplies compostable packaging to FMCG brands across three continents — and she's still the person who walks the factory floor every morning.",
@@ -116,6 +120,8 @@ export const sampleMembers: Member[] = [
     city: "Bengaluru",
     positioning:
       "Making working-capital credit reach India's small merchants in minutes, not weeks.",
+    category: "Services",
+    interests: "Fintech, Credit, Startups, Financial Inclusion",
     knownFor: "Underwrote ₹500 Cr in merchant credit with a 12-person team.",
     about:
       "Arjun spent six years inside a large bank watching good businesses get turned away for want of a credit history. LedgerLoop reads a merchant's real cash flow instead of their paperwork — and approves in the time it takes to make chai.",
@@ -158,6 +164,8 @@ export const sampleMembers: Member[] = [
     city: "Pune",
     positioning:
       "Turning founder stories into brands people actually remember.",
+    category: "Services",
+    interests: "Branding, Design, Storytelling, D2C",
     knownFor: "Rebranded 40+ D2C labels; three became category leaders.",
     about:
       "Priya believes a brand is a promise kept in public. Her studio, Northlight, works only with founders who have something real to say — then makes sure the world can't look away.",
@@ -200,6 +208,8 @@ export const sampleMembers: Member[] = [
     city: "Delhi",
     positioning:
       "Getting fragile, high-value goods across India without a single scratch.",
+    category: "Solutions",
+    interests: "Logistics, Operations, Supply Chain, B2B",
     knownFor: "Cut damage-in-transit to under 0.2% across 30 cities.",
     about:
       "After watching a shipment of lab equipment arrive in pieces, Rohan built CrateRoute around one obsession: things arrive exactly as they left. It turns out a lot of businesses will pay well for that certainty.",
@@ -244,10 +254,13 @@ export interface MemberCover {
   industry: string;
   city: string;
   positioning: string;
+  businessName: string; // Search Business / Company (#158, #162)
+  category: string; // Search Category (#160)
+  interests: string; // Search Interest (#161)
 }
 
 // Pure projection Member -> MemberCover. Used by both the DB and fallback paths.
-export function toCover(m: Pick<Member, keyof MemberCover>): MemberCover {
+export function toCover(m: Member): MemberCover {
   return {
     slug: m.slug,
     fullName: m.fullName,
@@ -256,5 +269,8 @@ export function toCover(m: Pick<Member, keyof MemberCover>): MemberCover {
     industry: m.industry,
     city: m.city,
     positioning: m.positioning,
+    businessName: m.business?.name ?? "",
+    category: m.category ?? "",
+    interests: m.interests ?? "",
   };
 }

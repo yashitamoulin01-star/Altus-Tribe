@@ -261,7 +261,10 @@ export async function getAllMembers(): Promise<MemberCover[]> {
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("slug, full_name, photo_url, role_title, industry, city, positioning")
+    .select(
+      `slug, full_name, photo_url, role_title, industry, city, positioning,
+       category, areas_of_interest, businesses ( name )`,
+    )
     .eq("status", "active")
     .order("full_name");
 
@@ -273,15 +276,21 @@ export async function getAllMembers(): Promise<MemberCover[]> {
     }
     throw error;
   }
-  return (data ?? []).map((r) => ({
-    slug: r.slug,
-    fullName: r.full_name,
-    photoUrl: r.photo_url,
-    roleTitle: r.role_title ?? "",
-    industry: r.industry ?? "",
-    city: r.city ?? "",
-    positioning: r.positioning ?? "",
-  }));
+  return (data ?? []).map((r) => {
+    const biz = Array.isArray(r.businesses) ? r.businesses[0] : r.businesses;
+    return {
+      slug: r.slug,
+      fullName: r.full_name,
+      photoUrl: r.photo_url,
+      roleTitle: r.role_title ?? "",
+      industry: r.industry ?? "",
+      city: r.city ?? "",
+      positioning: r.positioning ?? "",
+      businessName: (biz as { name?: string } | null)?.name ?? "",
+      category: r.category ?? "",
+      interests: r.areas_of_interest ?? "",
+    };
+  });
 }
 
 export async function getAllMemberSlugs(): Promise<string[]> {
