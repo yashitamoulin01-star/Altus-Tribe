@@ -10,10 +10,30 @@ export type OpenToOption =
   | "speaking"
   | "hiring";
 
+// A postal address, already stripped to its non-empty display lines.
+export interface MemberAddress {
+  lines: string[]; // ordered, non-empty
+  landmark?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  mapLink?: string;
+}
+
+// Contact fields, each individually gated by field visibility (null = hidden).
+export interface MemberContact {
+  cellNo: string | null;
+  altNo: string | null;
+  workEmail: string | null;
+  personalEmail: string | null;
+}
+
 export interface Member {
   slug: string;
   fullName: string;
   photoUrl: string | null;
+  companyLogoUrl?: string | null;
   roleTitle: string; // "Founder"
   industry: string;
   city: string;
@@ -32,6 +52,13 @@ export interface Member {
   work: { kind: WorkKind; title: string; href: string }[]; // Work
   openTo: OpenToOption[];
   presence: { platform: string; url: string }[];
+  // P3 additions — populated from the DB and stripped for non-owners.
+  contact?: MemberContact;
+  addresses?: {
+    work: MemberAddress | null;
+    home: MemberAddress | null;
+    factory: MemberAddress | null;
+  };
 }
 
 // Bundled sample data — used as an offline fallback when Supabase is not

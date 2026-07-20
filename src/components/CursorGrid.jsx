@@ -36,12 +36,13 @@ const CursorGrid = ({
   const canvasRef = useRef(null);
   const propsRef = useRef({});
   const wakeRef = useRef(null);
-
-  propsRef.current = {
-    cellSize, color, radius, falloff, holdTime, fadeDuration,
-    lineWidth, maxOpacity, fillOpacity, gridOpacity, cellRadius,
-    clickPulse, pulseSpeed
-  };
+  useEffect(() => {
+    propsRef.current = {
+      cellSize, color, radius, falloff, holdTime, fadeDuration,
+      lineWidth, maxOpacity, fillOpacity, gridOpacity, cellRadius,
+      clickPulse, pulseSpeed
+    };
+  });
 
   useEffect(() => {
     const container = containerRef.current;
@@ -222,14 +223,14 @@ const CursorGrid = ({
     rebuild();
     wake();
 
-    container.addEventListener('pointermove', onPointerMove);
-    container.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerdown', onPointerDown);
 
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
-      container.removeEventListener('pointermove', onPointerMove);
-      container.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerdown', onPointerDown);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellSize]);

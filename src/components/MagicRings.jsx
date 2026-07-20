@@ -95,12 +95,14 @@ export default function MagicRings({
   const isHoveredRef = useRef(false);
   const burstRef = useRef(0);
 
-  propsRef.current = {
-    color, colorTwo, speed, ringCount, attenuation, lineThickness,
-    baseRadius, radiusStep, scaleRate, opacity, noiseAmount,
-    rotation, ringGap, fadeIn, fadeOut, followMouse, mouseInfluence,
-    hoverScale, parallax, clickBurst,
-  };
+  useEffect(() => {
+    propsRef.current = {
+      color, colorTwo, speed, ringCount, attenuation, lineThickness,
+      baseRadius, radiusStep, scaleRate, opacity, noiseAmount,
+      rotation, ringGap, fadeIn, fadeOut, followMouse, mouseInfluence,
+      hoverScale, parallax, clickBurst,
+    };
+  });
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -167,8 +169,8 @@ export default function MagicRings({
       const rect = mount.getBoundingClientRect();
       mouseRef.current[0] = (e.clientX - rect.left) / rect.width - 0.5;
       mouseRef.current[1] = -((e.clientY - rect.top) / rect.height - 0.5);
+      isHoveredRef.current = true;
     };
-    const onMouseEnter = () => { isHoveredRef.current = true; };
     const onMouseLeave = () => {
       isHoveredRef.current = false;
       mouseRef.current[0] = 0;
@@ -176,10 +178,9 @@ export default function MagicRings({
     };
     const onClick = () => { burstRef.current = 1; };
 
-    mount.addEventListener('mousemove', onMouseMove);
-    mount.addEventListener('mouseenter', onMouseEnter);
-    mount.addEventListener('mouseleave', onMouseLeave);
-    mount.addEventListener('click', onClick);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseleave', onMouseLeave);
+    window.addEventListener('click', onClick);
 
     let frameId;
     const animate = (t) => {
@@ -222,10 +223,9 @@ export default function MagicRings({
       cancelAnimationFrame(frameId);
       window.removeEventListener('resize', resize);
       ro.disconnect();
-      mount.removeEventListener('mousemove', onMouseMove);
-      mount.removeEventListener('mouseenter', onMouseEnter);
-      mount.removeEventListener('mouseleave', onMouseLeave);
-      mount.removeEventListener('click', onClick);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseleave', onMouseLeave);
+      window.removeEventListener('click', onClick);
       if (mount.contains(renderer.domElement)) mount.removeChild(renderer.domElement);
       renderer.dispose();
       material.dispose();

@@ -15,6 +15,30 @@ export interface EditableAddress {
   mapLink: string;
 }
 
+// Portfolio attachment (max 5). File-based kinds (brochure/image) carry a
+// storage `filePath`; link-based kinds (video/case_study) carry a `url`.
+export type AttachmentKind = "brochure" | "video" | "image" | "case_study";
+
+export interface EditableAttachment {
+  kind: AttachmentKind;
+  title: string;
+  url: string; // external link (video / case_study)
+  filePath: string; // storage path in work-files bucket (brochure / image)
+}
+
+export const MAX_ATTACHMENTS = 5;
+
+export const ATTACHMENT_KIND_LABELS: Record<AttachmentKind, string> = {
+  brochure: "Brochure",
+  video: "Video",
+  image: "Image",
+  case_study: "Case study",
+};
+
+// Kinds whose content lives in storage (a file) vs. an external URL.
+export const isFileKind = (k: AttachmentKind) =>
+  k === "brochure" || k === "image";
+
 export interface EditableProfile {
   // Identity
   firstName: string;
@@ -30,8 +54,15 @@ export interface EditableProfile {
   altNo: string;
   workEmail: string;
   personalEmail: string;
-  // Work address
+  // Addresses
   workAddress: EditableAddress;
+  homeAddress: EditableAddress;
+  factoryAddress: EditableAddress;
+  // Media
+  photoUrl: string;
+  companyLogoUrl: string;
+  // Portfolio (max 5)
+  attachments: EditableAttachment[];
   // Headline / narrative
   positioning: string;
   knownFor: string;
@@ -97,6 +128,11 @@ export const emptyEditable: EditableProfile = {
   workEmail: "",
   personalEmail: "",
   workAddress: { ...emptyAddress },
+  homeAddress: { ...emptyAddress },
+  factoryAddress: { ...emptyAddress },
+  photoUrl: "",
+  companyLogoUrl: "",
+  attachments: [],
   positioning: "",
   knownFor: "",
   about: "",
@@ -138,6 +174,8 @@ export const VISIBILITY_FIELDS: { key: string; label: string }[] = [
   { key: "work_email", label: "Work email" },
   { key: "personal_email", label: "Personal email" },
   { key: "work_address", label: "Work address" },
+  { key: "home_address", label: "Home address" },
+  { key: "factory_address", label: "Factory address" },
   { key: "linkedin", label: "LinkedIn" },
   { key: "business_instagram", label: "Business Instagram" },
   { key: "personal_instagram", label: "Personal Instagram" },

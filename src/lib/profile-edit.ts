@@ -2,6 +2,8 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import {
   emptyEditable,
+  type AttachmentKind,
+  type EditableAddress,
   type EditableProfile,
   type FieldVisibility,
 } from "@/lib/profile-fields";
@@ -10,6 +12,7 @@ export interface EditableState {
   data: EditableProfile;
   visibility: FieldVisibility;
   slug: string | null;
+  userId: string;
 }
 
 export interface Taxonomies {
@@ -18,6 +21,36 @@ export interface Taxonomies {
 }
 
 const str = (v: unknown) => (typeof v === "string" ? v : "");
+
+type AddressRow = {
+  kind: string;
+  line1: string | null;
+  line2: string | null;
+  line3: string | null;
+  line4: string | null;
+  landmark: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  pincode: string | null;
+  map_link: string | null;
+};
+
+// Map a raw addresses row (or undefined) to the editable shape.
+function toAddress(a: AddressRow | undefined): EditableAddress {
+  return {
+    line1: str(a?.line1),
+    line2: str(a?.line2),
+    line3: str(a?.line3),
+    line4: str(a?.line4),
+    landmark: str(a?.landmark),
+    city: str(a?.city),
+    state: str(a?.state),
+    country: str(a?.country),
+    pincode: str(a?.pincode),
+    mapLink: str(a?.map_link),
+  };
+}
 
 // Loads the signed-in member's full editable profile. null when unconfigured
 // or signed out.
@@ -30,29 +63,38 @@ export async function loadEditable(): Promise<EditableState | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [{ data: p }, { data: biz }, { data: expertiseRows }, { data: addr }] =
-    await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-      supabase
-        .from("businesses")
-        .select("*")
-        .eq("profile_id", user.id)
-        .maybeSingle(),
-      supabase
-        .from("expertise")
-        .select("label, sort_order")
-        .eq("profile_id", user.id)
-        .order("sort_order"),
-      supabase
-        .from("addresses")
-        .select("*")
-        .eq("profile_id", user.id)
-        .eq("kind", "work")
-        .maybeSingle(),
-    ]);
+  const [
+    { data: p },
+    { data: biz },
+    { data: expertiseRows },
+    { data: addrRows },
+    { data: workRows },
+  ] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    supabase
+      .from("businesses")
+      .select("*")
+      .eq("profile_id", user.id)
+      .maybeSingle(),
+    supabase
+      .from("expertise")
+      .select("label, sort_order")
+      .eq("profile_id", user.id)
+      .order("sort_order"),
+    supabase.from("addresses").select("*").eq("profile_id", user.id),
+    supabase
+      .from("work_items")
+      .select("kind, title, external_url, file_path, sort_order")
+      .eq("profile_id", user.id)
+      .order("sort_order"),
+  ]);
+
+  const addrByKind = new Map(
+    ((addrRows ?? []) as AddressRow[]).map((a) => [a.kind, a]),
+  );
 
   if (!p) {
-    return { data: { ...emptyEditable }, visibility: {}, slug: null };
+    return { data: { ...emptyEditable }, visibility: {}, slug: null, userId: user.id };
   }
 
   const data: EditableProfile = {
@@ -68,18 +110,17 @@ export async function loadEditable(): Promise<EditableState | null> {
     altNo: str(p.alt_no),
     workEmail: str(p.work_email),
     personalEmail: str(p.personal_email),
-    workAddress: {
-      line1: str(addr?.line1),
-      line2: str(addr?.line2),
-      line3: str(addr?.line3),
-      line4: str(addr?.line4),
-      landmark: str(addr?.landmark),
-      city: str(addr?.city),
-      state: str(addr?.state),
-      country: str(addr?.country),
-      pincode: str(addr?.pincode),
-      mapLink: str(addr?.map_link),
-    },
+    workAddress: toAddress(addrByKind.get("work")),
+    homeAddress: toAddress(addrByKind.get("home")),
+    factoryAddress: toAddress(addrByKind.get("factory")),
+    photoUrl: str(p.photo_url),
+    companyLogoUrl: str(p.company_logo_url),
+    attachments: (workRows ?? []).map((w) => ({
+      kind: (w.kind as AttachmentKind) ?? "brochure",
+      title: str(w.title),
+      url: str(w.external_url),
+      filePath: str(w.file_path),
+    })),
     positioning: str(p.positioning),
     knownFor: str(p.known_for),
     about: str(p.about),
@@ -118,7 +159,7 @@ export async function loadEditable(): Promise<EditableState | null> {
       ? (p.field_visibility as FieldVisibility)
       : {};
 
-  return { data, visibility, slug: str(p.slug) || null };
+  return { data, visibility, slug: str(p.slug) || null, userId: user.id };
 }
 
 export async function getTaxonomies(): Promise<Taxonomies> {

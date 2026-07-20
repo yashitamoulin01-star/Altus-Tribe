@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMember, getAllMemberSlugs } from "@/lib/members-data";
-import { type Member } from "@/lib/members";
+import { type Member, type MemberAddress } from "@/lib/members";
 
 export async function generateStaticParams() {
   return (await getAllMemberSlugs()).map((slug) => ({ slug }));
@@ -40,6 +40,30 @@ function Section({
         </div>
       </div>
     </section>
+  );
+}
+
+/* One postal address rendered as stacked lines + a maps link. */
+function AddressCard({ address }: { address: MemberAddress }) {
+  const cityLine = [address.city, address.state, address.pincode]
+    .filter(Boolean)
+    .join(", ");
+  return (
+    <div className="text-[16px] leading-relaxed text-ink-secondary">
+      {address.lines.map((l, i) => (
+        <p key={i}>{l}</p>
+      ))}
+      {cityLine && <p>{cityLine}</p>}
+      {address.country && <p>{address.country}</p>}
+      {address.mapLink && (
+        <a
+          href={address.mapLink}
+          className="mt-2 inline-block text-[14px] text-red transition-colors hover:text-red-hover"
+        >
+          View on map →
+        </a>
+      )}
+    </div>
   );
 }
 
@@ -86,7 +110,17 @@ function MemberFeature({ member }: { member: Member }) {
       label: "Business",
       node: (
         <div>
-          <p className="text-xl text-ink">{b.name}</p>
+          <div className="flex items-center gap-3">
+            {member.companyLogoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={member.companyLogoUrl}
+                alt={`${b.name} logo`}
+                className="h-10 w-10 shrink-0 rounded object-contain"
+              />
+            )}
+            <p className="text-xl text-ink">{b.name}</p>
+          </div>
           <p className="mt-1 text-[15px] text-ink-muted">
             {[b.foundedYear && `Founded ${b.foundedYear}`, b.teamSize]
               .filter(Boolean)
@@ -160,6 +194,63 @@ function MemberFeature({ member }: { member: Member }) {
               <span className="text-positive">✔</span>{" "}
               {OPEN_TO_LABELS[o] ?? o}
             </span>
+          ))}
+        </div>
+      ),
+    });
+  }
+
+  // Contact — only the fields that survived visibility stripping.
+  const contact = member.contact;
+  const contactRows = contact
+    ? ([
+        ["Cell", contact.cellNo, (v: string) => `tel:${v}`],
+        ["Alt", contact.altNo, (v: string) => `tel:${v}`],
+        ["Work email", contact.workEmail, (v: string) => `mailto:${v}`],
+        ["Personal email", contact.personalEmail, (v: string) => `mailto:${v}`],
+      ] as const).filter(([, v]) => Boolean(v))
+    : [];
+  if (contactRows.length) {
+    sections.push({
+      label: "Contact",
+      node: (
+        <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+          {contactRows.map(([label, value, href]) => (
+            <div key={label}>
+              <dt className="kicker mb-1">{label}</dt>
+              <dd>
+                <a
+                  href={href(value as string)}
+                  className="text-[17px] text-ink transition-colors hover:text-red"
+                >
+                  {value}
+                </a>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ),
+    });
+  }
+
+  // Locations — work / home / factory, each already gated in the data layer.
+  const addressBlocks = (
+    [
+      ["Work", member.addresses?.work],
+      ["Home", member.addresses?.home],
+      ["Factory", member.addresses?.factory],
+    ] as const
+  ).filter(([, a]) => Boolean(a));
+  if (addressBlocks.length) {
+    sections.push({
+      label: "Locations",
+      node: (
+        <div className="grid gap-8 sm:grid-cols-2">
+          {addressBlocks.map(([label, a]) => (
+            <div key={label}>
+              <p className="kicker mb-2">{label}</p>
+              <AddressCard address={a as MemberAddress} />
+            </div>
           ))}
         </div>
       ),

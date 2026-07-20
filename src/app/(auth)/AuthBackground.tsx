@@ -13,10 +13,7 @@ export default function AuthBackground() {
   return (
     <>
       {/* MagicRings — atmospheric depth */}
-      <div
-        className="absolute inset-0 z-0 pointer-events-none"
-        style={{ opacity: 0.16 }}
-      >
+      <div className="absolute inset-0 z-0 pointer-events-none">
         <MagicRings
           color="#b3122b"
           colorTwo="#5f5f5f"
@@ -48,9 +45,9 @@ export default function AuthBackground() {
           holdTime={350}
           fadeDuration={900}
           lineWidth={1}
-          maxOpacity={0.32}
-          fillOpacity={0.04}
-          gridOpacity={0.04}
+          maxOpacity={0.6}
+          fillOpacity={0.08}
+          gridOpacity={0.08}
           cellRadius={2}
           clickPulse={true}
           pulseSpeed={550}

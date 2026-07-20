@@ -14,6 +14,7 @@ export default async function EditPage() {
       initial={state?.data ?? emptyEditable}
       initialVisibility={state?.visibility ?? {}}
       slug={state?.slug ?? null}
+      userId={state?.userId ?? null}
       industries={taxonomies.industry}
       categories={taxonomies.category}
       configured={configured}

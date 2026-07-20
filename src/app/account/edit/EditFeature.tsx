@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { saveProfile } from "./actions";
+import { uploadFile } from "@/lib/storage-client";
 import {
+  ATTACHMENT_KIND_LABELS,
   composeFullName,
   isFieldVisible,
+  isFileKind,
+  MAX_ATTACHMENTS,
   validateField,
+  type AttachmentKind,
+  type EditableAddress,
+  type EditableAttachment,
   type EditableProfile,
   type FieldVisibility,
 } from "@/lib/profile-fields";
@@ -159,12 +166,201 @@ function Section({
   );
 }
 
+// A full postal address block (used for work / home / factory).
+function AddressBlock({
+  value,
+  onChange,
+  visOn,
+  onToggleVis,
+}: {
+  value: EditableAddress;
+  onChange: (k: keyof EditableAddress, v: string) => void;
+  visOn: boolean;
+  onToggleVis: () => void;
+}) {
+  return (
+    <>
+      <div className="mb-1 flex justify-end">
+        <EyeToggle on={visOn} onClick={onToggleVis} />
+      </div>
+      <input className={fieldCls} placeholder="Unit / Floor / Plot" value={value.line1} onChange={(e) => onChange("line1", e.target.value)} />
+      <input className={fieldCls} placeholder="Building name" value={value.line2} onChange={(e) => onChange("line2", e.target.value)} />
+      <input className={fieldCls} placeholder="Street / Road" value={value.line3} onChange={(e) => onChange("line3", e.target.value)} />
+      <input className={fieldCls} placeholder="Area / Sector" value={value.line4} onChange={(e) => onChange("line4", e.target.value)} />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <input className={fieldCls} placeholder="Landmark" value={value.landmark} onChange={(e) => onChange("landmark", e.target.value)} />
+        <input className={fieldCls} placeholder="City" value={value.city} onChange={(e) => onChange("city", e.target.value)} />
+        <input className={fieldCls} placeholder="State" value={value.state} onChange={(e) => onChange("state", e.target.value)} />
+        <input className={fieldCls} placeholder="Country" value={value.country} onChange={(e) => onChange("country", e.target.value)} />
+        <input className={fieldCls} placeholder="Pincode" value={value.pincode} onChange={(e) => onChange("pincode", e.target.value.replace(/[^0-9]/g, ""))} />
+        <input className={fieldCls} placeholder="Google Maps link" value={value.mapLink} onChange={(e) => onChange("mapLink", e.target.value)} />
+      </div>
+    </>
+  );
+}
+
+// A single image upload tile (member photo / company logo). Falls back to a
+// URL field when storage isn't configured, so the composer works offline.
+function ImageUpload({
+  label,
+  value,
+  onChange,
+  onUpload,
+  configured,
+  aspect,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onUpload: (file: File) => Promise<void>;
+  configured: boolean;
+  aspect: string;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      await onUpload(file);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div>
+      <span className={labelCls + " mb-1.5 block"}>{label}</span>
+      <div className="flex items-start gap-4">
+        <div className={`${aspect} w-20 shrink-0 overflow-hidden rounded border border-hairline bg-surface-sunk`}>
+          {value ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={value} alt="" className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-mono text-[10px] text-ink-muted">
+              none
+            </div>
+          )}
+        </div>
+        <div className="flex-1 space-y-2">
+          {configured ? (
+            <>
+              <input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => pick(e.target.files?.[0])}
+              />
+              <button
+                type="button"
+                onClick={() => inputRef.current?.click()}
+                disabled={busy}
+                className="rounded border border-hairline px-3 py-1.5 text-[13px] text-ink transition-colors hover:border-ink-muted disabled:opacity-60"
+              >
+                {busy ? "Uploading…" : value ? "Replace" : "Upload"}
+              </button>
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => onChange("")}
+                  className="ml-2 text-[13px] text-ink-muted transition-colors hover:text-red"
+                >
+                  Remove
+                </button>
+              )}
+              {err && <p className="text-[13px] text-red">{err}</p>}
+            </>
+          ) : (
+            <input
+              className={fieldCls}
+              placeholder="https://…/image.jpg"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Upload control for a file-based portfolio attachment (brochure / image).
+// The stored value is a private storage path, so we show its status, not a link.
+function AttachmentFile({
+  filePath,
+  onUpload,
+  onClear,
+}: {
+  filePath: string;
+  onUpload: (file: File) => Promise<void>;
+  onClear: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setErr(null);
+    setBusy(true);
+    try {
+      await onUpload(file);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Upload failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,application/pdf"
+        className="hidden"
+        onChange={(e) => pick(e.target.files?.[0])}
+      />
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          className="rounded border border-hairline px-3 py-1.5 text-[13px] text-ink transition-colors hover:border-ink-muted disabled:opacity-60"
+        >
+          {busy ? "Uploading…" : filePath ? "Replace file" : "Upload file"}
+        </button>
+        {filePath && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-[13px] text-ink-muted transition-colors hover:text-red"
+          >
+            Remove
+          </button>
+        )}
+      </div>
+      {filePath && (
+        <p className="truncate font-mono text-[11px] text-positive">✓ {filePath}</p>
+      )}
+      {err && <p className="text-[13px] text-red">{err}</p>}
+    </div>
+  );
+}
+
 // --- The composer ---------------------------------------------------------
 
 export default function EditFeature({
   initial,
   initialVisibility,
   slug,
+  userId,
   industries,
   categories,
   configured,
@@ -172,6 +368,7 @@ export default function EditFeature({
   initial: EditableProfile;
   initialVisibility: FieldVisibility;
   slug: string | null;
+  userId: string | null;
   industries: string[];
   categories: string[];
   configured: boolean;
@@ -186,14 +383,50 @@ export default function EditFeature({
     setD((p) => ({ ...p, [k]: v }));
     setStatus("idle");
   };
-  const setAddr = (k: keyof EditableProfile["workAddress"], v: string) => {
-    setD((p) => ({ ...p, workAddress: { ...p.workAddress, [k]: v } }));
+  const setAddr = (
+    which: "workAddress" | "homeAddress" | "factoryAddress",
+    k: keyof EditableAddress,
+    v: string,
+  ) => {
+    setD((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
     setStatus("idle");
   };
+  const toggleVis = (key: string) =>
+    setVis((v) => ({ ...v, [key]: !isFieldVisible(v, key) }));
   const visProps = (key: string) => ({
     visOn: isFieldVisible(vis, key),
-    onToggleVis: () => setVis((v) => ({ ...v, [key]: !isFieldVisible(v, key) })),
+    onToggleVis: () => toggleVis(key),
   });
+
+  // Attachments (max 5) ----------------------------------------------------
+  const addAttachment = () => {
+    if (d.attachments.length >= MAX_ATTACHMENTS) return;
+    set("attachments", [
+      ...d.attachments,
+      { kind: "brochure", title: "", url: "", filePath: "" },
+    ]);
+  };
+  const updateAttachment = (i: number, patch: Partial<EditableAttachment>) =>
+    set(
+      "attachments",
+      d.attachments.map((a, idx) => (idx === i ? { ...a, ...patch } : a)),
+    );
+  const removeAttachment = (i: number) =>
+    set("attachments", d.attachments.filter((_, idx) => idx !== i));
+
+  // Storage uploads --------------------------------------------------------
+  const uploadImage = async (field: "photoUrl" | "companyLogoUrl", file: File) => {
+    if (!userId) throw new Error("Not signed in.");
+    const r = await uploadFile("member-photos", userId, file);
+    if (!r.ok) throw new Error(r.error);
+    set(field, r.publicUrl ?? "");
+  };
+  const uploadAttachment = async (i: number, file: File) => {
+    if (!userId) throw new Error("Not signed in.");
+    const r = await uploadFile("work-files", userId, file);
+    if (!r.ok) throw new Error(r.error);
+    updateAttachment(i, { filePath: r.path });
+  };
 
   const save = () =>
     start(async () => {
@@ -206,7 +439,6 @@ export default function EditFeature({
     });
 
   const fullName = composeFullName(d) || "Your name";
-  const addr = d.workAddress;
 
   return (
     <main className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-10 sm:px-10">
@@ -258,6 +490,27 @@ export default function EditFeature({
             <TextField label="Brand names (comma separated)" value={d.brandNames} onChange={(v) => set("brandNames", v)} />
           </Section>
 
+          <Section title="Photo & logo" note={configured ? "JPG or PNG. Stored securely." : "Paste image URLs — connect Supabase to upload."}>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <ImageUpload
+                label="Member photo"
+                value={d.photoUrl}
+                onChange={(v) => set("photoUrl", v)}
+                onUpload={(f) => uploadImage("photoUrl", f)}
+                configured={configured}
+                aspect="aspect-[4/5]"
+              />
+              <ImageUpload
+                label="Company logo"
+                value={d.companyLogoUrl}
+                onChange={(v) => set("companyLogoUrl", v)}
+                onUpload={(f) => uploadImage("companyLogoUrl", f)}
+                configured={configured}
+                aspect="aspect-square"
+              />
+            </div>
+          </Section>
+
           <Section title="Contact" note="Each field has a show/hide toggle.">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextField label="Cell number" value={d.cellNo} onChange={(v) => set("cellNo", v)} placeholder="10-digit" error={validateField("cellNo", d.cellNo)} {...visProps("cell_no")} />
@@ -268,21 +521,30 @@ export default function EditFeature({
           </Section>
 
           <Section title="Work address" note="Shown or hidden as one block.">
-            <div className="mb-1 flex justify-end">
-              <EyeToggle on={isFieldVisible(vis, "work_address")} onClick={visProps("work_address").onToggleVis} />
-            </div>
-            <input className={fieldCls} placeholder="Unit / Floor / Plot" value={addr.line1} onChange={(e) => setAddr("line1", e.target.value)} />
-            <input className={fieldCls} placeholder="Building name" value={addr.line2} onChange={(e) => setAddr("line2", e.target.value)} />
-            <input className={fieldCls} placeholder="Street / Road" value={addr.line3} onChange={(e) => setAddr("line3", e.target.value)} />
-            <input className={fieldCls} placeholder="Area / Sector" value={addr.line4} onChange={(e) => setAddr("line4", e.target.value)} />
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <input className={fieldCls} placeholder="Landmark" value={addr.landmark} onChange={(e) => setAddr("landmark", e.target.value)} />
-              <input className={fieldCls} placeholder="City" value={addr.city} onChange={(e) => setAddr("city", e.target.value)} />
-              <input className={fieldCls} placeholder="State" value={addr.state} onChange={(e) => setAddr("state", e.target.value)} />
-              <input className={fieldCls} placeholder="Country" value={addr.country} onChange={(e) => setAddr("country", e.target.value)} />
-              <input className={fieldCls} placeholder="Pincode" value={addr.pincode} onChange={(e) => setAddr("pincode", e.target.value.replace(/[^0-9]/g, ""))} />
-              <input className={fieldCls} placeholder="Google Maps link" value={addr.mapLink} onChange={(e) => setAddr("mapLink", e.target.value)} />
-            </div>
+            <AddressBlock
+              value={d.workAddress}
+              onChange={(k, v) => setAddr("workAddress", k, v)}
+              visOn={isFieldVisible(vis, "work_address")}
+              onToggleVis={() => toggleVis("work_address")}
+            />
+          </Section>
+
+          <Section title="Home address" note="Optional. Shown or hidden as one block.">
+            <AddressBlock
+              value={d.homeAddress}
+              onChange={(k, v) => setAddr("homeAddress", k, v)}
+              visOn={isFieldVisible(vis, "home_address")}
+              onToggleVis={() => toggleVis("home_address")}
+            />
+          </Section>
+
+          <Section title="Factory address" note="Optional. Shown or hidden as one block.">
+            <AddressBlock
+              value={d.factoryAddress}
+              onChange={(k, v) => setAddr("factoryAddress", k, v)}
+              visOn={isFieldVisible(vis, "factory_address")}
+              onToggleVis={() => toggleVis("factory_address")}
+            />
           </Section>
 
           <Section title="Headline">
@@ -301,6 +563,88 @@ export default function EditFeature({
             <TextField label="Company website" value={d.companyWebsite} onChange={(v) => set("companyWebsite", v)} placeholder="www.example.com" error={validateField("companyWebsite", d.companyWebsite)} />
             <AreaField label="Nature of business" value={d.natureOfBusiness} onChange={(v) => set("natureOfBusiness", v)} />
             <AreaField label="Biggest USP" value={d.usp} onChange={(v) => set("usp", v)} />
+          </Section>
+
+          <Section
+            title="Portfolio"
+            note={`Brochures, videos, case studies — up to ${MAX_ATTACHMENTS}.`}
+          >
+            <div className="space-y-4">
+              {d.attachments.map((a, i) => (
+                <div key={i} className="rounded border border-hairline p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <select
+                      className={fieldCls + " max-w-[160px]"}
+                      value={a.kind}
+                      onChange={(e) =>
+                        updateAttachment(i, {
+                          kind: e.target.value as AttachmentKind,
+                          // switching between file/link kinds clears the stale field
+                          url: "",
+                          filePath: "",
+                        })
+                      }
+                    >
+                      {(Object.keys(ATTACHMENT_KIND_LABELS) as AttachmentKind[]).map((k) => (
+                        <option key={k} value={k}>
+                          {ATTACHMENT_KIND_LABELS[k]}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => removeAttachment(i)}
+                      className="text-[13px] text-ink-muted transition-colors hover:text-red"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <TextField
+                    label="Title"
+                    value={a.title}
+                    onChange={(v) => updateAttachment(i, { title: v })}
+                    placeholder="Company brochure"
+                  />
+                  {isFileKind(a.kind) ? (
+                    <div className="mt-3">
+                      <span className={labelCls + " mb-1.5 block"}>File</span>
+                      {configured ? (
+                        <AttachmentFile
+                          filePath={a.filePath}
+                          onUpload={(f) => uploadAttachment(i, f)}
+                          onClear={() => updateAttachment(i, { filePath: "" })}
+                        />
+                      ) : (
+                        <input
+                          className={fieldCls}
+                          placeholder="Storage path or URL"
+                          value={a.filePath}
+                          onChange={(e) => updateAttachment(i, { filePath: e.target.value })}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="mt-3">
+                      <TextField
+                        label="Link"
+                        value={a.url}
+                        onChange={(v) => updateAttachment(i, { url: v })}
+                        placeholder="https://…"
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            {d.attachments.length < MAX_ATTACHMENTS && (
+              <button
+                type="button"
+                onClick={addAttachment}
+                className="mt-1 rounded border border-dashed border-hairline px-4 py-2.5 text-[14px] text-ink-muted transition-colors hover:border-ink-muted hover:text-ink"
+              >
+                + Add attachment
+              </button>
+            )}
           </Section>
 
           <Section title="Expertise" note="Comma separated.">

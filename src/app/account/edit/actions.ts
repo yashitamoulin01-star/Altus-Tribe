@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   capsName,
   composeFullName,
+  isFileKind,
+  type EditableAddress,
   type EditableProfile,
   type FieldVisibility,
 } from "@/lib/profile-fields";
@@ -56,6 +58,8 @@ export async function saveProfile(
       known_for: clean(d.knownFor),
       about: clean(d.about),
       company_website: clean(d.companyWebsite),
+      photo_url: clean(d.photoUrl),
+      company_logo_url: clean(d.companyLogoUrl),
       nature_of_business: clean(d.natureOfBusiness),
       usp: clean(d.usp),
       linkedin_url: clean(d.linkedin),
@@ -94,28 +98,68 @@ export async function saveProfile(
   });
   if (bErr) return { ok: false, error: bErr.message };
 
-  // Work address (1 per kind)
-  const a = d.workAddress;
-  const hasAddress = Object.values(a).some((v) => v.trim().length > 0);
-  if (hasAddress) {
-    const { error: aErr } = await supabase.from("addresses").upsert(
-      {
-        profile_id: user.id,
-        kind: "work",
-        line1: clean(a.line1),
-        line2: clean(a.line2),
-        line3: clean(a.line3),
-        line4: clean(a.line4),
-        landmark: clean(a.landmark),
-        city: clean(a.city),
-        state: clean(a.state),
-        country: clean(a.country),
-        pincode: clean(a.pincode),
-        map_link: clean(a.mapLink),
-      },
-      { onConflict: "profile_id,kind" },
-    );
+  // Addresses (one row per kind). Upsert when it has content, delete when cleared.
+  const saveAddress = async (kind: "work" | "home" | "factory", a: EditableAddress) => {
+    const hasContent = Object.values(a).some((v) => v.trim().length > 0);
+    if (hasContent) {
+      return supabase.from("addresses").upsert(
+        {
+          profile_id: user.id,
+          kind,
+          line1: clean(a.line1),
+          line2: clean(a.line2),
+          line3: clean(a.line3),
+          line4: clean(a.line4),
+          landmark: clean(a.landmark),
+          city: clean(a.city),
+          state: clean(a.state),
+          country: clean(a.country),
+          pincode: clean(a.pincode),
+          map_link: clean(a.mapLink),
+        },
+        { onConflict: "profile_id,kind" },
+      );
+    }
+    return supabase
+      .from("addresses")
+      .delete()
+      .eq("profile_id", user.id)
+      .eq("kind", kind);
+  };
+
+  for (const [kind, a] of [
+    ["work", d.workAddress],
+    ["home", d.homeAddress],
+    ["factory", d.factoryAddress],
+  ] as const) {
+    const { error: aErr } = await saveAddress(kind, a);
     if (aErr) return { ok: false, error: aErr.message };
+  }
+
+  // Portfolio attachments (replace-all into work_items, max enforced client-side)
+  const { error: wDelErr } = await supabase
+    .from("work_items")
+    .delete()
+    .eq("profile_id", user.id);
+  if (wDelErr) return { ok: false, error: wDelErr.message };
+
+  const attachments = d.attachments
+    .filter((w) =>
+      isFileKind(w.kind) ? w.filePath.trim() : w.url.trim(),
+    )
+    .slice(0, 5);
+  if (attachments.length) {
+    const { error: wInsErr } = await supabase.from("work_items").insert(
+      attachments.map((w, i) => ({
+        profile_id: user.id,
+        kind: w.kind,
+        title: clean(w.title),
+        external_url: isFileKind(w.kind) ? null : clean(w.url),
+        file_path: isFileKind(w.kind) ? clean(w.filePath) : null,
+        sort_order: i,
+      })),
+    );
+    if (wInsErr) return { ok: false, error: wInsErr.message };
   }
 
   // Expertise (replace-all)
