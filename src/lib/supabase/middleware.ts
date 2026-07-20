@@ -10,6 +10,10 @@ const PROTECTED_PREFIXES = [
   "/sacred-space",
   "/account",
   "/onboarding",
+  "/messages",
+  "/notifications",
+  "/settings",
+  "/admin", // role additionally enforced in the /admin layout
 ];
 
 function isProtected(pathname: string) {

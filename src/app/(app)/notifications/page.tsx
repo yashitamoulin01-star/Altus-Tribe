@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getNotifications } from "@/lib/notifications";
 import { markAllRead } from "./actions";
+import NotificationsClient from "./NotificationsClient";
 
 export const metadata = { title: "Notifications — Altus Tribe" };
 
@@ -53,49 +54,7 @@ export default async function NotificationsPage() {
           You&apos;re all caught up.
         </p>
       ) : (
-        <ul className="divide-y divide-hairline">
-          {items.map((n) => {
-            const Row = (
-              <div
-                className={`flex gap-4 py-5 ${n.read ? "" : "-mx-4 rounded bg-surface-sunk px-4"}`}
-              >
-                <span
-                  aria-hidden
-                  className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline font-mono text-[13px] text-ink-muted"
-                >
-                  {GLYPH[n.kind] ?? "•"}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-[15px] font-medium text-ink">{n.title}</p>
-                    <span className="shrink-0 font-mono text-[11px] text-ink-muted">
-                      {relTime(n.createdAt)}
-                    </span>
-                  </div>
-                  {n.body && (
-                    <p className="mt-1 text-[14px] leading-relaxed text-ink-secondary">
-                      {n.body}
-                    </p>
-                  )}
-                </div>
-                {!n.read && (
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red" aria-label="unread" />
-                )}
-              </div>
-            );
-            return (
-              <li key={n.id}>
-                {n.link ? (
-                  <Link href={n.link} className="block transition-colors hover:opacity-80">
-                    {Row}
-                  </Link>
-                ) : (
-                  Row
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        <NotificationsClient items={items} />
       )}
 
       <div className="border-t border-hairline py-8">

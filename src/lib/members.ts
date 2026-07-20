@@ -30,6 +30,7 @@ export interface MemberContact {
 }
 
 export interface Member {
+  id?: string; // profile UUID — present from the DB; used to start a direct message
   slug: string;
   fullName: string;
   photoUrl: string | null;

@@ -19,7 +19,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         <label
           htmlFor="email"
           className={labelClass}
-          style={{ color: focusedField === 'email' ? '#c8102e' : undefined }}
+          style={{ color: focusedField === 'email' ? 'rgba(255,255,255,0.9)' : undefined }}
         >
           Business Email
         </label>
@@ -34,7 +34,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
           onBlur={() => setFocusedField(null)}
           className={fieldClass}
           style={{
-            borderColor: focusedField === 'email' ? '#111111' : undefined,
+            borderColor: focusedField === 'email' ? 'rgba(255,255,255,0.6)' : undefined,
           }}
         />
       </div>
@@ -44,7 +44,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         <label
           htmlFor="password"
           className={labelClass}
-          style={{ color: focusedField === 'password' ? '#c8102e' : undefined }}
+          style={{ color: focusedField === 'password' ? 'rgba(255,255,255,0.9)' : undefined }}
         >
           Password
         </label>
@@ -61,7 +61,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
             className={fieldClass}
             style={{
               paddingRight: '44px',
-              borderColor: focusedField === 'password' ? '#111111' : undefined,
+              borderColor: focusedField === 'password' ? 'rgba(255,255,255,0.6)' : undefined,
             }}
           />
           <button
@@ -77,7 +77,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
               border: 'none',
               cursor: 'pointer',
               padding: 0,
-              color: '#9a9a9a',
+              color: 'rgba(255,255,255,0.45)',
               display: 'flex',
               alignItems: 'center',
             }}
@@ -102,11 +102,11 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
             style={{
               fontSize: '12px',
               fontWeight: 500,
-              color: '#5f5f5f',
+              color: 'rgba(255,255,255,0.5)',
               textDecoration: 'none',
             }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#c8102e')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#5f5f5f')}
+            onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
           >
             Forgot Password?
           </a>

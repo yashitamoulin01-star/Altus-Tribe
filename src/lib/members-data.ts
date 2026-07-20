@@ -186,6 +186,7 @@ async function rowToMember(
     show(key) ? toDisplayAddress(addrByKind.get(kind)) : null;
 
   return {
+    id: row.id,
     slug: row.slug,
     fullName: row.full_name,
     photoUrl: row.photo_url,

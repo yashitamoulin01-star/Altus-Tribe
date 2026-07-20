@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getAnnouncements } from "@/lib/community";
 
 export const metadata = { title: "Sacred Space — Altus Tribe" };
@@ -22,6 +23,12 @@ export default async function SacredSpacePage() {
         <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
           Announcements and notes from the leader of the Tribe.
         </p>
+        <Link
+          href="/messages"
+          className="mt-6 inline-block rounded bg-red px-6 py-3 text-[15px] font-medium text-paper transition-colors hover:bg-red-hover"
+        >
+          Chat with Manan / Team →
+        </Link>
       </header>
 
       <div className="divide-y divide-hairline">

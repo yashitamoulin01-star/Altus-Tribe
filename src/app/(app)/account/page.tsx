@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getUser, isAuthConfigured } from "@/lib/auth";
+import { getAdminContext } from "@/lib/admin";
 import { signOut } from "../../(auth)/actions";
 
 // Protected landing after sign-in. Middleware redirects unauthenticated users
@@ -7,6 +8,7 @@ import { signOut } from "../../(auth)/actions";
 export default async function AccountPage() {
   const configured = isAuthConfigured();
   const user = await getUser();
+  const admin = await getAdminContext();
 
   return (
     <main className="mx-auto w-full max-w-[640px] flex-1 px-6 py-16 sm:px-10">
@@ -66,13 +68,22 @@ export default async function AccountPage() {
           {/* Menu items (#134, #135) */}
           <nav className="mt-10 divide-y divide-hairline border-t border-hairline">
             {[
+              ...(admin.canAccess
+                ? [
+                    {
+                      href: "/admin" as const,
+                      label: "Admin panel",
+                      hint: "Roster, consultants, import, exports, private CRM.",
+                    },
+                  ]
+                : []),
               {
-                href: "/refer",
+                href: "/refer" as const,
                 label: "Refer Someone",
                 hint: "Invite a productive peer into the Tribe.",
               },
               {
-                href: "/settings/notifications",
+                href: "/settings/notifications" as const,
                 label: "Notification Settings",
                 hint: "Choose what reaches you.",
               },

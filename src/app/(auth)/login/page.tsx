@@ -20,14 +20,8 @@ export default async function LoginPage({
       title="Welcome to the Tribe."
       subtitle="Enter your credentials to access the ecosystem of Indian entrepreneurs."
       footer={
-        <div className="flex flex-col gap-2">
-          <p
-            style={{
-              fontSize: '12px',
-              color: '#5f5f5f',
-              textAlign: 'center',
-            }}
-          >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
             New to the community?
           </p>
           <Link
@@ -37,16 +31,16 @@ export default async function LoginPage({
               alignItems: 'center',
               justifyContent: 'center',
               width: '100%',
-              height: '36px',
-              border: '1px solid #111111',
+              height: '44px',
+              border: '1px solid rgba(255,255,255,0.3)',
               borderRadius: '2px',
               fontSize: '13px',
               fontWeight: 600,
-              color: '#111111',
+              color: '#ffffff',
               textDecoration: 'none',
-              transition: 'background 180ms ease, color 180ms ease',
+              transition: 'background 180ms ease, border-color 180ms ease',
+              backdropFilter: 'blur(8px)',
             }}
-            onMouseEnter={undefined}
           >
             Request Membership
           </Link>
@@ -68,7 +62,7 @@ export default async function LoginPage({
           Check your email to confirm your account, then sign in.
         </p>
       )}
-      <LoginForm redirectTo={redirect ?? '/account'} />
+      <LoginForm redirectTo={redirect ?? '/home'} />
     </AuthShell>
   );
 }

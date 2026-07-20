@@ -657,12 +657,16 @@ export default function EditFeature({
             />
           </Section>
 
-          <Section title="Presence">
+          <Section title="Presence" note="Add your social handles or paste full URLs. Each has a show/hide toggle.">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <TextField label="LinkedIn" value={d.linkedin} onChange={(v) => set("linkedin", v)} {...visProps("linkedin")} />
+              <TextField label="LinkedIn" value={d.linkedin} onChange={(v) => set("linkedin", v)} placeholder="linkedin.com/in/yourname" {...visProps("linkedin")} />
+              <TextField label="GitHub" value={d.github ?? ''} onChange={(v) => set("github" as any, v)} placeholder="github.com/yourname" />
               <TextField label="Business Instagram" value={d.businessInstagram} onChange={(v) => set("businessInstagram", v)} {...visProps("business_instagram")} />
               <TextField label="Personal Instagram" value={d.personalInstagram} onChange={(v) => set("personalInstagram", v)} {...visProps("personal_instagram")} />
               <TextField label="YouTube" value={d.youtube} onChange={(v) => set("youtube", v)} />
+              <TextField label="Telegram handle / link" value={d.telegram ?? ''} onChange={(v) => set("telegram" as any, v)} placeholder="t.me/yourhandle" />
+              <TextField label="WhatsApp number or link" value={d.whatsappLink ?? ''} onChange={(v) => set("whatsappLink" as any, v)} placeholder="+91 XXXXXXXXXX or wa.me/91…" {...visProps("whatsapp")} />
+              <TextField label="Other link (portfolio / Calendly / etc.)" value={d.customLink ?? ''} onChange={(v) => set("customLink" as any, v)} placeholder="https://…" />
               <TextField label="Best time to connect" value={d.bestTime} onChange={(v) => set("bestTime", v)} placeholder="10am–7pm Mon–Fri" />
             </div>
             <label className="mt-2 flex items-center justify-between">

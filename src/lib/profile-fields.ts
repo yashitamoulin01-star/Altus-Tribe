@@ -79,9 +79,13 @@ export interface EditableProfile {
   expertise: string[];
   // Presence
   linkedin: string;
+  github: string;
   businessInstagram: string;
   personalInstagram: string;
   youtube: string;
+  telegram: string;
+  whatsappLink: string;
+  customLink: string;
   whatsappDm: boolean;
   bestTime: string;
   // Personal
@@ -145,9 +149,13 @@ export const emptyEditable: EditableProfile = {
   usp: "",
   expertise: [],
   linkedin: "",
+  github: "",
   businessInstagram: "",
   personalInstagram: "",
   youtube: "",
+  telegram: "",
+  whatsappLink: "",
+  customLink: "",
   whatsappDm: false,
   bestTime: "",
   birthDate: "",

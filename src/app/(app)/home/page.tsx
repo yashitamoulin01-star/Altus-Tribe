@@ -4,6 +4,8 @@ import { getAllMembers } from "@/lib/members-data";
 import { composeFullName } from "@/lib/profile-fields";
 import { getUnreadCount } from "@/lib/notifications";
 import ShareButtons from "@/components/ShareButtons";
+import MagicBento from "@/components/MagicBento";
+import CircularGallery from "@/components/CircularGallery";
 
 export const metadata = { title: "Tribe — Altus Tribe" };
 
@@ -133,6 +135,31 @@ export default async function HomePage() {
         </section>
       )}
 
+      {/* Tribe Tools — MagicBento quick-access grid */}
+      <section className="py-10">
+        <div className="mb-5">
+          <p className="kicker mb-2">Tribe Tools</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.015em] text-ink">Your Ecosystem.</h2>
+        </div>
+        <MagicBento
+          glowColor="176, 30, 40"
+          enableTilt={false}
+          enableStars
+          enableSpotlight
+          enableBorderGlow
+          enableMagnetism
+          clickEffect
+          cardData={[
+            { color: '#111111', title: 'My Feature', description: 'Edit and preview your profile card', label: 'Identity', href: '/account/edit' },
+            { color: '#111111', title: 'Explore', description: 'Discover all tribe members', label: 'Network', href: '/explore' },
+            { color: '#0f0f0f', title: 'The Pulse', description: 'Feed, posts, and announcements', label: 'Community', href: '/pulse' },
+            { color: '#111111', title: 'Notifications', description: 'Stay on top of connections', label: 'Updates', href: '/notifications' },
+            { color: '#0f0f0f', title: 'Account', description: 'Settings, privacy and security', label: 'Settings', href: '/account' },
+            { color: '#111111', title: 'Tribe Chat', description: 'Conversations with the circle', label: 'Messages', href: '/chat' },
+          ]}
+        />
+      </section>
+
       {/* Gateway: Explore the Tribe */}
       <section className="py-12">
         <div className="flex items-end justify-between">
@@ -181,6 +208,32 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* Media & Highlights Gallery */}
+      <section className="py-12 border-t border-hairline">
+        <div className="mb-8">
+          <p className="kicker mb-2">Highlights</p>
+          <h2 className="text-2xl font-semibold tracking-[-0.015em] text-ink">
+            Moments from the Tribe.
+          </h2>
+        </div>
+        <div className="w-full overflow-hidden rounded border border-hairline bg-[#0a0a0a]" style={{ height: '500px', position: 'relative' }}>
+          <CircularGallery
+            bend={3}
+            textColor="#ffffff"
+            borderRadius={0.05}
+            scrollEase={0.02}
+            font="bold 28px sans-serif"
+            items={[
+              { image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32b7?q=80&w=1024&auto=format&fit=crop', text: 'Networking' },
+              { image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1024&auto=format&fit=crop', text: 'Conclaves' },
+              { image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1024&auto=format&fit=crop', text: 'Masterclasses' },
+              { image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=1024&auto=format&fit=crop', text: 'Boardrooms' },
+              { image: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?q=80&w=1024&auto=format&fit=crop', text: 'Summits' },
+            ]}
+          />
+        </div>
       </section>
     </main>
   );

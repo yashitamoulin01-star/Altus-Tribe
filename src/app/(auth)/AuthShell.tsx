@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
-// Premium card shell for every auth screen.
-// Sits on top of AuthBackground (MagicRings + CursorGrid).
+// Premium dark-glass card for every auth screen.
+// Sits over the WebGL noise shader (AuthBackground).
 export default function AuthShell({
   kicker,
   title,
@@ -18,143 +18,108 @@ export default function AuthShell({
   showClose?: boolean;
 }) {
   return (
-    <div className="w-full max-w-[420px] flex flex-col items-center">
-      {/* Card */}
-      <div
-        className="w-full"
-        style={{
-          background: '#ffffff',
-          borderRadius: '2px',
-          boxShadow:
-            '0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.05)',
-        }}
-      >
-        <div className="px-7 py-5">
-          {/* Logo header — dominant brand mark */}
-          <header className="mb-6 flex flex-col items-center relative">
-            {showClose && (
-              <Link
-                href="/login"
-                aria-label="Close"
-                style={{ position: 'absolute', top: 0, right: 0, color: '#9a9a9a', fontSize: '18px', lineHeight: 1 }}
-              >
-                ✕
-              </Link>
-            )}
-            <Link href="/" className="flex flex-col items-center gap-1.5 no-underline">
-              <img
-                src="/logo-dark.png"
-                alt="Altus Corp"
-                style={{ height: '64px', width: 'auto', display: 'block' }}
-              />
-              <span
-                style={{
-                  fontFamily: 'var(--font-geist-mono, monospace)',
-                  fontSize: '10px',
-                  fontWeight: 700,
-                  letterSpacing: '0.22em',
-                  textTransform: 'uppercase',
-                  color: '#9a9a9a',
-                }}
-              >
-                Tribe
-              </span>
-            </Link>
-          </header>
+    <div style={{
+      width: '100%',
+      maxWidth: '400px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+    }}>
+      {/* Logo — hero mark with red glow */}
+      <header style={{ marginBottom: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', width: '100%' }}>
+        {showClose && (
+          <Link href="/login" aria-label="Close" style={{ position: 'absolute', top: 0, right: 0, color: 'rgba(255,255,255,0.45)', fontSize: '20px', lineHeight: 1 }}>✕</Link>
+        )}
+        <Link href="/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
+          <img
+            src="/logo-light.png"
+            alt="Altus Corp"
+            style={{
+              height: '80px',
+              width: 'auto',
+              display: 'block',
+              filter: [
+                'drop-shadow(0 0 18px rgba(183,16,42,0.95))',
+                'drop-shadow(0 0 40px rgba(183,16,42,0.55))',
+                'drop-shadow(0 0 80px rgba(183,16,42,0.25))',
+                'drop-shadow(0 8px 24px rgba(0,0,0,0.9))',
+              ].join(' '),
+            }}
+          />
+          <span style={{
+            fontFamily: 'var(--font-geist-mono, monospace)',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.32em',
+            textTransform: 'uppercase',
+            color: 'rgba(255,255,255,0.55)',
+          }}>
+            Tribe
+          </span>
+        </Link>
+      </header>
 
-          {/* Title block */}
-          <section className="mb-4">
-            <p className="kicker mb-1.5">{kicker}</p>
-            <h1
-              style={{
-                fontSize: '21px',
-                fontWeight: 700,
-                lineHeight: 1.15,
-                letterSpacing: '-0.02em',
-                color: '#111111',
-                marginBottom: subtitle ? '5px' : 0,
-              }}
-            >
-              {title}
-            </h1>
-            {subtitle && (
-              <p
-                style={{
-                  fontSize: '13px',
-                  lineHeight: 1.5,
-                  color: '#5f5f5f',
-                  maxWidth: '300px',
-                }}
-              >
-                {subtitle}
-              </p>
-            )}
-          </section>
+      {/* Title */}
+      <section style={{ marginBottom: '24px', textAlign: 'center' }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+          {kicker}
+        </p>
+        <h1 style={{ fontSize: '26px', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em', color: '#ffffff', marginBottom: subtitle ? '8px' : 0 }}>
+          {title}
+        </h1>
+        {subtitle && (
+          <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', maxWidth: '280px', margin: '0 auto' }}>
+            {subtitle}
+          </p>
+        )}
+      </section>
 
-          {/* Form content */}
-          <div>{children}</div>
-
-          {/* Footer */}
-          {footer && (
-            <div
-              style={{
-                marginTop: '14px',
-                paddingTop: '14px',
-                borderTop: '1px solid #e4e4e2',
-              }}
-            >
-              {footer}
-            </div>
-          )}
-        </div>
+      {/* Glassmorphic form panel */}
+      <div style={{
+        width: '100%',
+        background: 'rgba(255,255,255,0.07)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: '4px',
+        padding: '28px',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+      }}>
+        {children}
       </div>
 
-      {/* Verified badge — sits below the card */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '7px',
-          marginTop: '14px',
-        }}
-      >
-        <span
-          style={{
-            width: '5px',
-            height: '5px',
-            borderRadius: '50%',
-            background: '#c8102e',
-            flexShrink: 0,
-            animation: 'pulse-dot 2s ease-in-out infinite',
-          }}
-        />
-        <span
-          style={{
-            fontFamily: 'var(--font-geist-mono), monospace',
-            fontSize: '10px',
-            fontWeight: 600,
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: '#9a9a9a',
-          }}
-        >
+      {/* Footer (Request Membership, etc.) */}
+      {footer && (
+        <div style={{ width: '100%', marginTop: '16px' }}>
+          {footer}
+        </div>
+      )}
+
+      {/* Verified Community badge */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '24px' }}>
+        <span style={{
+          width: '6px', height: '6px', borderRadius: '50%',
+          background: '#b7102a', flexShrink: 0,
+          animation: 'pulse-dot 2s ease-in-out infinite',
+        }} />
+        <span style={{
+          fontFamily: 'var(--font-geist-mono, monospace)',
+          fontSize: '10px', fontWeight: 600,
+          letterSpacing: '0.18em', textTransform: 'uppercase',
+          color: 'rgba(255,255,255,0.35)',
+        }}>
           Verified Community
         </span>
       </div>
 
-      <style>{`
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; }
-          50%       { opacity: 0.25; }
-        }
-      `}</style>
+      <style>{`@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:0.2}}`}</style>
     </div>
   );
 }
 
-// Shared field + label styles for auth forms
+// Shared input styles — white-on-dark glassmorphic
 export const fieldClass =
-  'w-full h-10 px-3.5 border border-[#e4e4e2] rounded-[2px] text-[14px] text-[#111111] placeholder:text-[#9a9a9a] bg-white outline-none transition-[border-color] duration-150 focus:border-[#111111]';
+  'w-full h-12 px-4 bg-white/10 border border-white/20 rounded-[2px] text-[14px] text-white placeholder:text-white/35 outline-none transition-all duration-200 focus:border-white/60 focus:bg-white/15';
 
 export const labelClass =
-  'mb-1 block text-[10px] font-semibold uppercase tracking-[0.1em] text-[#9a9a9a]';
+  'mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60';

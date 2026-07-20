@@ -2,7 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMember, getAllMemberSlugs } from "@/lib/members-data";
 import { type Member, type MemberAddress } from "@/lib/members";
+import { getUser } from "@/lib/auth";
 import ShareButtons from "@/components/ShareButtons";
+import MessageMemberButton from "@/components/MessageMemberButton";
 
 export async function generateStaticParams() {
   return (await getAllMemberSlugs()).map((slug) => ({ slug }));
@@ -68,7 +70,13 @@ function AddressCard({ address }: { address: MemberAddress }) {
   );
 }
 
-function MemberFeature({ member }: { member: Member }) {
+function MemberFeature({
+  member,
+  canMessage,
+}: {
+  member: Member;
+  canMessage: boolean;
+}) {
   // Build the list of sections that actually have content, then number them.
   const sections: { label: string; node: React.ReactNode }[] = [];
 
@@ -317,14 +325,17 @@ function MemberFeature({ member }: { member: Member }) {
         </Section>
       ))}
 
-      {/* Connect — the one red CTA */}
+      {/* Connect — the one red CTA (+ Message for signed-in members) */}
       <div className="border-t border-hairline py-14">
-        <a
-          href={member.presence.find((p) => p.platform === "Email")?.url ?? "#"}
-          className="inline-block rounded bg-red px-7 py-3.5 text-[16px] font-medium text-paper transition-colors duration-150 hover:bg-red-hover"
-        >
-          Connect →
-        </a>
+        <div className="flex flex-wrap items-center gap-3">
+          <a
+            href={member.presence.find((p) => p.platform === "Email")?.url ?? "#"}
+            className="inline-block rounded bg-red px-7 py-3.5 text-[16px] font-medium text-paper transition-colors duration-150 hover:bg-red-hover"
+          >
+            Connect →
+          </a>
+          {canMessage && <MessageMemberButton profileId={member.id} />}
+        </div>
         <p className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[15px] text-ink-muted">
           {member.presence.map((p) => (
             <a
@@ -349,7 +360,8 @@ function MemberFeature({ member }: { member: Member }) {
 
 export default async function Page({ params }: PageProps<"/m/[slug]">) {
   const { slug } = await params;
-  const member = await getMember(slug);
+  const [member, viewer] = await Promise.all([getMember(slug), getUser()]);
   if (!member) notFound();
-  return <MemberFeature member={member} />;
+  const canMessage = Boolean(viewer && member.id && viewer.id !== member.id);
+  return <MemberFeature member={member} canMessage={canMessage} />;
 }
