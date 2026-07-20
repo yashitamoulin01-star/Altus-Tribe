@@ -30,34 +30,36 @@ export default function AuthShell({
         }}
       >
         <div className="px-7 py-5">
-          {/* Logo header */}
-          <header className="mb-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 no-underline">
+          {/* Logo header — dominant brand mark */}
+          <header className="mb-6 flex flex-col items-center relative">
+            {showClose && (
+              <Link
+                href="/login"
+                aria-label="Close"
+                style={{ position: 'absolute', top: 0, right: 0, color: '#9a9a9a', fontSize: '18px', lineHeight: 1 }}
+              >
+                ✕
+              </Link>
+            )}
+            <Link href="/" className="flex flex-col items-center gap-1.5 no-underline">
               <img
                 src="/logo-dark.png"
                 alt="Altus Corp"
-                style={{ height: '28px', width: 'auto', display: 'block' }}
+                style={{ height: '64px', width: 'auto', display: 'block' }}
               />
               <span
                 style={{
-                  fontSize: '16px',
+                  fontFamily: 'var(--font-geist-mono, monospace)',
+                  fontSize: '10px',
                   fontWeight: 700,
-                  letterSpacing: '-0.025em',
-                  color: '#111111',
+                  letterSpacing: '0.22em',
+                  textTransform: 'uppercase',
+                  color: '#9a9a9a',
                 }}
               >
                 Tribe
               </span>
             </Link>
-            {showClose && (
-              <Link
-                href="/login"
-                aria-label="Close"
-                style={{ color: '#9a9a9a', fontSize: '18px', lineHeight: 1 }}
-              >
-                ✕
-              </Link>
-            )}
           </header>
 
           {/* Title block */}

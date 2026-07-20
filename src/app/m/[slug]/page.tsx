@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMember, getAllMemberSlugs } from "@/lib/members-data";
 import { type Member, type MemberAddress } from "@/lib/members";
+import ShareButtons from "@/components/ShareButtons";
 
 export async function generateStaticParams() {
   return (await getAllMemberSlugs()).map((slug) => ({ slug }));
@@ -266,7 +267,7 @@ function MemberFeature({ member }: { member: Member }) {
   return (
     <main className="mx-auto w-full max-w-[900px] px-6 sm:px-10">
       {/* Minimal top bar — one red affordance */}
-      <nav className="flex items-center justify-between py-6">
+      <nav className="print-hide flex items-center justify-between py-6">
         <Link
           href="/"
           className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
@@ -335,6 +336,12 @@ function MemberFeature({ member }: { member: Member }) {
             </a>
           ))}
         </p>
+      </div>
+
+      {/* Share this feature — WhatsApp / Email / copy link / Download PDF (#105–107) */}
+      <div className="print-hide border-t border-hairline py-10">
+        <p className="kicker mb-3">Share this feature</p>
+        <ShareButtons slug={member.slug} name={member.fullName} showPdf />
       </div>
     </main>
   );

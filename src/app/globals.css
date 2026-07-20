@@ -55,3 +55,14 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Download-PDF path (window.print): drop app chrome and interactive-only
+   affordances so the printed feature reads as a clean document (#105). */
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+}

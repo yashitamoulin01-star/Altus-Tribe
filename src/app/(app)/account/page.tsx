@@ -62,6 +62,40 @@ export default async function AccountPage() {
               </button>
             </form>
           </div>
+
+          {/* Menu items (#134, #135) */}
+          <nav className="mt-10 divide-y divide-hairline border-t border-hairline">
+            {[
+              {
+                href: "/refer",
+                label: "Refer Someone",
+                hint: "Invite a productive peer into the Tribe.",
+              },
+              {
+                href: "/settings/notifications",
+                label: "Notification Settings",
+                hint: "Choose what reaches you.",
+              },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex items-center justify-between gap-4 py-4 transition-colors"
+              >
+                <span>
+                  <span className="block text-[16px] text-ink transition-colors group-hover:text-red">
+                    {item.label}
+                  </span>
+                  <span className="mt-0.5 block text-[14px] text-ink-muted">
+                    {item.hint}
+                  </span>
+                </span>
+                <span className="font-mono text-ink-muted transition-transform group-hover:translate-x-0.5">
+                  →
+                </span>
+              </Link>
+            ))}
+          </nav>
         </>
       ) : (
         <p className="mt-5 text-[16px] text-ink-secondary">
