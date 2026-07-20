@@ -1,9 +1,11 @@
 import Link from "next/link";
+import { getPrefs } from "@/lib/notifications";
 import NotificationSettings from "./NotificationSettings";
 
 export const metadata = { title: "Notification Settings — Altus Tribe" };
 
-export default function NotificationSettingsPage() {
+export default async function NotificationSettingsPage() {
+  const prefs = await getPrefs();
   return (
     <main className="mx-auto w-full max-w-[640px] px-6 pt-8 sm:px-10">
       <nav className="mb-8">
@@ -26,12 +28,12 @@ export default function NotificationSettingsPage() {
       </header>
 
       <div className="pt-4">
-        <NotificationSettings />
+        <NotificationSettings initial={prefs} />
       </div>
 
       <p className="mt-6 rounded border border-hairline bg-surface-sunk px-4 py-3 text-[14px] leading-relaxed text-ink-muted">
-        Delivery to your device (push notifications) turns on in a coming update.
-        Your choices here will carry over.
+        Your choices save automatically. Push delivery to this device can be
+        enabled from the notification prompt when your browser supports it.
       </p>
     </main>
   );

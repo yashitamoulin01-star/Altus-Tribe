@@ -64,13 +64,21 @@ function Toggle({
   );
 }
 
-export default function NotificationSettings() {
-  const [state, setState] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(PREFS.map((p) => [p.key, p.defaultOn])),
-  );
+export default function NotificationSettings({
+  initial,
+}: {
+  initial: NotificationPrefs;
+}) {
+  const [state, setState] = useState<NotificationPrefs>(initial);
+  const [, startTransition] = useTransition();
 
-  const toggle = (key: string) =>
-    setState((s) => ({ ...s, [key]: !s[key] }));
+  const toggle = (key: keyof NotificationPrefs) => {
+    const next = { ...state, [key]: !state[key] };
+    setState(next);
+    startTransition(() => {
+      void savePrefs(next);
+    });
+  };
 
   return (
     <div className="divide-y divide-hairline">

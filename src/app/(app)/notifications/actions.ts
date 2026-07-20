@@ -7,13 +7,13 @@ import type { NotificationPrefs } from "@/lib/notifications";
 // Notification server actions (docs/11). Persist prefs, mark read, register push.
 // All no-op safely when Supabase is unconfigured/unmigrated.
 
-export async function markAllRead(): Promise<{ ok: boolean }> {
+export async function markAllRead(): Promise<void> {
   const supabase = await createClient();
-  if (!supabase) return { ok: false };
+  if (!supabase) return;
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false };
+  if (!user) return;
 
   await supabase
     .from("notifications")
@@ -22,7 +22,6 @@ export async function markAllRead(): Promise<{ ok: boolean }> {
     .is("read_at", null);
 
   revalidatePath("/notifications");
-  return { ok: true };
 }
 
 export async function savePrefs(prefs: NotificationPrefs): Promise<{ ok: boolean }> {

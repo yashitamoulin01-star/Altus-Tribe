@@ -2,6 +2,7 @@ import Link from "next/link";
 import { loadEditable } from "@/lib/profile-edit";
 import { getAllMembers } from "@/lib/members-data";
 import { composeFullName } from "@/lib/profile-fields";
+import { getUnreadCount } from "@/lib/notifications";
 import ShareButtons from "@/components/ShareButtons";
 
 export const metadata = { title: "Tribe — Altus Tribe" };
@@ -16,7 +17,11 @@ function initialsOf(name: string) {
 }
 
 export default async function HomePage() {
-  const [state, members] = await Promise.all([loadEditable(), getAllMembers()]);
+  const [state, members, unread] = await Promise.all([
+    loadEditable(),
+    getAllMembers(),
+    getUnreadCount(),
+  ]);
   const d = state?.data;
   const slug = state?.slug ?? null;
   const fullName = d ? composeFullName(d) : "";
@@ -35,14 +40,19 @@ export default async function HomePage() {
       <div className="flex items-center justify-between">
         <p className="kicker">Tribe</p>
         <Link
-          href="/sacred-space"
-          aria-label="Announcements"
-          className="rounded-full p-2 text-ink-muted transition-colors hover:text-ink"
+          href="/notifications"
+          aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+          className="relative rounded-full p-2 text-ink-muted transition-colors hover:text-ink"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
             <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.7 21a2 2 0 0 1-3.4 0" />
           </svg>
+          {unread > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[10px] font-medium text-paper">
+              {unread > 9 ? "9+" : unread}
+            </span>
+          )}
         </Link>
       </div>
 
