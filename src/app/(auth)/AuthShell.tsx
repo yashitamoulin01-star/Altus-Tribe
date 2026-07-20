@@ -32,18 +32,13 @@ export default function AuthShell({
         )}
         <Link href="/" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
           <img
-            src="/logo-light.png"
+            src="/logo-dark.png"
             alt="Altus Corp"
             style={{
               height: '80px',
               width: 'auto',
               display: 'block',
-              filter: [
-                'drop-shadow(0 0 18px rgba(183,16,42,0.95))',
-                'drop-shadow(0 0 40px rgba(183,16,42,0.55))',
-                'drop-shadow(0 0 80px rgba(183,16,42,0.25))',
-                'drop-shadow(0 8px 24px rgba(0,0,0,0.9))',
-              ].join(' '),
+              filter: 'drop-shadow(0 4px 12px rgba(183,16,42,0.4))',
             }}
           />
           <span style={{
@@ -52,38 +47,34 @@ export default function AuthShell({
             fontWeight: 700,
             letterSpacing: '0.32em',
             textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.55)',
+            color: '#111111',
           }}>
             Tribe
           </span>
         </Link>
       </header>
 
-      {/* Title */}
       <section style={{ marginBottom: '24px', textAlign: 'center' }}>
-        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>
+        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#5f5f5f', marginBottom: '8px' }}>
           {kicker}
         </p>
-        <h1 style={{ fontSize: '26px', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em', color: '#ffffff', marginBottom: subtitle ? '8px' : 0 }}>
+        <h1 style={{ fontSize: '26px', fontWeight: 700, lineHeight: 1.15, letterSpacing: '-0.02em', color: '#111111', marginBottom: subtitle ? '8px' : 0 }}>
           {title}
         </h1>
         {subtitle && (
-          <p style={{ fontSize: '14px', lineHeight: 1.6, color: 'rgba(255,255,255,0.55)', maxWidth: '280px', margin: '0 auto' }}>
+          <p style={{ fontSize: '14px', lineHeight: 1.6, color: '#5f5f5f', maxWidth: '280px', margin: '0 auto' }}>
             {subtitle}
           </p>
         )}
       </section>
 
-      {/* Glassmorphic form panel */}
       <div style={{
         width: '100%',
-        background: 'rgba(255,255,255,0.07)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(255,255,255,0.12)',
+        background: '#ffffff',
+        border: '1px solid #e1e3e4',
         borderRadius: '4px',
         padding: '28px',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
       }}>
         {children}
       </div>
@@ -106,7 +97,7 @@ export default function AuthShell({
           fontFamily: 'var(--font-geist-mono, monospace)',
           fontSize: '10px', fontWeight: 600,
           letterSpacing: '0.18em', textTransform: 'uppercase',
-          color: 'rgba(255,255,255,0.35)',
+          color: '#9a9a9a',
         }}>
           Verified Community
         </span>
@@ -117,9 +108,8 @@ export default function AuthShell({
   );
 }
 
-// Shared input styles — white-on-dark glassmorphic
 export const fieldClass =
-  'w-full h-12 px-4 bg-white/10 border border-white/20 rounded-[2px] text-[14px] text-white placeholder:text-white/35 outline-none transition-all duration-200 focus:border-white/60 focus:bg-white/15';
+  'w-full h-12 px-4 bg-[#fcfdfc] border border-[#e1e3e4] rounded-[2px] text-[14px] text-[#111111] placeholder:text-[#9a9a9a] outline-none transition-all duration-200 focus:border-[#111111] focus:bg-white';
 
 export const labelClass =
-  'mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/60';
+  'mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.14em] text-[#5f5f5f]';
