@@ -1,9 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-// Routes that require an authenticated session. The splash, public member
-// features, and the auth screens themselves stay open.
-const PROTECTED_PREFIXES = ["/account", "/onboarding"];
+// Routes that require an authenticated session — the member "worlds". The
+// splash, public member features (/m/*), and the auth screens stay open.
+const PROTECTED_PREFIXES = [
+  "/home",
+  "/explore",
+  "/campus",
+  "/sacred-space",
+  "/account",
+  "/onboarding",
+];
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some(

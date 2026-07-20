@@ -71,9 +71,9 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
   };
 }
 
-// Where to send a user after auth: onboarding until done, then account.
+// Where to send a user after auth: onboarding until done, then the Tribe home.
 export async function getPostAuthRedirect(): Promise<string> {
   const state = await loadOnboarding();
-  if (!state) return "/account";
-  return state.completed ? "/account" : "/onboarding";
+  if (!state) return "/home";
+  return state.completed ? "/home" : "/onboarding";
 }

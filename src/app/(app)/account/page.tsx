@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getUser, isAuthConfigured } from "@/lib/auth";
-import { signOut } from "../(auth)/actions";
+import { signOut } from "../../(auth)/actions";
 
 // Protected landing after sign-in. Middleware redirects unauthenticated users
 // to /login; this page also degrades gracefully when auth isn't configured.
