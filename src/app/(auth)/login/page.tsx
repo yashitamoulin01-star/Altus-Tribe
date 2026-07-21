@@ -2,6 +2,7 @@ import Link from 'next/link';
 import AuthShell from '../AuthShell';
 import LoginForm from './LoginForm';
 import ResendConfirmation from '../ResendConfirmation';
+import OAuthButtons from '../OAuthButtons';
 
 export const metadata = {
   title: 'Sign In — Altus Tribe',
@@ -11,9 +12,9 @@ export const metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string; check_email?: string; email?: string }>;
+  searchParams: Promise<{ redirect?: string; check_email?: string; email?: string; error?: string }>;
 }) {
-  const { redirect, check_email, email } = await searchParams;
+  const { redirect, check_email, email, error } = await searchParams;
 
   return (
     <AuthShell
@@ -35,6 +36,12 @@ export default async function LoginPage({
       }
     >
       {check_email && <ResendConfirmation email={email} />}
+      {error === 'oauth' && (
+        <p style={{ marginBottom: '16px', fontSize: '13px', color: '#c8102e' }}>
+          Social sign-in didn&apos;t complete. Please try again or use your email.
+        </p>
+      )}
+      <OAuthButtons />
       <LoginForm redirectTo={redirect ?? '/home'} />
     </AuthShell>
   );

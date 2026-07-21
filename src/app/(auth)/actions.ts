@@ -12,6 +12,7 @@ import {
   fieldErrorsFrom,
   type FieldErrors,
 } from "@/lib/validation/auth";
+import { OAUTH_PROVIDERS, type OAuthProvider } from "./oauth-providers";
 
 export type AuthState = {
   error?: string;
@@ -195,4 +196,27 @@ export async function signOut(): Promise<void> {
   const supabase = await createClient();
   if (supabase) await supabase.auth.signOut();
   redirect("/login");
+}
+
+// Kicks off a social sign-in. Providers must be enabled in Supabase → Auth →
+// Providers. Returns a provider URL we redirect the browser to;
+// the provider sends the user back to /auth/callback?code=… which the callback
+// route exchanges for a session (PKCE — the code-verifier cookie is set here and
+// read there). New users get a `pending` profile via the trigger, so OAuth can't
+// bypass the invitation-only gate.
+export async function signInWithProvider(formData: FormData): Promise<void> {
+  const supabase = await createClient();
+  if (!supabase) redirect("/login?error=oauth");
+
+  const provider = String(formData.get("provider") ?? "");
+  if (!OAUTH_PROVIDERS.includes(provider as OAuthProvider)) {
+    redirect("/login?error=oauth");
+  }
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: provider as OAuthProvider,
+    options: { redirectTo: `${await siteOrigin()}/auth/callback` },
+  });
+  if (error || !data?.url) redirect("/login?error=oauth");
+  redirect(data.url);
 }

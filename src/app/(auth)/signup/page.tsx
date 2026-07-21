@@ -2,6 +2,7 @@ import Link from "next/link";
 import AuthShell from "../AuthShell";
 import SignupForm from "./SignupForm";
 import ConclaveCountdown from "../ConclaveCountdown";
+import OAuthButtons from "../OAuthButtons";
 
 export default function SignupPage() {
   return (
@@ -20,6 +21,7 @@ export default function SignupPage() {
       }
     >
       <ConclaveCountdown />
+      <OAuthButtons />
       <SignupForm />
     </AuthShell>
   );
