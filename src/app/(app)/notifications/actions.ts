@@ -26,6 +26,25 @@ export async function markAllRead(): Promise<void> {
   revalidatePath("/notifications");
 }
 
+export async function markRead(id: string): Promise<void> {
+  const supabase = await createClient();
+  if (!supabase) return;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("id", id)
+    .eq("recipient_id", user.id)
+    .is("read_at", null);
+  if (error) logError("markRead", error, { userId: user.id });
+
+  revalidatePath("/notifications");
+}
+
 export async function savePrefs(prefs: NotificationPrefs): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   if (!supabase) return { ok: false };

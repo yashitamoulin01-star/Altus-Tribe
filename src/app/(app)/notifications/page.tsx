@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { getNotifications } from "@/lib/notifications";
+import { createClient } from "@/lib/supabase/server";
 import { markAllRead } from "./actions";
 import NotificationsClient from "./NotificationsClient";
 
 export const metadata = { title: "Notifications — Altus Tribe" };
 
 export default async function NotificationsPage() {
-  const items = await getNotifications();
+  const [items, supabase] = await Promise.all([getNotifications(), createClient()]);
+  const userId =
+    (await supabase?.auth.getUser())?.data.user?.id ?? null;
   const hasUnread = items.some((n) => !n.read);
 
   return (
@@ -30,13 +33,7 @@ export default async function NotificationsPage() {
         )}
       </header>
 
-      {items.length === 0 ? (
-        <p className="py-16 text-center text-[17px] text-ink-secondary">
-          You&apos;re all caught up.
-        </p>
-      ) : (
-        <NotificationsClient items={items} />
-      )}
+      <NotificationsClient items={items} userId={userId} />
 
       <div className="border-t border-hairline py-8">
         <Link
