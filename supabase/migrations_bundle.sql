@@ -797,3 +797,95 @@ alter publication supabase_realtime add table notifications;
 
 alter type member_status add value if not exists 'inactive';
 
+
+-- ============================================================
+-- 20260721000008_fix_profile_autocreate.sql
+-- ============================================================
+-- Permanent fix for "no profiles row created on signup": re-attach the
+-- on_auth_user_created trigger, harden handle_new_user so a failure logs instead
+-- of blocking auth, ensure supabase_auth_admin can execute it, and backfill any
+-- existing auth users that have no profile. Idempotent + data-preserving.
+
+create or replace function public.generate_profile_slug(base text)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  root      text;
+  candidate text;
+  n         int := 1;
+begin
+  root := regexp_replace(lower(coalesce(nullif(trim(base), ''), 'member')),
+                         '[^a-z0-9]+', '-', 'g');
+  root := trim(both '-' from root);
+  if root = '' then root := 'member'; end if;
+
+  candidate := root;
+  while exists (select 1 from public.profiles where slug = candidate) loop
+    n := n + 1;
+    candidate := root || '-' || n;
+  end loop;
+  return candidate;
+end;
+$$;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  display_name text;
+begin
+  display_name := coalesce(
+    nullif(trim(new.raw_user_meta_data->>'full_name'), ''),
+    split_part(new.email, '@', 1),
+    'Member'
+  );
+
+  insert into public.profiles (id, slug, full_name)
+  values (new.id, public.generate_profile_slug(display_name), display_name)
+  on conflict (id) do nothing;
+
+  return new;
+exception
+  when others then
+    raise warning 'handle_new_user failed for auth user %: % (SQLSTATE %)',
+      new.id, sqlerrm, sqlstate;
+    return new;
+end;
+$$;
+
+grant execute on function public.generate_profile_slug(text) to supabase_auth_admin;
+grant execute on function public.handle_new_user()          to supabase_auth_admin;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+do $$
+declare
+  u  record;
+  nm text;
+begin
+  for u in
+    select au.id, au.email, au.raw_user_meta_data
+    from auth.users au
+    left join public.profiles p on p.id = au.id
+    where p.id is null
+  loop
+    nm := coalesce(
+      nullif(trim(u.raw_user_meta_data->>'full_name'), ''),
+      split_part(u.email, '@', 1),
+      'Member'
+    );
+    insert into public.profiles (id, slug, full_name)
+    values (u.id, public.generate_profile_slug(nm), nm)
+    on conflict (id) do nothing;
+  end loop;
+end $$;
+
