@@ -173,7 +173,21 @@ export async function sendMagicLink(
       captchaToken: captchaToken || undefined,
     },
   });
-  if (error) return { error: error.message };
+  if (error) {
+    // Supabase returns this when shouldCreateUser:false and the email has no account.
+    // Translate it into something a member can actually act on.
+    if (
+      error.message.toLowerCase().includes('signups not allowed') ||
+      error.message.toLowerCase().includes('otp') ||
+      error.message.toLowerCase().includes('not found')
+    ) {
+      return {
+        error:
+          'Account not found. Magic links are not for new users — please register first.',
+      };
+    }
+    return { error: error.message };
+  }
 
   return { ok: true };
 }
