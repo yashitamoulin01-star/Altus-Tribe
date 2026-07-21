@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import AuthShell from '../AuthShell';
 import LoginForm from './LoginForm';
+import ResendConfirmation from '../ResendConfirmation';
 
 export const metadata = {
   title: 'Sign In — Altus Tribe',
@@ -10,9 +11,9 @@ export const metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string; check_email?: string }>;
+  searchParams: Promise<{ redirect?: string; check_email?: string; email?: string }>;
 }) {
-  const { redirect, check_email } = await searchParams;
+  const { redirect, check_email, email } = await searchParams;
 
   return (
     <AuthShell
@@ -33,21 +34,7 @@ export default async function LoginPage({
         </div>
       }
     >
-      {check_email && (
-        <p
-          style={{
-            marginBottom: '20px',
-            padding: '12px 16px',
-            border: '1px solid #e4e4e2',
-            borderRadius: '2px',
-            background: '#f4f4f3',
-            fontSize: '13px',
-            color: '#5f5f5f',
-          }}
-        >
-          Check your email to confirm your account, then sign in.
-        </p>
-      )}
+      {check_email && <ResendConfirmation email={email} />}
       <LoginForm redirectTo={redirect ?? '/home'} />
     </AuthShell>
   );

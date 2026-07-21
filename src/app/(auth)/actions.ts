@@ -13,7 +13,11 @@ import {
   type FieldErrors,
 } from "@/lib/validation/auth";
 
-export type AuthState = { error?: string; fieldErrors?: FieldErrors } | null;
+export type AuthState = {
+  error?: string;
+  fieldErrors?: FieldErrors;
+  sent?: boolean;
+} | null;
 
 function notConfigured(): AuthState {
   return {
@@ -78,9 +82,34 @@ export async function signup(
   if (error) return { error: error.message };
 
   // If email confirmation is disabled, we're signed in immediately — go build
-  // the feature. Otherwise ask the member to confirm their email first.
+  // the feature. Otherwise ask the member to confirm their email first. Carry
+  // the email so "resend confirmation" is one click.
   if (data.session) redirect("/onboarding");
-  redirect("/login?check_email=1");
+  redirect(`/login?check_email=1&email=${encodeURIComponent(parsed.data.email)}`);
+}
+
+// Resend the signup confirmation email (#6). Used from the /login?check_email=1
+// banner when the first email didn't arrive.
+export async function resendConfirmation(
+  _prev: AuthState,
+  formData: FormData,
+): Promise<AuthState> {
+  const supabase = await createClient();
+  if (!supabase) return notConfigured();
+
+  const parsed = emailOnlySchema.safeParse({
+    email: String(formData.get("email") ?? "").trim(),
+  });
+  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email: parsed.data.email,
+    options: { emailRedirectTo: `${await siteOrigin()}/auth/callback` },
+  });
+  if (error) return { error: error.message };
+
+  return { sent: true };
 }
 
 export async function requestPasswordReset(
