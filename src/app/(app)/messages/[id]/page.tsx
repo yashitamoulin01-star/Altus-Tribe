@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getConversation } from "@/lib/messaging";
 import { getUser } from "@/lib/auth";
+import { getAdminContext } from "@/lib/admin";
 import Thread from "./Thread";
 
 export const metadata = { title: "Conversation — Altus Tribe" };
@@ -10,7 +11,11 @@ export default async function ConversationPage({
   params,
 }: PageProps<"/messages/[id]">) {
   const { id } = await params;
-  const [conversation, user] = await Promise.all([getConversation(id), getUser()]);
+  const [conversation, user, adminCtx] = await Promise.all([
+    getConversation(id),
+    getUser(),
+    getAdminContext(),
+  ]);
   if (!conversation) notFound();
 
   return (
@@ -42,6 +47,7 @@ export default async function ConversationPage({
         conversationId={conversation.id}
         initialMessages={conversation.messages}
         currentUserId={user?.id ?? null}
+        isAdmin={adminCtx.isAdmin}
       />
     </main>
   );

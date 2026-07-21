@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessage } from "../actions";
+import { deleteMessage } from "@/app/admin/actions";
 import type { MessageView } from "@/lib/messaging";
 
 // Live conversation thread. Renders the initial server-loaded messages, then
@@ -20,10 +21,12 @@ export default function Thread({
   conversationId,
   initialMessages,
   currentUserId,
+  isAdmin = false,
 }: {
   conversationId: string;
   initialMessages: MessageView[];
   currentUserId: string | null;
+  isAdmin?: boolean;
 }) {
   const [messages, setMessages] = useState<MessageView[]>(initialMessages);
   const [draft, setDraft] = useState("");
@@ -107,6 +110,18 @@ export default function Thread({
     });
   };
 
+  // Moderation (#174 / P5): admins soft-delete a message. The server action
+  // re-checks admin; on success we drop it from the live view (getMessages
+  // already filters deleted_at on reload).
+  const moderate = (id: string) => {
+    if (!isAdmin || id.startsWith("tmp-")) return;
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    startTransition(async () => {
+      const res = await deleteMessage(id);
+      if (!res.ok) setError("Couldn't remove that message.");
+    });
+  };
+
   return (
     <div className="flex min-h-[calc(100dvh-9rem)] flex-col">
       {/* Scrollback */}
@@ -126,14 +141,38 @@ export default function Thread({
                 {m.senderName}
               </span>
             )}
-            <div
-              className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${
-                m.mine
-                  ? "bg-red text-paper"
-                  : "border border-hairline bg-surface text-ink"
-              }`}
-            >
-              {m.body}
+            <div className="group flex items-center gap-2">
+              {isAdmin && m.mine && !m.id.startsWith("tmp-") && (
+                <button
+                  type="button"
+                  onClick={() => moderate(m.id)}
+                  aria-label="Remove message"
+                  title="Remove message (admin)"
+                  className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted opacity-0 transition-opacity hover:text-red group-hover:opacity-100"
+                >
+                  Remove
+                </button>
+              )}
+              <div
+                className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${
+                  m.mine
+                    ? "bg-red text-paper"
+                    : "border border-hairline bg-surface text-ink"
+                }`}
+              >
+                {m.body}
+              </div>
+              {isAdmin && !m.mine && !m.id.startsWith("tmp-") && (
+                <button
+                  type="button"
+                  onClick={() => moderate(m.id)}
+                  aria-label="Remove message"
+                  title="Remove message (admin)"
+                  className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted opacity-0 transition-opacity hover:text-red group-hover:opacity-100"
+                >
+                  Remove
+                </button>
+              )}
             </div>
             <span className="mt-1 px-1 font-mono text-[10px] text-ink-muted">
               {fmtTime(m.createdAt)}
