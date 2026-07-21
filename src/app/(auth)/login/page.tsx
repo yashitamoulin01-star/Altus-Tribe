@@ -20,7 +20,7 @@ export default async function LoginPage({
     <AuthShell
       kicker=""
       title="Welcome to the TRIBE."
-      subtitle="Enter your credentials to access the ecosystem of Indian entrepreneurs."
+      subtitle="Access the ecosystem of Indian entrepreneurs."
       footer={
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
           <p style={{ fontSize: '11px', color: '#9a9a9a', whiteSpace: 'nowrap' }}>
