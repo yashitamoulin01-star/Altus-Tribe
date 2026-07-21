@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { saveProfile } from "@/app/(app)/account/edit/actions";
 import { finishOnboarding } from "./actions";
 import { uploadFile } from "@/lib/storage-client";
+import LegalModal, { type LegalDocType } from "@/components/LegalModal";
 import {
   ATTACHMENT_KIND_LABELS,
   composeFullName,
@@ -163,6 +164,11 @@ export default function OnboardingWizard({
   const [step, setStep] = useState(Math.min(Math.max(initialStep, 0), COMPLETION));
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [finishing, startFinish] = useTransition();
+
+  const [certifyAccurate, setCertifyAccurate] = useState(false);
+  const [understandDisplay, setUnderstandDisplay] = useState(false);
+  const [agreeDeclaration, setAgreeDeclaration] = useState(false);
+  const [legalDoc, setLegalDoc] = useState<LegalDocType>(null);
 
   const firstRender = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -583,6 +589,47 @@ export default function OnboardingWizard({
             <p className="text-[14px] text-ink">Profile completeness: <span className="font-semibold text-red">{completion}%</span></p>
             {completion < 100 && <p className="mt-1 text-[13px] text-ink-muted">You can submit now and complete the rest anytime from your profile.</p>}
           </div>
+
+          {/* Legal Declarations for Onboarding Submission */}
+          <div className="mt-5 space-y-3 border-t border-hairline pt-4 text-[13px] text-ink-secondary">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={certifyAccurate}
+                onChange={(e) => setCertifyAccurate(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-hairline accent-[var(--color-red)] cursor-pointer"
+              />
+              <span>I certify that the information provided is accurate.</span>
+            </label>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={understandDisplay}
+                onChange={(e) => setUnderstandDisplay(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-hairline accent-[var(--color-red)] cursor-pointer"
+              />
+              <span>I understand my profile will be displayed according to my selected privacy settings.</span>
+            </label>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreeDeclaration}
+                onChange={(e) => setAgreeDeclaration(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-hairline accent-[var(--color-red)] cursor-pointer"
+              />
+              <span>
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setLegalDoc("declaration")}
+                  className="font-semibold text-ink underline transition-colors hover:text-red"
+                >
+                  ALTUS TRIBE Profile Declaration
+                </button>
+                .
+              </span>
+            </label>
+          </div>
         </Screen>
       )}
 
@@ -612,10 +659,11 @@ export default function OnboardingWizard({
           {step < LAST_CONTENT ? (
             <button type="button" onClick={next} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover">Continue →</button>
           ) : (
-            <button type="button" onClick={submit} disabled={finishing} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-60">{finishing ? "…" : "Submit & finish →"}</button>
+            <button type="button" onClick={submit} disabled={finishing || !certifyAccurate || !understandDisplay || !agreeDeclaration} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-60">{finishing ? "…" : "Submit & finish →"}</button>
           )}
         </div>
       )}
+      <LegalModal type={legalDoc} onClose={() => setLegalDoc(null)} />
     </main>
   );
 }
