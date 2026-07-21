@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { failFrom } from "@/lib/validation/actions";
 import {
   capsName,
   composeFullName,
@@ -12,6 +13,8 @@ import {
 } from "@/lib/profile-fields";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
+
+const SAVE_FAILED = "Couldn't save your feature. Please try again.";
 
 const clean = (s: string) => {
   const t = s.trim();
@@ -89,7 +92,7 @@ export async function saveProfile(
       field_visibility: visibility,
     })
     .eq("id", user.id);
-  if (pErr) return { ok: false, error: pErr.message };
+  if (pErr) return failFrom("saveProfile", pErr, SAVE_FAILED, { userId: user.id });
 
   // Business (1:1)
   const { error: bErr } = await supabase.from("businesses").upsert({
@@ -100,7 +103,7 @@ export async function saveProfile(
     team_size: clean(d.teamSize),
     founded_year: d.foundedYear.trim() ? Number(d.foundedYear) : null,
   });
-  if (bErr) return { ok: false, error: bErr.message };
+  if (bErr) return failFrom("saveProfile", bErr, SAVE_FAILED, { userId: user.id });
 
   // Addresses (one row per kind). Upsert when it has content, delete when cleared.
   const saveAddress = async (kind: "work" | "home" | "factory", a: EditableAddress) => {
@@ -137,7 +140,7 @@ export async function saveProfile(
     ["factory", d.factoryAddress],
   ] as const) {
     const { error: aErr } = await saveAddress(kind, a);
-    if (aErr) return { ok: false, error: aErr.message };
+    if (aErr) return failFrom("saveProfile", aErr, SAVE_FAILED, { userId: user.id });
   }
 
   // Portfolio attachments (replace-all into work_items, max enforced client-side)
@@ -145,7 +148,7 @@ export async function saveProfile(
     .from("work_items")
     .delete()
     .eq("profile_id", user.id);
-  if (wDelErr) return { ok: false, error: wDelErr.message };
+  if (wDelErr) return failFrom("saveProfile", wDelErr, SAVE_FAILED, { userId: user.id });
 
   const attachments = d.attachments
     .filter((w) =>
@@ -163,7 +166,7 @@ export async function saveProfile(
         sort_order: i,
       })),
     );
-    if (wInsErr) return { ok: false, error: wInsErr.message };
+    if (wInsErr) return failFrom("saveProfile", wInsErr, SAVE_FAILED, { userId: user.id });
   }
 
   // Expertise (replace-all)
@@ -172,12 +175,12 @@ export async function saveProfile(
     .from("expertise")
     .delete()
     .eq("profile_id", user.id);
-  if (delErr) return { ok: false, error: delErr.message };
+  if (delErr) return failFrom("saveProfile", delErr, SAVE_FAILED, { userId: user.id });
   if (labels.length) {
     const { error: insErr } = await supabase
       .from("expertise")
       .insert(labels.map((label, i) => ({ profile_id: user.id, label, sort_order: i })));
-    if (insErr) return { ok: false, error: insErr.message };
+    if (insErr) return failFrom("saveProfile", insErr, SAVE_FAILED, { userId: user.id });
   }
 
   revalidatePath("/account");

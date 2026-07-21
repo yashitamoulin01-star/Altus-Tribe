@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPrefs } from "@/lib/notifications";
 import NotificationSettings from "./NotificationSettings";
+import PushToggle from "./PushToggle";
 
 export const metadata = { title: "Notification Settings — Altus Tribe" };
 
@@ -29,11 +30,12 @@ export default async function NotificationSettingsPage() {
 
       <div className="pt-4">
         <NotificationSettings initial={prefs} />
+        <PushToggle />
       </div>
 
       <p className="mt-6 rounded border border-hairline bg-surface-sunk px-4 py-3 text-[14px] leading-relaxed text-ink-muted">
-        Your choices save automatically. Push delivery to this device can be
-        enabled from the notification prompt when your browser supports it.
+        Your choices save automatically. Push delivery is per-device — enable it
+        on each browser where you want alerts when the app is closed.
       </p>
     </main>
   );

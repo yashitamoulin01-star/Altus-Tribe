@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logError } from "@/lib/logger";
+import { rateLimit } from "@/lib/rate-limit";
+import { messageBodySchema, uuidSchema } from "@/lib/validation/actions";
 
 // Messaging server actions (docs/11). No-ops gracefully when Supabase is
 // unconfigured/unmigrated so the sample UI stays interactive-safe.
@@ -12,9 +15,11 @@ export async function sendMessage(
   conversationId: string,
   body: string,
 ): Promise<SendResult> {
-  const text = body.trim();
-  if (!text) return { ok: false, error: "empty" };
-  if (text.length > 4000) return { ok: false, error: "too long" };
+  if (!uuidSchema.safeParse(conversationId).success)
+    return { ok: false, error: "invalid" };
+  const parsed = messageBodySchema.safeParse(body);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const text = parsed.data;
 
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
@@ -24,12 +29,20 @@ export async function sendMessage(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
+  // Per-user spam guard: 20 messages / 10s. Keyed by user id (not IP) so it
+  // travels with the account, not the network.
+  if (!rateLimit(`msg:${user.id}`, 20, 10_000).ok)
+    return { ok: false, error: "rate-limited" };
+
   const { error } = await supabase.from("messages").insert({
     conversation_id: conversationId,
     sender_id: user.id,
     body: text,
   });
-  if (error) return { ok: false, error: error.message };
+  if (error) {
+    logError("sendMessage", error, { userId: user.id });
+    return { ok: false, error: "send-failed" };
+  }
 
   // Fan out a notification to the other members (message pref respected).
   const { data: members } = await supabase
@@ -45,14 +58,38 @@ export async function sendMessage(
     .maybeSingle();
   const senderName = me?.full_name ?? "A member";
 
-  for (const m of members ?? []) {
+  const recipientIds = (members ?? []).map((m) => m.profile_id as string);
+  for (const rid of recipientIds) {
     await supabase.from("notifications").insert({
-      recipient_id: m.profile_id,
+      recipient_id: rid,
       kind: "message",
       title: `${senderName} sent you a message`,
       body: text.slice(0, 140),
       link: `/messages/${conversationId}`,
     });
+  }
+
+  // Fan out a Web Push to recipients' devices (respects prefs + prunes dead subs
+  // inside the Edge Function). Fire-and-forget: a missing/undeployed function or
+  // an offline env must never fail the send.
+  if (recipientIds.length) {
+    try {
+      await supabase.functions.invoke("push-fanout", {
+        headers: process.env.PUSH_FANOUT_SECRET
+          ? { "x-push-secret": process.env.PUSH_FANOUT_SECRET }
+          : undefined,
+        body: {
+          recipientIds,
+          title: `${senderName} sent you a message`,
+          body: text.slice(0, 140),
+          link: `/messages/${conversationId}`,
+          tag: `conv-${conversationId}`,
+          prefKey: "messages",
+        },
+      });
+    } catch (err) {
+      logError("sendMessage.push", err, { userId: user.id });
+    }
   }
 
   revalidatePath(`/messages/${conversationId}`);
@@ -64,6 +101,9 @@ export async function sendMessage(
 export async function getOrCreateDirectConversation(
   otherProfileId: string,
 ): Promise<{ id: string | null; error?: string }> {
+  if (!uuidSchema.safeParse(otherProfileId).success)
+    return { id: null, error: "invalid" };
+
   const supabase = await createClient();
   if (!supabase) return { id: null, error: "offline" };
 
@@ -103,7 +143,10 @@ export async function getOrCreateDirectConversation(
     .insert({ kind: "direct", created_by: user.id })
     .select("id")
     .single();
-  if (error || !conv) return { id: null, error: error?.message ?? "create failed" };
+  if (error || !conv) {
+    if (error) logError("getOrCreateDirectConversation", error, { userId: user.id });
+    return { id: null, error: "create-failed" };
+  }
 
   await supabase.from("conversation_members").insert([
     { conversation_id: conv.id, profile_id: user.id, role: "owner" },

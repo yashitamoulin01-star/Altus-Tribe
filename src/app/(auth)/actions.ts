@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getPostAuthRedirect } from "@/lib/onboarding";
+import { rateLimit, ipKey } from "@/lib/rate-limit";
 import {
   loginSchema,
   signupSchema,
@@ -19,6 +20,21 @@ export type AuthState = {
   fieldErrors?: FieldErrors;
   sent?: boolean;
 } | null;
+
+// Per-IP throttle for an auth endpoint. Returns an AuthState error when the
+// caller is over budget, or null to proceed. Keeps brute-force / email-bombing
+// in check before we ever call Supabase Auth.
+async function throttle(
+  namespace: string,
+  limit: number,
+  windowMs: number,
+): Promise<AuthState> {
+  const { ok, retryAfterSec } = rateLimit(await ipKey(namespace), limit, windowMs);
+  if (ok) return null;
+  return {
+    error: `Too many attempts. Please try again in ${retryAfterSec ?? 60}s.`,
+  };
+}
 
 function notConfigured(): AuthState {
   return {
@@ -41,6 +57,9 @@ export async function login(
 ): Promise<AuthState> {
   const supabase = await createClient();
   if (!supabase) return notConfigured();
+
+  const limited = await throttle("login", 10, 5 * 60_000);
+  if (limited) return limited;
 
   const parsed = loginSchema.safeParse({
     email: String(formData.get("email") ?? "").trim(),
@@ -68,6 +87,9 @@ export async function signup(
 ): Promise<AuthState> {
   const supabase = await createClient();
   if (!supabase) return notConfigured();
+
+  const limited = await throttle("signup", 5, 10 * 60_000);
+  if (limited) return limited;
 
   const parsed = signupSchema.safeParse({
     fullName: String(formData.get("full_name") ?? "").trim(),
@@ -104,6 +126,9 @@ export async function resendConfirmation(
   const supabase = await createClient();
   if (!supabase) return notConfigured();
 
+  const limited = await throttle("resend", 5, 15 * 60_000);
+  if (limited) return limited;
+
   const parsed = emailOnlySchema.safeParse({
     email: String(formData.get("email") ?? "").trim(),
   });
@@ -134,6 +159,9 @@ export async function sendMagicLink(
   const supabase = await createClient();
   if (!supabase) return { error: "Sign-in is not configured yet." };
 
+  const { ok, retryAfterSec } = rateLimit(await ipKey("magic-link"), 5, 15 * 60_000);
+  if (!ok) return { error: `Too many attempts. Please try again in ${retryAfterSec ?? 60}s.` };
+
   const parsed = emailOnlySchema.safeParse({ email: email.trim() });
   if (!parsed.success) return { fieldError: fieldErrorsFrom(parsed.error).email };
 
@@ -156,6 +184,9 @@ export async function requestPasswordReset(
 ): Promise<AuthState> {
   const supabase = await createClient();
   if (!supabase) return notConfigured();
+
+  const limited = await throttle("reset", 5, 15 * 60_000);
+  if (limited) return limited;
 
   const parsed = emailOnlySchema.safeParse({
     email: String(formData.get("email") ?? "").trim(),

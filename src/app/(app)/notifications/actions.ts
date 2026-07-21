@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { logError } from "@/lib/logger";
 import type { NotificationPrefs } from "@/lib/notifications";
 
 // Notification server actions (docs/11). Persist prefs, mark read, register push.
@@ -15,11 +16,12 @@ export async function markAllRead(): Promise<void> {
   } = await supabase.auth.getUser();
   if (!user) return;
 
-  await supabase
+  const { error } = await supabase
     .from("notifications")
     .update({ read_at: new Date().toISOString() })
     .eq("recipient_id", user.id)
     .is("read_at", null);
+  if (error) logError("markAllRead", error, { userId: user.id });
 
   revalidatePath("/notifications");
 }
@@ -32,13 +34,17 @@ export async function savePrefs(prefs: NotificationPrefs): Promise<{ ok: boolean
   } = await supabase.auth.getUser();
   if (!user) return { ok: false };
 
-  await supabase.from("notification_prefs").upsert({
+  const { error } = await supabase.from("notification_prefs").upsert({
     profile_id: user.id,
     announcements: prefs.announcements,
     messages: prefs.messages,
     mentions: prefs.mentions,
     monthly_digest: prefs.monthlyDigest,
   });
+  if (error) {
+    logError("savePrefs", error, { userId: user.id });
+    return { ok: false };
+  }
 
   revalidatePath("/settings/notifications");
   return { ok: true };
@@ -58,7 +64,7 @@ export async function registerPush(sub: {
   } = await supabase.auth.getUser();
   if (!user) return { ok: false };
 
-  await supabase.from("push_subscriptions").upsert(
+  const { error } = await supabase.from("push_subscriptions").upsert(
     {
       profile_id: user.id,
       endpoint: sub.endpoint,
@@ -67,5 +73,31 @@ export async function registerPush(sub: {
     },
     { onConflict: "endpoint" },
   );
+  if (error) {
+    logError("registerPush", error, { userId: user.id });
+    return { ok: false };
+  }
+  return { ok: true };
+}
+
+// Remove this device's Web Push subscription (opt-out / unsubscribe). RLS scopes
+// the delete to the caller's own rows, so the endpoint match is enough.
+export async function unregisterPush(endpoint: string): Promise<{ ok: boolean }> {
+  const supabase = await createClient();
+  if (!supabase) return { ok: false };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false };
+
+  const { error } = await supabase
+    .from("push_subscriptions")
+    .delete()
+    .eq("endpoint", endpoint)
+    .eq("profile_id", user.id);
+  if (error) {
+    logError("unregisterPush", error, { userId: user.id });
+    return { ok: false };
+  }
   return { ok: true };
 }

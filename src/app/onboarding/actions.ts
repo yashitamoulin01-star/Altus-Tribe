@@ -2,9 +2,12 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { failFrom } from "@/lib/validation/actions";
 import type { OnboardingData } from "@/lib/onboarding-shared";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
+
+const SAVE_FAILED = "Couldn't save your progress. Please try again.";
 
 // Persists a partial onboarding patch for the signed-in member. Called on
 // autosave (debounced) and on step changes. Writes profiles + businesses +
@@ -36,7 +39,7 @@ export async function saveOnboarding(
     .from("profiles")
     .update(profilePatch)
     .eq("id", user.id);
-  if (pErr) return { ok: false, error: pErr.message };
+  if (pErr) return failFrom("saveOnboarding", pErr, SAVE_FAILED, { userId: user.id });
 
   // business (1:1 upsert)
   if (patch.business !== undefined) {
@@ -49,7 +52,7 @@ export async function saveOnboarding(
       team_size: b.teamSize.trim() || null,
       founded_year: b.foundedYear.trim() ? Number(b.foundedYear) : null,
     });
-    if (bErr) return { ok: false, error: bErr.message };
+    if (bErr) return failFrom("saveOnboarding", bErr, SAVE_FAILED, { userId: user.id });
   }
 
   // expertise (replace-all: simplest correct semantics for a small list)
@@ -59,7 +62,7 @@ export async function saveOnboarding(
       .from("expertise")
       .delete()
       .eq("profile_id", user.id);
-    if (delErr) return { ok: false, error: delErr.message };
+    if (delErr) return failFrom("saveOnboarding", delErr, SAVE_FAILED, { userId: user.id });
     if (labels.length) {
       const { error: insErr } = await supabase.from("expertise").insert(
         labels.map((label, i) => ({
@@ -68,7 +71,7 @@ export async function saveOnboarding(
           sort_order: i,
         })),
       );
-      if (insErr) return { ok: false, error: insErr.message };
+      if (insErr) return failFrom("saveOnboarding", insErr, SAVE_FAILED, { userId: user.id });
     }
   }
 
