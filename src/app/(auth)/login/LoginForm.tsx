@@ -1,14 +1,27 @@
 'use client';
 
-import { useActionState, useState } from 'react';
-import { login, type AuthState } from '../actions';
+import { useActionState, useState, useTransition } from 'react';
+import { login, sendMagicLink, type AuthState } from '../actions';
 import SubmitButton from '../SubmitButton';
 import { fieldClass, labelClass } from '../AuthShell';
+import CaptchaField from '@/components/CaptchaField';
 
 export default function LoginForm({ redirectTo }: { redirectTo: string }) {
   const [state, action, pending] = useActionState<AuthState, FormData>(login, null);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [magicPending, startMagic] = useTransition();
+  const [magic, setMagic] = useState<{ sent?: boolean; error?: string }>({});
+
+  const onMagicLink = () =>
+    startMagic(async () => {
+      setMagic({});
+      const res = await sendMagicLink(email, captchaToken);
+      if (res.ok) setMagic({ sent: true });
+      else setMagic({ error: res.error ?? res.fieldError ?? 'Could not send link.' });
+    });
 
   return (
     <form action={action} className="flex flex-col gap-2.5">
@@ -30,6 +43,8 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
           required
           autoComplete="email"
           placeholder="name@company.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           onFocus={() => setFocusedField('email')}
           onBlur={() => setFocusedField(null)}
           className={fieldClass}
@@ -124,8 +139,39 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         <p style={{ fontSize: '13px', color: '#c8102e' }}>{state.error}</p>
       )}
 
+      <CaptchaField onToken={setCaptchaToken} />
+
       {/* Submit */}
       <SubmitButton pending={pending}>Enter Sacred Space</SubmitButton>
+
+      {/* Passwordless alternative */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+        {magic.sent ? (
+          <p style={{ fontSize: '13px', color: '#111111' }}>
+            Sign-in link sent — check your email.
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={onMagicLink}
+            disabled={magicPending}
+            style={{
+              fontSize: '13px',
+              fontWeight: 500,
+              color: '#5f5f5f',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: magicPending ? 'default' : 'pointer',
+            }}
+          >
+            {magicPending ? 'Sending…' : 'Email me a sign-in link instead'}
+          </button>
+        )}
+        {magic.error && (
+          <p style={{ fontSize: '12px', color: '#c8102e' }}>{magic.error}</p>
+        )}
+      </div>
     </form>
   );
 }

@@ -5,6 +5,7 @@ import { signup, type AuthState } from "../actions";
 import SubmitButton from "../SubmitButton";
 import { fieldClass, labelClass } from "../AuthShell";
 import { passwordStrength } from "@/lib/validation/auth";
+import CaptchaField from "@/components/CaptchaField";
 
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
@@ -86,6 +87,8 @@ export default function SignupForm() {
         )}
         <FieldError message={state?.fieldErrors?.password} />
       </div>
+
+      <CaptchaField />
 
       {state?.error && <p className="text-[14px] text-red">{state.error}</p>}
 

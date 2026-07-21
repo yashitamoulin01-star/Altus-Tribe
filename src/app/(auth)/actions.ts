@@ -47,8 +47,12 @@ export async function login(
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
   const redirectTo = String(formData.get("redirect") ?? "");
+  const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
 
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { error } = await supabase.auth.signInWithPassword({
+    ...parsed.data,
+    options: { captchaToken },
+  });
   if (error) return { error: error.message };
 
   // Honor an explicit protected-route redirect; otherwise route through
@@ -70,6 +74,7 @@ export async function signup(
     password: String(formData.get("password") ?? ""),
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+  const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
 
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
@@ -77,6 +82,7 @@ export async function signup(
     options: {
       data: { full_name: parsed.data.fullName },
       emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      captchaToken,
     },
   });
   if (error) return { error: error.message };
@@ -102,14 +108,45 @@ export async function resendConfirmation(
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
 
+  const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: parsed.data.email,
-    options: { emailRedirectTo: `${await siteOrigin()}/auth/callback` },
+    options: {
+      emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      captchaToken,
+    },
   });
   if (error) return { error: error.message };
 
   return { sent: true };
+}
+
+// Passwordless sign-in (magic link). Login-only (shouldCreateUser: false) so it
+// can't bypass the invitation-only signup gate — new members must go through
+// signup, which creates a `pending` profile. Called imperatively from the login
+// form with the typed email.
+export async function sendMagicLink(
+  email: string,
+  captchaToken?: string,
+): Promise<{ ok?: boolean; error?: string; fieldError?: string }> {
+  const supabase = await createClient();
+  if (!supabase) return { error: "Sign-in is not configured yet." };
+
+  const parsed = emailOnlySchema.safeParse({ email: email.trim() });
+  if (!parsed.success) return { fieldError: fieldErrorsFrom(parsed.error).email };
+
+  const { error } = await supabase.auth.signInWithOtp({
+    email: parsed.data.email,
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      captchaToken: captchaToken || undefined,
+    },
+  });
+  if (error) return { error: error.message };
+
+  return { ok: true };
 }
 
 export async function requestPasswordReset(
@@ -123,9 +160,11 @@ export async function requestPasswordReset(
     email: String(formData.get("email") ?? "").trim(),
   });
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+  const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
 
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${await siteOrigin()}/reset-password`,
+    captchaToken,
   });
   if (error) return { error: error.message };
 

@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { requestPasswordReset, type AuthState } from "../actions";
 import SubmitButton from "../SubmitButton";
 import { fieldClass, labelClass } from "../AuthShell";
+import CaptchaField from "@/components/CaptchaField";
 
 export default function ForgotForm() {
   const [state, action, pending] = useActionState<AuthState, FormData>(
@@ -30,6 +31,8 @@ export default function ForgotForm() {
           <p className="mt-1 text-[12px] text-red">{state.fieldErrors.email}</p>
         )}
       </div>
+
+      <CaptchaField />
 
       {state?.error && <p className="text-[14px] text-red">{state.error}</p>}
 
