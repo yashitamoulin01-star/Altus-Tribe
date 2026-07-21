@@ -52,9 +52,13 @@ function toAddress(a: AddressRow | undefined): EditableAddress {
   };
 }
 
-// Loads the signed-in member's full editable profile. null when unconfigured
-// or signed out.
-export async function loadEditable(): Promise<EditableState | null> {
+// Loads a member's full editable profile. Without `targetId` this is the
+// signed-in member's own profile. With `targetId` (admin editing another member,
+// P3) the caller must be an admin — otherwise null. Returns null when
+// unconfigured or signed out.
+export async function loadEditable(
+  targetId?: string,
+): Promise<EditableState | null> {
   const supabase = await createClient();
   if (!supabase) return null;
 
@@ -63,6 +67,18 @@ export async function loadEditable(): Promise<EditableState | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
+  // Resolve whose profile we're loading, authorizing admin access to others.
+  let profileId = user.id;
+  if (targetId && targetId !== user.id) {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (me?.role !== "admin") return null;
+    profileId = targetId;
+  }
+
   const [
     { data: p },
     { data: biz },
@@ -70,22 +86,22 @@ export async function loadEditable(): Promise<EditableState | null> {
     { data: addrRows },
     { data: workRows },
   ] = await Promise.all([
-    supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+    supabase.from("profiles").select("*").eq("id", profileId).maybeSingle(),
     supabase
       .from("businesses")
       .select("*")
-      .eq("profile_id", user.id)
+      .eq("profile_id", profileId)
       .maybeSingle(),
     supabase
       .from("expertise")
       .select("label, sort_order")
-      .eq("profile_id", user.id)
+      .eq("profile_id", profileId)
       .order("sort_order"),
-    supabase.from("addresses").select("*").eq("profile_id", user.id),
+    supabase.from("addresses").select("*").eq("profile_id", profileId),
     supabase
       .from("work_items")
       .select("kind, title, external_url, file_path, sort_order")
-      .eq("profile_id", user.id)
+      .eq("profile_id", profileId)
       .order("sort_order"),
   ]);
 
@@ -94,7 +110,7 @@ export async function loadEditable(): Promise<EditableState | null> {
   );
 
   if (!p) {
-    return { data: { ...emptyEditable }, visibility: {}, slug: null, userId: user.id };
+    return { data: { ...emptyEditable }, visibility: {}, slug: null, userId: profileId };
   }
 
   const data: EditableProfile = {
@@ -166,7 +182,7 @@ export async function loadEditable(): Promise<EditableState | null> {
       ? (p.field_visibility as FieldVisibility)
       : {};
 
-  return { data, visibility, slug: str(p.slug) || null, userId: user.id };
+  return { data, visibility, slug: str(p.slug) || null, userId: profileId };
 }
 
 export async function getTaxonomies(): Promise<Taxonomies> {

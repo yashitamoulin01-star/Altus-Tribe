@@ -21,11 +21,14 @@ const clean = (s: string) => {
   return t.length ? t : null;
 };
 
-// Persists the full editable profile + per-field visibility for the signed-in
-// member. RLS restricts every write to the owner's own rows.
+// Persists the full editable profile + per-field visibility. Without `targetId`
+// it saves the signed-in member's own profile. With `targetId` (admin editing
+// another member, P3) the caller must be an admin. RLS also enforces this: the
+// "admins manage profiles" / "owner or admin writes child" policies allow it.
 export async function saveProfile(
   d: EditableProfile,
   visibility: FieldVisibility,
+  targetId?: string,
 ): Promise<SaveResult> {
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "not-configured" };
@@ -34,6 +37,18 @@ export async function saveProfile(
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "not-signed-in" };
+
+  // Resolve whose profile is being written, authorizing admin edits of others.
+  let profileId = user.id;
+  if (targetId && targetId !== user.id) {
+    const { data: me } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (me?.role !== "admin") return { ok: false, error: "forbidden" };
+    profileId = targetId;
+  }
 
   const firstName = capsName(d.firstName.trim());
   const middleName = capsName(d.middleName.trim());
@@ -96,12 +111,12 @@ export async function saveProfile(
       program_benefit_personal: clean(d.programBenefitPersonal),
       field_visibility: visibility,
     })
-    .eq("id", user.id);
+    .eq("id", profileId);
   if (pErr) return failFrom("saveProfile", pErr, SAVE_FAILED, { userId: user.id });
 
   // Business (1:1)
   const { error: bErr } = await supabase.from("businesses").upsert({
-    profile_id: user.id,
+    profile_id: profileId,
     name: clean(d.businessName),
     description: clean(d.businessDescription),
     website: clean(d.companyWebsite),
@@ -116,7 +131,7 @@ export async function saveProfile(
     if (hasContent) {
       return supabase.from("addresses").upsert(
         {
-          profile_id: user.id,
+          profile_id: profileId,
           kind,
           line1: clean(a.line1),
           line2: clean(a.line2),
@@ -135,7 +150,7 @@ export async function saveProfile(
     return supabase
       .from("addresses")
       .delete()
-      .eq("profile_id", user.id)
+      .eq("profile_id", profileId)
       .eq("kind", kind);
   };
 
@@ -152,7 +167,7 @@ export async function saveProfile(
   const { error: wDelErr } = await supabase
     .from("work_items")
     .delete()
-    .eq("profile_id", user.id);
+    .eq("profile_id", profileId);
   if (wDelErr) return failFrom("saveProfile", wDelErr, SAVE_FAILED, { userId: user.id });
 
   const attachments = d.attachments
@@ -163,7 +178,7 @@ export async function saveProfile(
   if (attachments.length) {
     const { error: wInsErr } = await supabase.from("work_items").insert(
       attachments.map((w, i) => ({
-        profile_id: user.id,
+        profile_id: profileId,
         kind: w.kind,
         title: clean(w.title),
         external_url: isFileKind(w.kind) ? null : clean(w.url),
@@ -179,15 +194,21 @@ export async function saveProfile(
   const { error: delErr } = await supabase
     .from("expertise")
     .delete()
-    .eq("profile_id", user.id);
+    .eq("profile_id", profileId);
   if (delErr) return failFrom("saveProfile", delErr, SAVE_FAILED, { userId: user.id });
   if (labels.length) {
     const { error: insErr } = await supabase
       .from("expertise")
-      .insert(labels.map((label, i) => ({ profile_id: user.id, label, sort_order: i })));
+      .insert(labels.map((label, i) => ({ profile_id: profileId, label, sort_order: i })));
     if (insErr) return failFrom("saveProfile", insErr, SAVE_FAILED, { userId: user.id });
   }
 
-  revalidatePath("/account");
+  if (targetId && targetId !== user.id) {
+    // Admin edited another member — refresh their admin detail + public feature.
+    revalidatePath(`/admin/members/${profileId}`);
+    revalidatePath("/admin/members");
+  } else {
+    revalidatePath("/account");
+  }
   return { ok: true };
 }

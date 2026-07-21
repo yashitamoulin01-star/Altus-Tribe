@@ -365,6 +365,10 @@ export default function EditFeature({
   industries,
   categories,
   configured,
+  adminTargetId = null,
+  backHref = "/account",
+  backLabel = "Account",
+  editingName,
 }: {
   initial: EditableProfile;
   initialVisibility: FieldVisibility;
@@ -373,6 +377,12 @@ export default function EditFeature({
   industries: string[];
   categories: string[];
   configured: boolean;
+  // When set, an admin is editing this member (P3): saves target that profile
+  // and the back link returns to the admin detail rather than /account.
+  adminTargetId?: string | null;
+  backHref?: string;
+  backLabel?: string;
+  editingName?: string;
 }) {
   const [d, setD] = useState<EditableProfile>(initial);
   const [vis, setVis] = useState<FieldVisibility>(initialVisibility);
@@ -438,7 +448,7 @@ export default function EditFeature({
 
   const save = () =>
     start(async () => {
-      const r = await saveProfile(d, vis);
+      const r = await saveProfile(d, vis, adminTargetId ?? undefined);
       if (r.ok) setStatus("saved");
       else {
         setStatus("error");
@@ -452,10 +462,10 @@ export default function EditFeature({
     <main className="mx-auto w-full max-w-[1080px] flex-1 px-6 py-10 sm:px-10">
       <nav className="mb-8 flex items-center justify-between">
         <Link
-          href="/account"
+          href={backHref}
           className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
         >
-          ← Account
+          ← {backLabel}
         </Link>
         {slug && configured && (
           <Link
@@ -468,9 +478,20 @@ export default function EditFeature({
       </nav>
 
       <header className="mb-8">
+        {adminTargetId && (
+          <div className="mb-4 flex items-center gap-3 rounded border border-red/30 bg-red/5 px-4 py-2.5">
+            <span className="rounded bg-red/10 px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-red">
+              Admin edit
+            </span>
+            <p className="text-[14px] text-ink">
+              You are editing{editingName ? ` ${editingName}` : " this member"}&apos;s
+              profile on their behalf.
+            </p>
+          </div>
+        )}
         <p className="kicker mb-3">Edit feature</p>
         <h1 className="text-3xl font-semibold tracking-[-0.015em] text-ink">
-          Compose your feature.
+          {adminTargetId ? "Edit this member's feature." : "Compose your feature."}
         </h1>
         {!configured && (
           <p className="mt-3 text-[14px] text-ink-muted">

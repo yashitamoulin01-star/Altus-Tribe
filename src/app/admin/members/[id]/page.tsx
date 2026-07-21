@@ -47,7 +47,7 @@ export default async function AdminMemberDetailPage({
             View feature
           </Link>
           <Link
-            href="/account/edit"
+            href={`/admin/members/${member.id}/edit`}
             className="rounded border border-hairline px-4 py-2 text-[13px] text-ink transition-colors hover:border-ink-muted"
           >
             Edit profile
