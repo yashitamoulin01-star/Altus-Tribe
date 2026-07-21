@@ -175,6 +175,10 @@ export async function loadEditable(
     interestedNetworking: str(p.interested_networking),
     programBenefitWork: str(p.program_benefit_work),
     programBenefitPersonal: str(p.program_benefit_personal),
+    visibility:
+      p.visibility === "public" || p.visibility === "private"
+        ? p.visibility
+        : "tribe",
   };
 
   const visibility =

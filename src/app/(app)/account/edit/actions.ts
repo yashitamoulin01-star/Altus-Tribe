@@ -29,6 +29,7 @@ export async function saveProfile(
   d: EditableProfile,
   visibility: FieldVisibility,
   targetId?: string,
+  onboardingStep?: number,
 ): Promise<SaveResult> {
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "not-configured" };
@@ -109,7 +110,10 @@ export async function saveProfile(
       interested_networking: clean(d.interestedNetworking),
       program_benefit_work: clean(d.programBenefitWork),
       program_benefit_personal: clean(d.programBenefitPersonal),
+      visibility: d.visibility,
       field_visibility: visibility,
+      // Onboarding autosave persists the current step in the same write.
+      ...(onboardingStep !== undefined ? { onboarding_step: onboardingStep } : {}),
     })
     .eq("id", profileId);
   if (pErr) return failFrom("saveProfile", pErr, SAVE_FAILED, { userId: user.id });

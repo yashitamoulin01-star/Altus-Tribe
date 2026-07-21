@@ -106,6 +106,9 @@ export interface EditableProfile {
   interestedNetworking: string;
   programBenefitWork: string; // #40
   programBenefitPersonal: string; // #41
+  // Profile-level visibility (maps to profiles.visibility enum). Governs who can
+  // see the whole feature; per-field show/hide is handled by field_visibility.
+  visibility: "public" | "tribe" | "private";
 }
 
 // #23 Best Mode to Connect — maps to profiles.best_modes (connect_mode[] enum).
@@ -186,7 +189,40 @@ export const emptyEditable: EditableProfile = {
   interestedNetworking: "",
   programBenefitWork: "",
   programBenefitPersonal: "",
+  visibility: "tribe",
 };
+
+// Progress meter for onboarding + profile — the PRD's compulsory fields plus the
+// content that makes a feature feel complete. One point each; addresses count if
+// any line is filled.
+const addressFilled = (a: EditableAddress) =>
+  Object.values(a).some((v) => v.trim().length > 0);
+
+const COMPLETION_CHECKS: ((d: EditableProfile) => boolean)[] = [
+  (d) => d.firstName.trim().length > 0,
+  (d) => d.lastName.trim().length > 0,
+  (d) => d.photoUrl.trim().length > 0,
+  (d) => d.about.trim().length > 0,
+  (d) => d.bloodGroup.trim().length > 0,
+  (d) => d.businessName.trim().length > 0,
+  (d) => d.category.trim().length > 0,
+  (d) => d.industry.trim().length > 0,
+  (d) => d.natureOfBusiness.trim().length > 0,
+  (d) => d.usp.trim().length > 0,
+  (d) => d.cellNo.trim().length > 0,
+  (d) => d.workEmail.trim().length > 0,
+  (d) => d.bestModes.length > 0,
+  (d) => addressFilled(d.workAddress),
+  (d) => d.attachments.length > 0,
+  (d) => d.linkedin.trim().length > 0,
+  (d) => d.areasOfInterest.trim().length > 0,
+  (d) => d.expertise.filter(Boolean).length > 0,
+];
+
+export function computeProfileCompletion(d: EditableProfile): number {
+  const passed = COMPLETION_CHECKS.filter((c) => c(d)).length;
+  return Math.round((passed / COMPLETION_CHECKS.length) * 100);
+}
 
 // The fields a member can individually show/hide (spec "Permission to Show", 👁).
 // Keys are stored in profiles.field_visibility as { key: boolean } (true = show).

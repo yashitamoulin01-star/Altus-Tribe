@@ -1,6 +1,45 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { emptyOnboarding, type OnboardingData } from "@/lib/onboarding-shared";
+import { loadEditable } from "@/lib/profile-edit";
+import type { EditableProfile, FieldVisibility } from "@/lib/profile-fields";
+
+// Full onboarding state for the 8-module wizard: the complete 48-field editable
+// profile (shared with the profile editor) plus resume metadata.
+export interface OnboardingFullState {
+  data: EditableProfile;
+  visibility: FieldVisibility;
+  slug: string | null;
+  userId: string;
+  step: number;
+  completed: boolean;
+  status: string | null;
+}
+
+// Reuses loadEditable (all 48 fields + visibility) and adds the resume cursor +
+// completion/status. null when unconfigured or signed out.
+export async function loadOnboardingFull(): Promise<OnboardingFullState | null> {
+  const editable = await loadEditable();
+  if (!editable) return null;
+
+  const supabase = await createClient();
+  if (!supabase) return null;
+  const { data: p } = await supabase
+    .from("profiles")
+    .select("onboarding_step, onboarding_completed_at, status")
+    .eq("id", editable.userId)
+    .maybeSingle();
+
+  return {
+    data: editable.data,
+    visibility: editable.visibility,
+    slug: editable.slug,
+    userId: editable.userId,
+    step: (p?.onboarding_step as number) ?? 0,
+    completed: Boolean(p?.onboarding_completed_at),
+    status: (p?.status as string) ?? null,
+  };
+}
 
 export interface OnboardingState {
   data: OnboardingData;
