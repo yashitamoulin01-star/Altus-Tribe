@@ -3,55 +3,58 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { MemberCover } from "@/lib/members";
+import type { ConnectionState } from "@/lib/connections";
+import ConnectButton from "@/components/ConnectButton";
 
-/* Directory cover card — crisp Swiss, photo (or initials) + name + mono meta. */
-function CoverCard({ member }: { member: MemberCover }) {
-  const initials = member.fullName
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("");
+const OPEN_TO_LABELS: Record<string, string> = {
+  mentoring: "Mentoring",
+  partnerships: "Partnerships",
+  referrals: "Referrals",
+  speaking: "Speaking",
+  hiring: "Hiring",
+};
 
+/* Directory cover card. The photo + text is one link; the footer holds the
+   Connect action (kept outside the link so it doesn't trigger navigation). */
+function CoverCard({
+  member,
+  state,
+}: {
+  member: MemberCover;
+  state: ConnectionState;
+}) {
+  const initials = member.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("");
   return (
-    <Link
-      href={`/m/${member.slug}`}
-      className="group flex flex-col overflow-hidden rounded border border-hairline bg-surface transition-all duration-150 ease-[var(--ease-altus)] hover:-translate-y-0.5 hover:border-ink-muted"
-    >
-      <div className="aspect-[4/5] w-full overflow-hidden bg-surface-sunk">
-        {member.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={member.photoUrl}
-            alt={member.fullName}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center">
-            <span className="font-mono text-2xl text-ink-muted">{initials}</span>
-          </div>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col p-4">
-        <p className="text-lg font-semibold leading-tight text-ink">
-          {member.fullName}
-        </p>
-        <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
-          {[member.roleTitle, member.industry, member.city]
-            .filter(Boolean)
-            .join("  /  ")}
-        </p>
-        {member.businessName && (
-          <p className="mt-2 text-[13px] text-ink-muted">{member.businessName}</p>
-        )}
-        <p className="mt-3 line-clamp-2 text-[15px] leading-snug text-ink-secondary">
-          {member.positioning}
-        </p>
-      </div>
-    </Link>
+    <div className="flex flex-col overflow-hidden rounded border border-hairline bg-surface transition-all duration-150 hover:border-ink-muted">
+      <Link href={`/m/${member.slug}`} className="group flex flex-1 flex-col">
+        <div className="aspect-[4/5] w-full overflow-hidden bg-surface-sunk">
+          {member.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={member.photoUrl} alt={member.fullName} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <span className="font-mono text-2xl text-ink-muted">{initials}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex flex-1 flex-col p-4">
+          <p className="text-lg font-semibold leading-tight text-ink">{member.fullName}</p>
+          <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
+            {[member.roleTitle, member.industry, member.city].filter(Boolean).join("  /  ")}
+          </p>
+          {member.businessName && <p className="mt-2 text-[13px] text-ink-muted">{member.businessName}</p>}
+          <p className="mt-3 line-clamp-2 text-[15px] leading-snug text-ink-secondary">{member.positioning}</p>
+        </div>
+      </Link>
+      {state !== "self" && (
+        <div className="px-4 pb-4">
+          <ConnectButton profileId={member.id} initialState={state} />
+        </div>
+      )}
+    </div>
   );
 }
 
-/* Border-only filter pill — selected = ink fill, paper text. */
 function FilterChip({
   label,
   selected,
@@ -66,9 +69,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={`rounded-full border px-3.5 py-1.5 text-[14px] transition-colors duration-150 ${
-        selected
-          ? "border-ink bg-ink text-paper"
-          : "border-hairline bg-surface-sunk text-ink-secondary hover:border-ink-muted"
+        selected ? "border-ink bg-ink text-paper" : "border-hairline bg-surface-sunk text-ink-secondary hover:border-ink-muted"
       }`}
     >
       {label}
@@ -76,21 +77,63 @@ function FilterChip({
   );
 }
 
-// Distinct, sorted, non-empty values for a facet across the member set.
 function facet(members: MemberCover[], pick: (m: MemberCover) => string) {
   return [...new Set(members.map(pick).filter(Boolean))].sort();
 }
 
-export default function ExploreGallery({ members }: { members: MemberCover[] }) {
-  const [query, setQuery] = useState("");
+/* A discovery strip (Recommended / Recently joined). Module-scoped so it isn't
+   recreated each render. */
+function Strip({
+  title,
+  items,
+  stateFor,
+}: {
+  title: string;
+  items: MemberCover[];
+  stateFor: (m: MemberCover) => ConnectionState;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <p className="kicker mb-4">{title}</p>
+      <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+        {items.map((m) => (
+          <CoverCard key={m.slug} member={m} state={stateFor(m)} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export default function ExploreGallery({
+  members,
+  connectionMap,
+  currentUserId,
+  recommendedSlugs,
+  initialQuery,
+}: {
+  members: MemberCover[];
+  connectionMap: Record<string, ConnectionState>;
+  currentUserId: string | null;
+  recommendedSlugs: string[];
+  initialQuery: string;
+}) {
+  const [query, setQuery] = useState(initialQuery ?? "");
   const [industry, setIndustry] = useState<string | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [city, setCity] = useState<string | null>(null);
+  const [openTo, setOpenTo] = useState<string | null>(null);
 
-  // Distinct, sorted facet values — only render a filter row if it has options.
   const industries = useMemo(() => facet(members, (m) => m.industry), [members]);
   const categories = useMemo(() => facet(members, (m) => m.category), [members]);
   const cities = useMemo(() => facet(members, (m) => m.city), [members]);
+  const openToOptions = useMemo(
+    () => [...new Set(members.flatMap((m) => m.openTo))].sort(),
+    [members],
+  );
+
+  const stateFor = (m: MemberCover): ConnectionState =>
+    m.id === currentUserId ? "self" : connectionMap[m.id] ?? "none";
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -98,32 +141,36 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
       if (industry && m.industry !== industry) return false;
       if (category && m.category !== category) return false;
       if (city && m.city !== city) return false;
+      if (openTo && !m.openTo.includes(openTo as MemberCover["openTo"][number])) return false;
       if (!q) return true;
-      // Search across member, business/company, industry, category, location,
-      // and interests (#157–163).
-      return [
-        m.fullName,
-        m.roleTitle,
-        m.businessName,
-        m.industry,
-        m.category,
-        m.city,
-        m.interests,
-        m.positioning,
-      ]
+      return [m.fullName, m.roleTitle, m.businessName, m.industry, m.category, m.city, m.interests, m.positioning]
         .join(" ")
         .toLowerCase()
         .includes(q);
     });
-  }, [members, query, industry, category, city]);
+  }, [members, query, industry, category, city, openTo]);
 
-  const hasFilters = Boolean(query.trim() || industry || category || city);
+  const hasFilters = Boolean(query.trim() || industry || category || city || openTo);
   const clearAll = () => {
     setQuery("");
     setIndustry(null);
     setCategory(null);
     setCity(null);
+    setOpenTo(null);
   };
+
+  // Discovery strips — only when browsing (no active search/filter).
+  const recommended = useMemo(
+    () => (hasFilters ? [] : members.filter((m) => recommendedSlugs.includes(m.slug)).slice(0, 8)),
+    [members, recommendedSlugs, hasFilters],
+  );
+  const recentlyJoined = useMemo(() => {
+    if (hasFilters) return [];
+    return [...members]
+      .filter((m) => m.createdAt)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .slice(0, 8);
+  }, [members, hasFilters]);
 
   return (
     <div>
@@ -135,22 +182,17 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name, business, industry, interest…"
           className="w-full rounded border border-hairline bg-surface-sunk px-4 py-3.5 text-[17px] text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none focus:ring-2 focus:ring-red/40"
-          aria-label="Search members by name, business, industry, category, location, or interest"
+          aria-label="Search members"
         />
       </div>
 
-      {/* Gentle filters — a row only appears when it has values */}
+      {/* Filters */}
       <div className="mt-6 space-y-3">
         {industries.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="kicker mr-1">Industry</span>
             {industries.map((v) => (
-              <FilterChip
-                key={v}
-                label={v}
-                selected={industry === v}
-                onClick={() => setIndustry(industry === v ? null : v)}
-              />
+              <FilterChip key={v} label={v} selected={industry === v} onClick={() => setIndustry(industry === v ? null : v)} />
             ))}
           </div>
         )}
@@ -158,12 +200,7 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
           <div className="flex flex-wrap items-center gap-2">
             <span className="kicker mr-1">Category</span>
             {categories.map((v) => (
-              <FilterChip
-                key={v}
-                label={v}
-                selected={category === v}
-                onClick={() => setCategory(category === v ? null : v)}
-              />
+              <FilterChip key={v} label={v} selected={category === v} onClick={() => setCategory(category === v ? null : v)} />
             ))}
           </div>
         )}
@@ -171,51 +208,48 @@ export default function ExploreGallery({ members }: { members: MemberCover[] }) 
           <div className="flex flex-wrap items-center gap-2">
             <span className="kicker mr-1">City</span>
             {cities.map((v) => (
-              <FilterChip
-                key={v}
-                label={v}
-                selected={city === v}
-                onClick={() => setCity(city === v ? null : v)}
-              />
+              <FilterChip key={v} label={v} selected={city === v} onClick={() => setCity(city === v ? null : v)} />
+            ))}
+          </div>
+        )}
+        {openToOptions.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="kicker mr-1">Open to</span>
+            {openToOptions.map((v) => (
+              <FilterChip key={v} label={OPEN_TO_LABELS[v] ?? v} selected={openTo === v} onClick={() => setOpenTo(openTo === v ? null : v)} />
             ))}
           </div>
         )}
       </div>
 
+      {/* Discovery strips (browsing only) */}
+      <Strip title="Recommended for you" items={recommended} stateFor={stateFor} />
+      <Strip title="Recently joined" items={recentlyJoined} stateFor={stateFor} />
+
       {/* Result count + reset */}
       <div className="mt-8 flex items-center justify-between border-t border-hairline pt-5">
         <p className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted">
-          {results.length} {results.length === 1 ? "member" : "members"}
+          {hasFilters ? `${results.length} ${results.length === 1 ? "match" : "matches"}` : `${results.length} members`}
         </p>
         {hasFilters && (
-          <button
-            type="button"
-            onClick={clearAll}
-            className="text-[14px] text-red transition-colors hover:text-red-hover"
-          >
+          <button type="button" onClick={clearAll} className="text-[14px] text-red transition-colors hover:text-red-hover">
             Clear
           </button>
         )}
       </div>
 
-      {/* Gallery */}
+      {/* Directory */}
       {results.length > 0 ? (
         <div className="mt-6 grid grid-cols-2 gap-5 pb-24 md:grid-cols-3 lg:grid-cols-4">
           {results.map((m) => (
-            <CoverCard key={m.slug} member={m} />
+            <CoverCard key={m.slug} member={m} state={stateFor(m)} />
           ))}
         </div>
       ) : (
         <div className="mt-16 pb-24 text-center">
-          <p className="text-[17px] text-ink-secondary">
-            No one matches that yet.
-          </p>
+          <p className="text-[17px] text-ink-secondary">No one matches that yet.</p>
           {hasFilters && (
-            <button
-              type="button"
-              onClick={clearAll}
-              className="mt-3 text-[14px] text-red transition-colors hover:text-red-hover"
-            >
+            <button type="button" onClick={clearAll} className="mt-3 text-[14px] text-red transition-colors hover:text-red-hover">
               Clear filters
             </button>
           )}

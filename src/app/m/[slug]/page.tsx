@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getMember } from "@/lib/members-data";
 import { type Member } from "@/lib/members";
 import { getUser } from "@/lib/auth";
+import { getConnectionState, type ConnectionState } from "@/lib/connections";
 import ProfileHeader from "./_components/ProfileHeader";
 import ActionBar from "./_components/ActionBar";
 import AddressCard from "./_components/AddressCard";
@@ -40,10 +41,12 @@ function ProfileView({
   member,
   isOwner,
   canMessage,
+  connectionState,
 }: {
   member: Member;
   isOwner: boolean;
   canMessage: boolean;
+  connectionState: ConnectionState;
 }) {
   const b = member.business;
   const modes = (member.bestModes ?? []).map((m) => MODE_LABELS[m] ?? m).join(", ");
@@ -85,7 +88,12 @@ function ProfileView({
       <ProfileHeader member={member} />
 
       <div className="mt-7">
-        <ActionBar member={member} isOwner={isOwner} canMessage={canMessage} />
+        <ActionBar
+          member={member}
+          isOwner={isOwner}
+          canMessage={canMessage}
+          connectionState={connectionState}
+        />
       </div>
 
       <div className="mt-8 space-y-5">
@@ -242,5 +250,14 @@ export default async function Page({ params }: PageProps<"/m/[slug]">) {
   if (!member) notFound();
   const isOwner = Boolean(viewer && member.id && viewer.id === member.id);
   const canMessage = Boolean(viewer && member.id && viewer.id !== member.id);
-  return <ProfileView member={member} isOwner={isOwner} canMessage={canMessage} />;
+  const connectionState =
+    viewer && member.id && !isOwner ? await getConnectionState(member.id) : "self";
+  return (
+    <ProfileView
+      member={member}
+      isOwner={isOwner}
+      canMessage={canMessage}
+      connectionState={connectionState}
+    />
+  );
 }

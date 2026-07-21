@@ -281,6 +281,7 @@ export const sampleMembers: Member[] = [
 
 // Lightweight shape for the Explore People gallery — just what a cover card needs.
 export interface MemberCover {
+  id: string; // profile UUID — for connection state/actions
   slug: string;
   fullName: string;
   photoUrl: string | null;
@@ -291,11 +292,14 @@ export interface MemberCover {
   businessName: string; // Search Business / Company (#158, #162)
   category: string; // Search Category (#160)
   interests: string; // Search Interest (#161)
+  createdAt: string; // profile created_at — for "Recently joined"
+  openTo: OpenToOption[]; // referral/mentoring/etc. — for the "Open to" filter
 }
 
 // Pure projection Member -> MemberCover. Used by both the DB and fallback paths.
 export function toCover(m: Member): MemberCover {
   return {
+    id: m.id ?? m.slug,
     slug: m.slug,
     fullName: m.fullName,
     photoUrl: m.photoUrl,
@@ -306,5 +310,7 @@ export function toCover(m: Member): MemberCover {
     businessName: m.business?.name ?? "",
     category: m.category ?? "",
     interests: m.interests ?? "",
+    createdAt: "",
+    openTo: m.openTo ?? [],
   };
 }

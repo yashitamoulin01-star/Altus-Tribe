@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { Member } from "@/lib/members";
+import type { ConnectionState } from "@/lib/connections";
 import ShareButtons from "@/components/ShareButtons";
 import MessageMemberButton from "@/components/MessageMemberButton";
+import ConnectButton from "@/components/ConnectButton";
 
 const btn =
   "rounded-lg border border-hairline px-4 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted";
@@ -13,10 +15,12 @@ export default function ActionBar({
   member,
   isOwner,
   canMessage,
+  connectionState,
 }: {
   member: Member;
   isOwner: boolean;
   canMessage: boolean;
+  connectionState: ConnectionState;
 }) {
   const cell = member.contact?.cellNo?.replace(/[^0-9]/g, "") ?? "";
   const waNumber = cell.length === 10 ? `91${cell}` : cell;
@@ -27,6 +31,7 @@ export default function ActionBar({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
+        {!isOwner && <ConnectButton profileId={member.id} initialState={connectionState} />}
         {canMessage && <MessageMemberButton profileId={member.id} />}
         {waLink && (
           <a href={waLink} target="_blank" rel="noreferrer" className={btn}>

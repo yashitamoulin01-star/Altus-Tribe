@@ -324,8 +324,9 @@ export async function getAllMembers(): Promise<MemberCover[]> {
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      `slug, full_name, photo_url, role_title, industry, city, positioning,
-       category, areas_of_interest, businesses ( name )`,
+      `id, slug, full_name, photo_url, role_title, industry, city, positioning,
+       category, areas_of_interest, created_at, businesses ( name ),
+       member_open_to ( option )`,
     )
     .eq("status", "active")
     .order("full_name");
@@ -340,7 +341,11 @@ export async function getAllMembers(): Promise<MemberCover[]> {
   }
   return (data ?? []).map((r) => {
     const biz = Array.isArray(r.businesses) ? r.businesses[0] : r.businesses;
+    const openTo = Array.isArray(r.member_open_to)
+      ? (r.member_open_to as { option: OpenToOption }[]).map((o) => o.option)
+      : [];
     return {
+      id: r.id as string,
       slug: r.slug,
       fullName: r.full_name,
       photoUrl: r.photo_url,
@@ -351,6 +356,8 @@ export async function getAllMembers(): Promise<MemberCover[]> {
       businessName: (biz as { name?: string } | null)?.name ?? "",
       category: r.category ?? "",
       interests: r.areas_of_interest ?? "",
+      createdAt: (r.created_at as string) ?? "",
+      openTo,
     };
   });
 }
