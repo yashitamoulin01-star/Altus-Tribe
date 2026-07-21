@@ -965,3 +965,28 @@ exception
 end;
 $$;
 
+
+-- ============================================================
+-- 20260721000010_delete_own_account.sql
+-- ============================================================
+-- Self-serve account deletion (no service-role needed). SECURITY DEFINER,
+-- guarded by auth.uid() so a caller can only delete themselves; deleting the
+-- auth.users row cascades to profiles and all child tables.
+
+create or replace function public.delete_own_account()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'not authenticated';
+  end if;
+  delete from auth.users where id = auth.uid();
+end;
+$$;
+
+revoke all on function public.delete_own_account() from public, anon;
+grant execute on function public.delete_own_account() to authenticated;
+

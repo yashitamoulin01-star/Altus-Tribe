@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import MfaManager, { type TotpFactor } from "./MfaManager";
+import AccountControls from "./AccountControls";
 
 export const metadata = { title: "Security — Altus Tribe" };
 
@@ -35,6 +36,7 @@ export default async function SecurityPage() {
       </p>
 
       <MfaManager factors={factors} />
+      <AccountControls />
     </main>
   );
 }
