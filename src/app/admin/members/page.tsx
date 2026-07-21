@@ -6,6 +6,7 @@ const STATUS_STYLE: Record<MemberStatus, string> = {
   active: "bg-positive/10 text-positive",
   hidden: "bg-surface-sunk text-ink-muted",
   inactive: "bg-red/10 text-red",
+  pending: "bg-red/10 text-red",
 };
 
 function initials(name: string) {

@@ -7,6 +7,7 @@ export interface OnboardingState {
   step: number;
   completed: boolean;
   slug: string | null;
+  status: string | null;
 }
 
 // Loads the signed-in member's profile into the onboarding shape so the wizard
@@ -24,7 +25,7 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
     .from("profiles")
     .select(
       `slug, full_name, role_title, industry, city, positioning, known_for, about,
-       onboarding_step, onboarding_completed_at,
+       status, onboarding_step, onboarding_completed_at,
        businesses ( name, description, website, founded_year, team_size ),
        expertise ( label, sort_order )`,
     )
@@ -32,7 +33,7 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
     .maybeSingle();
 
   if (!profile) {
-    return { data: { ...emptyOnboarding }, step: 0, completed: false, slug: null };
+    return { data: { ...emptyOnboarding }, step: 0, completed: false, slug: null, status: null };
   }
 
   const business = Array.isArray(profile.businesses)
@@ -68,12 +69,15 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
     step: profile.onboarding_step ?? 0,
     completed: Boolean(profile.onboarding_completed_at),
     slug: profile.slug ?? null,
+    status: (profile.status as string) ?? null,
   };
 }
 
-// Where to send a user after auth: onboarding until done, then the Tribe home.
+// Where to send a user after auth: pending approval → /pending; otherwise
+// onboarding until done, then the Tribe home.
 export async function getPostAuthRedirect(): Promise<string> {
   const state = await loadOnboarding();
   if (!state) return "/home";
+  if (state.status === "pending") return "/pending";
   return state.completed ? "/home" : "/onboarding";
 }

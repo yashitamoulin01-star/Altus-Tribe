@@ -889,3 +889,41 @@ begin
   end loop;
 end $$;
 
+
+-- ============================================================
+-- 20260721000009_pending_signups.sql
+-- ============================================================
+-- Invitation-only via an admin approval queue: new signups land in `pending`
+-- and are held out of the worlds (enforced in proxy/middleware) until an admin
+-- approves them from /admin/approvals.
+
+alter type member_status add value if not exists 'pending';
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  display_name text;
+begin
+  display_name := coalesce(
+    nullif(trim(new.raw_user_meta_data->>'full_name'), ''),
+    split_part(new.email, '@', 1),
+    'Member'
+  );
+
+  insert into public.profiles (id, slug, full_name, status)
+  values (new.id, public.generate_profile_slug(display_name), display_name, 'pending')
+  on conflict (id) do nothing;
+
+  return new;
+exception
+  when others then
+    raise warning 'handle_new_user failed for auth user %: % (SQLSTATE %)',
+      new.id, sqlerrm, sqlstate;
+    return new;
+end;
+$$;
+

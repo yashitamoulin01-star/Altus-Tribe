@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 // real boundary; this layer adds the UI-level gate and convenience reads.
 
 export type Role = "member" | "consultant" | "admin";
-export type MemberStatus = "active" | "hidden" | "inactive";
+export type MemberStatus = "active" | "hidden" | "inactive" | "pending";
 
 export interface AdminContext {
   configured: boolean;
@@ -38,6 +38,7 @@ const SAMPLE_ROSTER: RosterMember[] = [
   { id: "s-arjun", slug: "arjun-nair", fullName: "Arjun Nair", photoUrl: null, role: "consultant", status: "active", city: "Bengaluru", industry: "Fintech", cqBatch: "CQ-05", psBatch: "PS-09" },
   { id: "s-priya", slug: "priya-deshmukh", fullName: "Priya Deshmukh", photoUrl: null, role: "member", status: "active", city: "Pune", industry: "Design", cqBatch: "CQ-06", psBatch: "PS-11" },
   { id: "s-rohan", slug: "rohan-mehta", fullName: "Rohan Mehta", photoUrl: null, role: "member", status: "hidden", city: "Delhi", industry: "Logistics", cqBatch: "CQ-04", psBatch: "PS-08" },
+  { id: "s-nikhil", slug: "nikhil-rao", fullName: "Nikhil Rao", photoUrl: null, role: "member", status: "pending", city: "Hyderabad", industry: "SaaS", cqBatch: "CQ-08", psBatch: "PS-13" },
 ];
 
 // Resolve the caller's admin context (used by the /admin layout to gate access).
@@ -107,6 +108,13 @@ function filterRoster(rows: RosterMember[], query?: string): RosterMember[] {
 export async function getConsultants(): Promise<RosterMember[]> {
   const roster = await getRoster();
   return roster.filter((r) => r.role === "consultant" || r.role === "admin");
+}
+
+// Members awaiting admin approval (invitation-only gate). Newest-first would need
+// a created_at column on the roster; name order is fine for the queue for now.
+export async function getPendingMembers(): Promise<RosterMember[]> {
+  const roster = await getRoster();
+  return roster.filter((r) => r.status === "pending");
 }
 
 export async function getRosterMember(id: string): Promise<RosterMember | null> {

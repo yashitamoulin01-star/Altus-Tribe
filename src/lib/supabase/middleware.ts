@@ -54,11 +54,30 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && isProtected(request.nextUrl.pathname)) {
+  const pathname = request.nextUrl.pathname;
+
+  if (!user && isProtected(pathname)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("redirect", request.nextUrl.pathname);
+    loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Invitation-only gate: a signed-in member still awaiting admin approval is
+  // held out of the worlds and parked on /pending. Only query for protected
+  // routes so public/auth pages stay a single round-trip.
+  if (user && isProtected(pathname)) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("status")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (profile?.status === "pending") {
+      const pendingUrl = request.nextUrl.clone();
+      pendingUrl.pathname = "/pending";
+      pendingUrl.search = "";
+      return NextResponse.redirect(pendingUrl);
+    }
   }
 
   return response;

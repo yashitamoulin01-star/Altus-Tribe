@@ -26,6 +26,27 @@ export async function setMemberStatus(id: string, status: MemberStatus) {
   return { ok: true };
 }
 
+// Invitation-only approval queue. Approve promotes a pending signup to active
+// (full access to the worlds); reject parks them as inactive (kept for audit,
+// not deleted). Both re-check admin server-side; RLS is the real boundary.
+export async function approveMember(id: string) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  await supabase.from("profiles").update({ status: "active" }).eq("id", id);
+  revalidatePath("/admin/approvals");
+  revalidatePath("/admin/members");
+  return { ok: true };
+}
+
+export async function rejectMember(id: string) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  await supabase.from("profiles").update({ status: "inactive" }).eq("id", id);
+  revalidatePath("/admin/approvals");
+  revalidatePath("/admin/members");
+  return { ok: true };
+}
+
 export async function deleteMember(id: string) {
   const { supabase, ctx } = await ensureAdmin();
   if (!supabase || !ctx.isAdmin) return { ok: false };
