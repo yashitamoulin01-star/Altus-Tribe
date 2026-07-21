@@ -26,6 +26,9 @@ export default function ForgotForm() {
           placeholder="you@company.com"
           className={fieldClass}
         />
+        {state?.fieldErrors?.email && (
+          <p className="mt-1 text-[12px] text-red">{state.fieldErrors.email}</p>
+        )}
       </div>
 
       {state?.error && <p className="text-[14px] text-red">{state.error}</p>}

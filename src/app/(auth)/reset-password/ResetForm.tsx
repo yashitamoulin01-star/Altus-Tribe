@@ -27,6 +27,9 @@ export default function ResetForm() {
           placeholder="At least 8 characters"
           className={fieldClass}
         />
+        {state?.fieldErrors?.password && (
+          <p className="mt-1 text-[12px] text-red">{state.fieldErrors.password}</p>
+        )}
       </div>
 
       {state?.error && <p className="text-[14px] text-red">{state.error}</p>}

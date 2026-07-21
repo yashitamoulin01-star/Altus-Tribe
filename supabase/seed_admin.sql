@@ -26,3 +26,17 @@ where p.role = 'admin';
 -- --- promote the earliest-created auth user instead (uncomment to use):
 -- update public.profiles set role = 'admin', status = 'active'
 -- where id = (select id from auth.users order by created_at asc limit 1);
+
+-- --- Alternative: seed by known auth UUID (Yashita Mouli). Idempotent: creates
+-- --- the profile if missing, otherwise just promotes it. Requires that a matching
+-- --- auth.users row exists (profiles.id references auth.users(id)).
+insert into public.profiles (id, slug, full_name, role, status)
+values (
+  'e0e7e24c-5026-4ead-9e0a-fa5012a48807',
+  public.generate_profile_slug('Yashita Mouli'),
+  'Yashita Mouli',
+  'admin',
+  'active'
+)
+on conflict (id) do update
+  set role = 'admin', status = 'active';

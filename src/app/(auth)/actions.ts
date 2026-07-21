@@ -4,8 +4,16 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getPostAuthRedirect } from "@/lib/onboarding";
+import {
+  loginSchema,
+  signupSchema,
+  emailOnlySchema,
+  newPasswordSchema,
+  fieldErrorsFrom,
+  type FieldErrors,
+} from "@/lib/validation/auth";
 
-export type AuthState = { error: string } | null;
+export type AuthState = { error?: string; fieldErrors?: FieldErrors } | null;
 
 function notConfigured(): AuthState {
   return {
@@ -29,11 +37,14 @@ export async function login(
   const supabase = await createClient();
   if (!supabase) return notConfigured();
 
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
+  const parsed = loginSchema.safeParse({
+    email: String(formData.get("email") ?? "").trim(),
+    password: String(formData.get("password") ?? ""),
+  });
+  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
   const redirectTo = String(formData.get("redirect") ?? "");
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: error.message };
 
   // Honor an explicit protected-route redirect; otherwise route through
@@ -49,15 +60,18 @@ export async function signup(
   const supabase = await createClient();
   if (!supabase) return notConfigured();
 
-  const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
-  const fullName = String(formData.get("full_name") ?? "").trim();
+  const parsed = signupSchema.safeParse({
+    fullName: String(formData.get("full_name") ?? "").trim(),
+    email: String(formData.get("email") ?? "").trim(),
+    password: String(formData.get("password") ?? ""),
+  });
+  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
 
   const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
     options: {
-      data: { full_name: fullName },
+      data: { full_name: parsed.data.fullName },
       emailRedirectTo: `${await siteOrigin()}/auth/callback`,
     },
   });
@@ -76,8 +90,12 @@ export async function requestPasswordReset(
   const supabase = await createClient();
   if (!supabase) return notConfigured();
 
-  const email = String(formData.get("email") ?? "").trim();
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  const parsed = emailOnlySchema.safeParse({
+    email: String(formData.get("email") ?? "").trim(),
+  });
+  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo: `${await siteOrigin()}/reset-password`,
   });
   if (error) return { error: error.message };
@@ -92,8 +110,14 @@ export async function updatePassword(
   const supabase = await createClient();
   if (!supabase) return notConfigured();
 
-  const password = String(formData.get("password") ?? "");
-  const { error } = await supabase.auth.updateUser({ password });
+  const parsed = newPasswordSchema.safeParse({
+    password: String(formData.get("password") ?? ""),
+  });
+  if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+
+  const { error } = await supabase.auth.updateUser({
+    password: parsed.data.password,
+  });
   if (error) return { error: error.message };
 
   redirect("/account");

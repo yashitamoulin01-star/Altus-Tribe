@@ -37,6 +37,9 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
             borderColor: focusedField === 'email' ? '#111111' : undefined,
           }}
         />
+        {state?.fieldErrors?.email && (
+          <p style={{ fontSize: '12px', color: '#c8102e' }}>{state.fieldErrors.email}</p>
+        )}
       </div>
 
       {/* Password */}
@@ -96,6 +99,9 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
             )}
           </button>
         </div>
+        {state?.fieldErrors?.password && (
+          <p style={{ fontSize: '12px', color: '#c8102e' }}>{state.fieldErrors.password}</p>
+        )}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1px' }}>
           <a
             href="/forgot-password"
