@@ -44,7 +44,10 @@ export async function sendMessage(
     return { ok: false, error: "send-failed" };
   }
 
-  // Fan out a notification to the other members (message pref respected).
+  // In-app notifications are created by the `messages_notify` DB trigger
+  // (migration 0013) — SECURITY DEFINER, so it isn't blocked by the notifications
+  // RLS the way a client-side insert would be. Here we only gather recipients +
+  // the sender name to drive the separate Web Push delivery.
   const { data: members } = await supabase
     .from("conversation_members")
     .select("profile_id")
@@ -57,17 +60,7 @@ export async function sendMessage(
     .eq("id", user.id)
     .maybeSingle();
   const senderName = me?.full_name ?? "A member";
-
   const recipientIds = (members ?? []).map((m) => m.profile_id as string);
-  for (const rid of recipientIds) {
-    await supabase.from("notifications").insert({
-      recipient_id: rid,
-      kind: "message",
-      title: `${senderName} sent you a message`,
-      body: text.slice(0, 140),
-      link: `/messages/${conversationId}`,
-    });
-  }
 
   // Fan out a Web Push to recipients' devices (respects prefs + prunes dead subs
   // inside the Edge Function). Fire-and-forget: a missing/undeployed function or

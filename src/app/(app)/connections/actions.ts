@@ -10,31 +10,9 @@ import { badId } from "@/lib/validation/actions";
 
 export type ConnResult = { ok: boolean; error?: string };
 
-async function myName(
-  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
-  userId: string,
-): Promise<string> {
-  const { data } = await supabase
-    .from("profiles")
-    .select("full_name")
-    .eq("id", userId)
-    .maybeSingle();
-  return (data?.full_name as string) || "A member";
-}
-
-async function notify(
-  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
-  recipientId: string,
-  title: string,
-) {
-  await supabase.from("notifications").insert({
-    recipient_id: recipientId,
-    kind: "system",
-    title,
-    body: null,
-    link: "/connections",
-  });
-}
+// Notifications for connection request/accept are created by the
+// `connections_notify` DB trigger (migration 0013) — SECURITY DEFINER, so it
+// isn't blocked by the notifications RLS the way a client-side insert would be.
 
 // Send (or auto-accept a reverse) connection request.
 export async function sendConnectionRequest(addresseeId: string): Promise<ConnResult> {
@@ -47,9 +25,8 @@ export async function sendConnectionRequest(addresseeId: string): Promise<ConnRe
   if (!user) return { ok: false, error: "unauthenticated" };
   if (user.id === addresseeId) return { ok: false, error: "self" };
 
-  const name = await myName(supabase, user.id);
-
-  // If they already requested me, accept that instead of creating a duplicate.
+  // If they already requested me, accept that instead of creating a duplicate
+  // (the trigger then notifies the original requester).
   const { data: reverse } = await supabase
     .from("connections")
     .select("id")
@@ -66,7 +43,6 @@ export async function sendConnectionRequest(addresseeId: string): Promise<ConnRe
       logError("sendConnectionRequest.accept", error, { userId: user.id });
       return { ok: false, error: "failed" };
     }
-    await notify(supabase, addresseeId, `${name} accepted your connection`);
     revalidatePath("/connections");
     return { ok: true };
   }
@@ -81,7 +57,6 @@ export async function sendConnectionRequest(addresseeId: string): Promise<ConnRe
     logError("sendConnectionRequest", error, { userId: user.id });
     return { ok: false, error: "failed" };
   }
-  await notify(supabase, addresseeId, `${name} wants to connect`);
   revalidatePath("/connections");
   return { ok: true };
 }
@@ -109,10 +84,7 @@ export async function respondToConnection(
     logError("respondToConnection", error, { userId: user.id });
     return { ok: false, error: "failed" };
   }
-  if (accept) {
-    const name = await myName(supabase, user.id);
-    await notify(supabase, requesterId, `${name} accepted your connection`);
-  }
+  // On accept, the connections_notify trigger notifies the requester.
   revalidatePath("/connections");
   return { ok: true };
 }

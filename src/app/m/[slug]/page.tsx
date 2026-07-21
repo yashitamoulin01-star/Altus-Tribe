@@ -6,6 +6,7 @@ import { getUser } from "@/lib/auth";
 import { getConnectionState, type ConnectionState } from "@/lib/connections";
 import ProfileHeader from "./_components/ProfileHeader";
 import ActionBar from "./_components/ActionBar";
+import ViewPing from "./_components/ViewPing";
 import AddressCard from "./_components/AddressCard";
 import PortfolioGallery from "./_components/PortfolioGallery";
 import SectionCard, { Detail, DetailGrid, Prose } from "./_components/SectionCard";
@@ -79,6 +80,7 @@ function ProfileView({
 
   return (
     <main className="mx-auto w-full max-w-[960px] px-5 pb-24 sm:px-8 lg:pb-16">
+      {!isOwner && member.id && <ViewPing ownerId={member.id} />}
       <nav className="print-hide flex items-center justify-between py-5">
         <Link href="/" className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
           ← The Tribe
