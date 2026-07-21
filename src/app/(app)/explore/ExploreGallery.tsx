@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { MemberCover } from "@/lib/members";
 import type { ConnectionState } from "@/lib/connections";
 import ConnectButton from "@/components/ConnectButton";
+import { useOnlineMembers } from "@/lib/presence";
 
 const OPEN_TO_LABELS: Record<string, string> = {
   mentoring: "Mentoring",
@@ -19,15 +20,17 @@ const OPEN_TO_LABELS: Record<string, string> = {
 function CoverCard({
   member,
   state,
+  online = false,
 }: {
   member: MemberCover;
   state: ConnectionState;
+  online?: boolean;
 }) {
   const initials = member.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("");
   return (
     <div className="flex flex-col overflow-hidden rounded border border-hairline bg-surface transition-all duration-150 hover:border-ink-muted">
       <Link href={`/m/${member.slug}`} className="group flex flex-1 flex-col">
-        <div className="aspect-[4/5] w-full overflow-hidden bg-surface-sunk">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-sunk">
           {member.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={member.photoUrl} alt={member.fullName} className="h-full w-full object-cover" />
@@ -35,6 +38,15 @@ function CoverCard({
             <div className="flex h-full w-full items-center justify-center">
               <span className="font-mono text-2xl text-ink-muted">{initials}</span>
             </div>
+          )}
+          {online && (
+            <span
+              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-ink/80 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-paper backdrop-blur"
+              title="Online now"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-positive" />
+              Online
+            </span>
           )}
         </div>
         <div className="flex flex-1 flex-col p-4">
@@ -87,10 +99,12 @@ function Strip({
   title,
   items,
   stateFor,
+  isOnline,
 }: {
   title: string;
   items: MemberCover[];
   stateFor: (m: MemberCover) => ConnectionState;
+  isOnline?: (m: MemberCover) => boolean;
 }) {
   if (items.length === 0) return null;
   return (
@@ -98,7 +112,7 @@ function Strip({
       <p className="kicker mb-4">{title}</p>
       <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
         {items.map((m) => (
-          <CoverCard key={m.slug} member={m} state={stateFor(m)} />
+          <CoverCard key={m.slug} member={m} state={stateFor(m)} online={isOnline?.(m)} />
         ))}
       </div>
     </section>
@@ -131,6 +145,9 @@ export default function ExploreGallery({
     () => [...new Set(members.flatMap((m) => m.openTo))].sort(),
     [members],
   );
+
+  const onlineIds = useOnlineMembers(currentUserId);
+  const isOnline = (m: MemberCover) => m.id !== currentUserId && onlineIds.has(m.id);
 
   const stateFor = (m: MemberCover): ConnectionState =>
     m.id === currentUserId ? "self" : connectionMap[m.id] ?? "none";
@@ -171,6 +188,11 @@ export default function ExploreGallery({
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
       .slice(0, 8);
   }, [members, hasFilters]);
+  const onlineNow = useMemo(
+    () => (hasFilters ? [] : members.filter(isOnline).slice(0, 8)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [members, hasFilters, onlineIds],
+  );
 
   return (
     <div>
@@ -223,8 +245,9 @@ export default function ExploreGallery({
       </div>
 
       {/* Discovery strips (browsing only) */}
-      <Strip title="Recommended for you" items={recommended} stateFor={stateFor} />
-      <Strip title="Recently joined" items={recentlyJoined} stateFor={stateFor} />
+      <Strip title="Online now" items={onlineNow} stateFor={stateFor} isOnline={isOnline} />
+      <Strip title="Recommended for you" items={recommended} stateFor={stateFor} isOnline={isOnline} />
+      <Strip title="Recently joined" items={recentlyJoined} stateFor={stateFor} isOnline={isOnline} />
 
       {/* Result count + reset */}
       <div className="mt-8 flex items-center justify-between border-t border-hairline pt-5">
@@ -242,7 +265,7 @@ export default function ExploreGallery({
       {results.length > 0 ? (
         <div className="mt-6 grid grid-cols-2 gap-5 pb-24 md:grid-cols-3 lg:grid-cols-4">
           {results.map((m) => (
-            <CoverCard key={m.slug} member={m} state={stateFor(m)} />
+            <CoverCard key={m.slug} member={m} state={stateFor(m)} online={isOnline(m)} />
           ))}
         </div>
       ) : (
