@@ -136,6 +136,46 @@ export async function saveCrm(input: {
   return { ok: true };
 }
 
+// Private CRM assets A3–A9 + A21 (participant_assets). Replace-all: the editor
+// sends the full slot set, we drop the member's existing rows and re-insert the
+// non-empty ones. RLS lets admins (is_admin) or the designated consultant write.
+export async function saveCrmAssets(
+  profileId: string,
+  assets: { kind: string; body: string; url: string; image: string }[],
+) {
+  if (badId(profileId)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase) return { ok: false };
+
+  const rows = assets
+    .filter((a) => a.body.trim() || a.url.trim() || a.image.trim())
+    .map((a) => ({
+      profile_id: profileId,
+      kind: a.kind,
+      body: a.body.trim() || null,
+      url: a.url.trim() || null,
+      image_path: a.image.trim() || null,
+    }));
+
+  const { error: delErr } = await supabase
+    .from("participant_assets")
+    .delete()
+    .eq("profile_id", profileId);
+  if (delErr) {
+    logError("saveCrmAssets", delErr, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't save assets. Please try again." };
+  }
+  if (rows.length) {
+    const { error: insErr } = await supabase.from("participant_assets").insert(rows);
+    if (insErr) {
+      logError("saveCrmAssets", insErr, { userId: ctx.userId });
+      return { ok: false, error: "Couldn't save assets. Please try again." };
+    }
+  }
+  revalidatePath(`/admin/members/${profileId}`);
+  return { ok: true };
+}
+
 // Moderation (#174): soft-delete a message. Comments don't exist yet; this covers
 // the content that does, and extends to comments when that feature ships.
 export async function deleteMessage(messageId: string) {

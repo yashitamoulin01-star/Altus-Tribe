@@ -1,9 +1,26 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { saveCrm, assignConsultant } from "../../actions";
-import type { CrmImpact, CrmRecord, RatingTier } from "@/lib/crm";
+import { saveCrm, saveCrmAssets, assignConsultant } from "../../actions";
+import { CRM_ASSET_FIELDS } from "@/lib/crm-fields";
+import type { CrmAsset, CrmImpact, CrmRecord, RatingTier } from "@/lib/crm";
 import type { RosterMember } from "@/lib/admin";
+
+// Editor-local asset slot: the three possible inputs for one A-code.
+type AssetSlot = { body: string; url: string; image: string };
+
+function initSlots(assets: CrmAsset[]): Record<string, AssetSlot> {
+  const out: Record<string, AssetSlot> = {};
+  for (const f of CRM_ASSET_FIELDS) {
+    const hit = assets.find((a) => a.kind === f.kind);
+    out[f.kind] = {
+      body: hit?.body ?? "",
+      url: hit?.url ?? "",
+      image: hit?.image ?? "",
+    };
+  }
+  return out;
+}
 
 const RATINGS: RatingTier[] = [
   "ambassador", "mentor", "coach", "expert", "practitioner", "observer",
@@ -27,14 +44,19 @@ const labelCls = "mb-1 block font-mono text-[11px] uppercase tracking-[0.1em] te
 
 export default function CrmEditor({
   record,
+  assets,
   consultants,
   isAdmin,
 }: {
   record: CrmRecord;
+  assets: CrmAsset[];
   consultants: RosterMember[];
   isAdmin: boolean;
 }) {
   const [form, setForm] = useState<CrmRecord>(record);
+  const [slots, setSlots] = useState<Record<string, AssetSlot>>(() =>
+    initSlots(assets),
+  );
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
 
@@ -44,6 +66,10 @@ export default function CrmEditor({
   };
   const setImpact = (key: keyof CrmImpact, value: string) => {
     setForm((f) => ({ ...f, impact: { ...f.impact, [key]: value } }));
+    setSaved(false);
+  };
+  const setSlot = (kind: string, patch: Partial<AssetSlot>) => {
+    setSlots((s) => ({ ...s, [kind]: { ...s[kind], ...patch } }));
     setSaved(false);
   };
 
@@ -57,6 +83,10 @@ export default function CrmEditor({
         rating: form.rating,
         impact: form.impact,
       });
+      await saveCrmAssets(
+        form.profileId,
+        CRM_ASSET_FIELDS.map((f) => ({ kind: f.kind, ...slots[f.kind] })),
+      );
       setSaved(true);
     });
 
@@ -143,6 +173,47 @@ export default function CrmEditor({
               />
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Assets & proof (A3–A9, A21) */}
+      <section>
+        <p className="kicker mb-3">Assets & proof (A3–A9, A21)</p>
+        <div className="space-y-4">
+          {CRM_ASSET_FIELDS.map((f) => {
+            const slot = slots[f.kind];
+            return (
+              <div key={f.kind} className="rounded border border-hairline p-3">
+                <label className={labelCls}>{f.label}</label>
+                <div className="mt-1.5 grid gap-2 md:grid-cols-2">
+                  {f.text && (
+                    <input
+                      className={field}
+                      placeholder="Text"
+                      value={slot.body}
+                      onChange={(e) => setSlot(f.kind, { body: e.target.value })}
+                    />
+                  )}
+                  {f.link && (
+                    <input
+                      className={field}
+                      placeholder="Link (https://…)"
+                      value={slot.url}
+                      onChange={(e) => setSlot(f.kind, { url: e.target.value })}
+                    />
+                  )}
+                  {f.image && (
+                    <input
+                      className={field}
+                      placeholder="Image URL or storage path"
+                      value={slot.image}
+                      onChange={(e) => setSlot(f.kind, { image: e.target.value })}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 

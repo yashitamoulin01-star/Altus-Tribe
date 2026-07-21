@@ -88,6 +88,7 @@ export interface EditableProfile {
   customLink: string;
   whatsappDm: boolean;
   bestTime: string;
+  bestModes: string[]; // #23 — subset of CONNECT_MODES
   // Personal
   birthDate: string;
   anniversary: string;
@@ -103,7 +104,17 @@ export interface EditableProfile {
   interestedHelping: string;
   interestedCoaching: string;
   interestedNetworking: string;
+  programBenefitWork: string; // #40
+  programBenefitPersonal: string; // #41
 }
+
+// #23 Best Mode to Connect — maps to profiles.best_modes (connect_mode[] enum).
+export const CONNECT_MODES: { value: string; label: string }[] = [
+  { value: "call", label: "Call" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "email", label: "Email" },
+  { value: "dnd", label: "DND" },
+];
 
 const emptyAddress: EditableAddress = {
   line1: "",
@@ -158,6 +169,7 @@ export const emptyEditable: EditableProfile = {
   customLink: "",
   whatsappDm: false,
   bestTime: "",
+  bestModes: [],
   birthDate: "",
   anniversary: "",
   maritalStatus: "",
@@ -172,6 +184,8 @@ export const emptyEditable: EditableProfile = {
   interestedHelping: "",
   interestedCoaching: "",
   interestedNetworking: "",
+  programBenefitWork: "",
+  programBenefitPersonal: "",
 };
 
 // The fields a member can individually show/hide (spec "Permission to Show", 👁).

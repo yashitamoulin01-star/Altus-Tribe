@@ -142,6 +142,7 @@ export async function loadEditable(): Promise<EditableState | null> {
     customLink: str(p.custom_link),
     whatsappDm: Boolean(p.whatsapp_dm),
     bestTime: str(p.best_time),
+    bestModes: Array.isArray(p.best_modes) ? (p.best_modes as string[]) : [],
     birthDate: str(p.birth_date),
     anniversary: str(p.anniversary),
     maritalStatus: str(p.marital_status),
@@ -156,6 +157,8 @@ export async function loadEditable(): Promise<EditableState | null> {
     interestedHelping: str(p.interested_helping),
     interestedCoaching: str(p.interested_coaching),
     interestedNetworking: str(p.interested_networking),
+    programBenefitWork: str(p.program_benefit_work),
+    programBenefitPersonal: str(p.program_benefit_personal),
   };
 
   const visibility =

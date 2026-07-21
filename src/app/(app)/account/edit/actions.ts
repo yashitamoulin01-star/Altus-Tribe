@@ -75,6 +75,9 @@ export async function saveProfile(
       custom_link: clean(d.customLink),
       whatsapp_dm: d.whatsappDm,
       best_time: clean(d.bestTime),
+      best_modes: d.bestModes.filter((m) =>
+        ["call", "whatsapp", "email", "dnd"].includes(m),
+      ),
       birth_date: clean(d.birthDate),
       anniversary: clean(d.anniversary),
       marital_status: clean(d.maritalStatus),
@@ -89,6 +92,8 @@ export async function saveProfile(
       interested_helping: clean(d.interestedHelping),
       interested_coaching: clean(d.interestedCoaching),
       interested_networking: clean(d.interestedNetworking),
+      program_benefit_work: clean(d.programBenefitWork),
+      program_benefit_personal: clean(d.programBenefitPersonal),
       field_visibility: visibility,
     })
     .eq("id", user.id);

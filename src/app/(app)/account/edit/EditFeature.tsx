@@ -7,6 +7,7 @@ import { uploadFile } from "@/lib/storage-client";
 import {
   ATTACHMENT_KIND_LABELS,
   composeFullName,
+  CONNECT_MODES,
   isFieldVisible,
   isFileKind,
   MAX_ATTACHMENTS,
@@ -391,6 +392,13 @@ export default function EditFeature({
     setD((p) => ({ ...p, [which]: { ...p[which], [k]: v } }));
     setStatus("idle");
   };
+  const toggleBestMode = (mode: string) =>
+    set(
+      "bestModes",
+      d.bestModes.includes(mode)
+        ? d.bestModes.filter((m) => m !== mode)
+        : [...d.bestModes, mode],
+    );
   const toggleVis = (key: string) =>
     setVis((v) => ({ ...v, [key]: !isFieldVisible(v, key) }));
   const visProps = (key: string) => ({
@@ -669,6 +677,29 @@ export default function EditFeature({
               <TextField label="Other link (portfolio / Calendly / etc.)" value={d.customLink} onChange={(v) => set("customLink", v)} placeholder="https://…" />
               <TextField label="Best time to connect" value={d.bestTime} onChange={(v) => set("bestTime", v)} placeholder="10am–7pm Mon–Fri" />
             </div>
+            <div className="mt-2">
+              <span className={labelCls + " mb-1.5 block"}>Best mode to connect</span>
+              <div className="flex flex-wrap gap-2">
+                {CONNECT_MODES.map((m) => {
+                  const on = d.bestModes.includes(m.value);
+                  return (
+                    <button
+                      key={m.value}
+                      type="button"
+                      onClick={() => toggleBestMode(m.value)}
+                      aria-pressed={on}
+                      className={`rounded border px-3 py-1.5 text-[14px] transition-colors ${
+                        on
+                          ? "border-red bg-red/10 text-red"
+                          : "border-hairline text-ink-muted hover:border-ink-muted"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
             <label className="mt-2 flex items-center justify-between">
               <span className={labelCls}>Allow WhatsApp DM from the portal</span>
               <span className="flex items-center gap-3">
@@ -691,6 +722,8 @@ export default function EditFeature({
             <AreaField label="Companies you want to connect with" value={d.wantConnect} onChange={(v) => set("wantConnect", v)} {...visProps("want_connect")} />
             <AreaField label="Your purpose / success mantra" value={d.purpose} onChange={(v) => set("purpose", v)} />
             <AreaField label="Favourite productivity tools" value={d.favouriteTools} onChange={(v) => set("favouriteTools", v)} />
+            <AreaField label="How Manan's programs helped you at work" value={d.programBenefitWork} onChange={(v) => set("programBenefitWork", v)} />
+            <AreaField label="How Manan's programs helped you personally" value={d.programBenefitPersonal} onChange={(v) => set("programBenefitPersonal", v)} />
             <AreaField label="How can you contribute to the Tribe" value={d.contribution} onChange={(v) => set("contribution", v)} {...visProps("contribution")} />
           </Section>
         </div>

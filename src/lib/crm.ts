@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+export { CRM_ASSET_FIELDS } from "@/lib/crm-fields";
 
 // Private CRM data layer (docs/12 §3, A1–A22). RLS restricts participant_admin /
 // participant_assets / admin_notes to admins and the participant's designated
@@ -33,10 +34,12 @@ export interface CrmRecord {
 
 export interface CrmAsset {
   id: string;
-  kind: string; // A3–A9, A21
+  kind: string; // A3–A9, A21 — one of CRM_ASSET_FIELDS[].kind
   body: string | null;
   url: string | null;
+  image: string | null; // storage path or image URL (A3/A4)
 }
+
 
 const schemaMissing = (e: { code?: string } | null) =>
   e?.code === "PGRST205" || e?.code === "42P01";
@@ -96,7 +99,7 @@ export async function getCrm(profileId: string): Promise<{
 
   const { data: assetRows } = await supabase
     .from("participant_assets")
-    .select("id, kind, body, url")
+    .select("id, kind, body, url, image_path")
     .eq("profile_id", profileId);
 
   const assets: CrmAsset[] = (assetRows ?? []).map((a) => ({
@@ -104,6 +107,7 @@ export async function getCrm(profileId: string): Promise<{
     kind: a.kind as string,
     body: (a.body as string) ?? null,
     url: (a.url as string) ?? null,
+    image: (a.image_path as string) ?? null,
   }));
 
   return { record, assets };

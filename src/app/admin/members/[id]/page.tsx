@@ -63,7 +63,12 @@ export default async function AdminMemberDetailPage({
             Never shown to members
           </span>
         </div>
-        <CrmEditor record={crm.record} consultants={consultants} isAdmin={ctx.isAdmin} />
+        <CrmEditor
+          record={crm.record}
+          assets={crm.assets}
+          consultants={consultants}
+          isAdmin={ctx.isAdmin}
+        />
       </section>
     </main>
   );
