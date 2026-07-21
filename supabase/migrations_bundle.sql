@@ -1,5 +1,43 @@
 -- Altus Tribe — consolidated migration bundle (auto-generated from migrations/ in order)
--- Paste this whole file into the Supabase dashboard SQL editor and Run. Idempotent-ish: run once on a fresh project.
+-- Paste this WHOLE file into the Supabase dashboard SQL editor and Run.
+-- Safe to re-run: the RESET block below drops everything first, so you never
+-- hit "type ... already exists" (42710) or "policy ... already exists" errors.
+
+-- ============================================================
+-- RESET  — DROPS ALL APP TABLES, TYPES, FUNCTIONS **AND DATA** in `public`,
+-- then the sections below rebuild them from scratch. This is what makes the
+-- script re-runnable. (Auth users in auth.users are NOT dropped; their profiles
+-- are recreated by the backfill near the end.)
+-- ============================================================
+
+-- Storage policies live on storage.objects (outside `public`) so the schema drop
+-- won't remove them — drop explicitly so the recreates below are clean.
+drop policy if exists "member photos public read" on storage.objects;
+drop policy if exists "member photos self write"  on storage.objects;
+drop policy if exists "member photos self update" on storage.objects;
+drop policy if exists "member photos self delete" on storage.objects;
+drop policy if exists "work files visible read"   on storage.objects;
+drop policy if exists "work files self write"     on storage.objects;
+drop policy if exists "work files self update"    on storage.objects;
+drop policy if exists "work files self delete"    on storage.objects;
+drop policy if exists "resources tribe read"      on storage.objects;
+drop policy if exists "resources admin write"     on storage.objects;
+drop policy if exists "resources admin update"    on storage.objects;
+drop policy if exists "resources admin delete"    on storage.objects;
+
+-- The auth.users trigger depends on a public function that's about to be dropped.
+drop trigger if exists on_auth_user_created on auth.users;
+
+-- Nuke and recreate the whole app schema.
+drop schema if exists public cascade;
+create schema public;
+
+-- Restore the grants + default privileges Supabase/PostgREST rely on.
+grant usage on schema public to anon, authenticated, service_role;
+grant all   on schema public to postgres, service_role;
+alter default privileges in schema public grant all on tables    to anon, authenticated, service_role;
+alter default privileges in schema public grant all on routines  to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
 
 
 -- ============================================================
