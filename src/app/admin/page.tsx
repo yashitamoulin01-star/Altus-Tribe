@@ -18,6 +18,8 @@ export default async function AdminOverviewPage() {
   const links = [
     { href: "/admin/members", title: "Roster", hint: "Search, edit, hide, inactivate or remove members." },
     { href: "/admin/consultants", title: "Consultants", hint: "Add consultants and assign designated consultants." },
+    { href: "/admin/assets", title: "Asset Manager", hint: "Publish announcements and curate Campus resources." },
+    { href: "/admin/analytics", title: "Analytics", hint: "Members, engagement, and content at a glance." },
     { href: "/admin/import", title: "Bulk import", hint: "Upload a CSV/Excel, map columns, confirm." },
     { href: "/admin/exports", title: "Exports & outreach", hint: "Excel / PDF master DB; WhatsApp / Email." },
   ];

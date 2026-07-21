@@ -193,6 +193,89 @@ export async function deleteMessage(messageId: string) {
   return { ok: true };
 }
 
+// --- Asset Manager (Phase 5.5): announcements + Campus resources -----------
+// Inserts fire the 0013 notification triggers (announcement/resource → members).
+
+export async function createAnnouncement(input: {
+  title: string;
+  body: string;
+  publish: boolean;
+}) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  if (!input.title.trim()) return { ok: false, error: "Title is required." };
+  const { error } = await supabase.from("announcements").insert({
+    title: input.title.trim(),
+    body: input.body.trim() || null,
+    author_id: ctx.userId,
+    published_at: input.publish ? new Date().toISOString() : null,
+  });
+  if (error) {
+    logError("createAnnouncement", error, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't publish. Please try again." };
+  }
+  revalidatePath("/admin/assets");
+  revalidatePath("/sacred-space");
+  return { ok: true };
+}
+
+export async function deleteAnnouncement(id: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase.from("announcements").delete().eq("id", id);
+  if (error) {
+    logError("deleteAnnouncement", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  revalidatePath("/admin/assets");
+  revalidatePath("/sacred-space");
+  return { ok: true };
+}
+
+export async function createResource(input: {
+  kind: string;
+  title: string;
+  description: string;
+  externalUrl: string;
+  filePath: string;
+}) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  if (!["video", "brochure", "inspiration"].includes(input.kind))
+    return { ok: false, error: "Invalid type." };
+  if (!input.title.trim()) return { ok: false, error: "Title is required." };
+  const { error } = await supabase.from("resources").insert({
+    kind: input.kind,
+    title: input.title.trim(),
+    description: input.description.trim() || null,
+    external_url: input.externalUrl.trim() || null,
+    file_path: input.filePath.trim() || null,
+    created_by: ctx.userId,
+  });
+  if (error) {
+    logError("createResource", error, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't add. Please try again." };
+  }
+  revalidatePath("/admin/assets");
+  revalidatePath("/campus");
+  return { ok: true };
+}
+
+export async function deleteResource(id: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase.from("resources").delete().eq("id", id);
+  if (error) {
+    logError("deleteResource", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  revalidatePath("/admin/assets");
+  revalidatePath("/campus");
+  return { ok: true };
+}
+
 // Bulk upload (#167–168): insert mapped rows as profiles. Expects rows already
 // parsed + mapped client-side to the canonical field names.
 export async function bulkInsertMembers(
