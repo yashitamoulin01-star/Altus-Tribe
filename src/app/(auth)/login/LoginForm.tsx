@@ -24,7 +24,7 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
     });
 
   return (
-    <form action={action} className="flex flex-col gap-2.5">
+    <form action={action} className="flex flex-col gap-2">
       <input type="hidden" name="redirect" value={redirectTo} />
 
       {/* Email */}
@@ -145,12 +145,12 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
       <SubmitButton pending={pending}>Enter Sacred Space</SubmitButton>
 
       {/* Passwordless alternative */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
         {magic.sent ? (
           <p style={{ fontSize: '13px', color: '#111111' }}>
             Sign-in link sent — check your email.
           </p>
-        ) : (
+        ) : email.length > 0 ? (
           <button
             type="button"
             onClick={onMagicLink}
@@ -167,9 +167,16 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
           >
             {magicPending ? 'Sending…' : 'Email me a sign-in link instead'}
           </button>
-        )}
+        ) : null}
         {magic.error && (
-          <p style={{ fontSize: '12px', color: '#c8102e' }}>{magic.error}</p>
+          <p style={{ fontSize: '12px', color: '#c8102e', textAlign: 'center', lineHeight: 1.5 }}>
+            {magic.error.includes('register first') ? (
+              <>
+                Account not found. Magic links are not for new users —{' '}
+                <a href="/signup" style={{ color: '#c8102e', fontWeight: 600 }}>please register first</a>.
+              </>
+            ) : magic.error}
+          </p>
         )}
       </div>
     </form>

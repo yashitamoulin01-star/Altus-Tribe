@@ -13,7 +13,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           scroll instead of being clipped; min-h-full + items-center keeps it
           centered when it fits. */}
       <div className="absolute inset-0 z-20 overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center px-4 py-10">
+        <div className="flex min-h-full items-center justify-center px-4 py-4">
           {children}
         </div>
       </div>

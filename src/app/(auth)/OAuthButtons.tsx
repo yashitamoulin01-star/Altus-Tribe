@@ -45,7 +45,7 @@ export default function OAuthButtons() {
   if (!providers.length) return null;
 
   return (
-    <div className="mb-6">
+    <div className="mb-3">
       <div className="flex flex-col gap-2.5">
         {providers.map((p) => (
           <form key={p} action={signInWithProvider}>
@@ -60,7 +60,7 @@ export default function OAuthButtons() {
           </form>
         ))}
       </div>
-      <div className="mt-5 flex items-center gap-3">
+      <div className="mt-3 flex items-center gap-3">
         <span className="h-px flex-1 bg-[#e4e4e2]" />
         <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#9a9a9a]">
           or
