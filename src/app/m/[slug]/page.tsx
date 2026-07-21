@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMember, getAllMemberSlugs } from "@/lib/members-data";
+import { getMember } from "@/lib/members-data";
 import { type Member, type MemberAddress } from "@/lib/members";
 import { getUser } from "@/lib/auth";
 import ShareButtons from "@/components/ShareButtons";
 import MessageMemberButton from "@/components/MessageMemberButton";
 
-export async function generateStaticParams() {
-  return (await getAllMemberSlugs()).map((slug) => ({ slug }));
-}
+// The public feature is personalized per viewer — owner-only fields are stripped
+// and "Message" is gated on the signed-in user — so it reads cookies and must
+// render dynamically rather than as a static/ISR page.
+export const dynamic = "force-dynamic";
 
 const OPEN_TO_LABELS: Record<string, string> = {
   mentoring: "Mentoring",

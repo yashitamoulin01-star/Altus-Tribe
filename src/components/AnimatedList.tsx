@@ -30,10 +30,10 @@ const AnimatedItem = ({ children, delay = 0, index, onMouseEnter, onClick }: Ani
   );
 };
 
-interface AnimatedListProps {
-  items?: any[];
-  onItemSelect?: (item: any, index: number) => void;
-  renderItem?: (item: any, isSelected: boolean) => React.ReactNode;
+interface AnimatedListProps<T> {
+  items?: T[];
+  onItemSelect?: (item: T, index: number) => void;
+  renderItem?: (item: T, isSelected: boolean) => React.ReactNode;
   showGradients?: boolean;
   enableArrowNavigation?: boolean;
   className?: string;
@@ -42,24 +42,8 @@ interface AnimatedListProps {
   initialSelectedIndex?: number;
 }
 
-export default function AnimatedList({
-  items = [
-    'Item 1',
-    'Item 2',
-    'Item 3',
-    'Item 4',
-    'Item 5',
-    'Item 6',
-    'Item 7',
-    'Item 8',
-    'Item 9',
-    'Item 10',
-    'Item 11',
-    'Item 12',
-    'Item 13',
-    'Item 14',
-    'Item 15'
-  ],
+export default function AnimatedList<T = string>({
+  items = [] as T[],
   onItemSelect,
   renderItem,
   showGradients = true,
@@ -68,7 +52,7 @@ export default function AnimatedList({
   itemClassName = '',
   displayScrollbar = true,
   initialSelectedIndex = -1
-}: AnimatedListProps) {
+}: AnimatedListProps<T>) {
   const listRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(initialSelectedIndex);
   const [keyboardNav, setKeyboardNav] = useState(false);
@@ -80,7 +64,7 @@ export default function AnimatedList({
   }, []);
 
   const handleItemClick = useCallback(
-    (item: any, index: number) => {
+    (item: T, index: number) => {
       setSelectedIndex(index);
       if (onItemSelect) {
         onItemSelect(item, index);
@@ -89,8 +73,8 @@ export default function AnimatedList({
     [onItemSelect]
   );
 
-  const handleScroll = useCallback((e: any) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     setTopGradientOpacity(Math.min(scrollTop / 50, 1));
     const bottomDistance = scrollHeight - (scrollTop + clientHeight);
     setBottomGradientOpacity(scrollHeight <= clientHeight ? 0 : Math.min(bottomDistance / 50, 1));
@@ -155,7 +139,7 @@ export default function AnimatedList({
             onClick={() => handleItemClick(item, index)}
           >
             <div className={`item ${selectedIndex === index ? 'selected' : ''} ${itemClassName}`}>
-              {renderItem ? renderItem(item, selectedIndex === index) : <p className="item-text">{item}</p>}
+              {renderItem ? renderItem(item, selectedIndex === index) : <p className="item-text">{String(item)}</p>}
             </div>
           </AnimatedItem>
         ))}

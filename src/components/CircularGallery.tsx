@@ -141,7 +141,7 @@ export default function CircularGallery({
     const meshes: Mesh[] = [];
     const radius = 2.5;
 
-    items.forEach((item, i) => {
+    items.forEach((item) => {
       const texture = createTextureWithText(item.image, item.text);
       const program = new Program(gl, {
         vertex,

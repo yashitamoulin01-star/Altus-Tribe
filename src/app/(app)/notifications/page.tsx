@@ -5,25 +5,6 @@ import NotificationsClient from "./NotificationsClient";
 
 export const metadata = { title: "Notifications — Altus Tribe" };
 
-function relTime(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const diff = Date.now() - d.getTime();
-  const mins = Math.round(diff / 60000);
-  if (mins < 60) return `${Math.max(mins, 1)}m ago`;
-  const hrs = Math.round(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
-}
-
-const GLYPH: Record<string, string> = {
-  message: "✉",
-  announcement: "◆",
-  mention: "@",
-  referral: "↗",
-  system: "•",
-};
-
 export default async function NotificationsPage() {
   const items = await getNotifications();
   const hasUnread = items.some((n) => !n.read);

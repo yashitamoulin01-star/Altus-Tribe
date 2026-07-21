@@ -232,7 +232,6 @@ const CursorGrid = ({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cellSize]);
 
   useEffect(() => {
