@@ -20,27 +20,13 @@ export default async function LoginPage({
       title="Welcome to the Tribe."
       subtitle="Enter your credentials to access the ecosystem of Indian entrepreneurs."
       footer={
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
-          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', textAlign: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '4px' }}>
+          <p style={{ fontSize: '12px', color: '#5f5f5f', textAlign: 'center' }}>
             New to the community?
           </p>
           <Link
             href="/signup"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '100%',
-              height: '44px',
-              border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '2px',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: '#ffffff',
-              textDecoration: 'none',
-              transition: 'background 180ms ease, border-color 180ms ease',
-              backdropFilter: 'blur(8px)',
-            }}
+            className="flex h-11 w-full items-center justify-center rounded-[2px] border border-[#111111] bg-white text-sm font-semibold text-[#111111] no-underline transition-colors duration-200 hover:bg-[#111111] hover:text-white"
           >
             Request Membership
           </Link>
