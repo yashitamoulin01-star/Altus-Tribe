@@ -62,6 +62,39 @@ export interface Member {
     home: MemberAddress | null;
     factory: MemberAddress | null;
   };
+  // Phase 4 — the complete identity. Fields with a privacy toggle are `| null`
+  // (null = hidden for this viewer); the rest are plain optionals. All gating
+  // happens in the data layer so components never handle privacy themselves.
+  brandNames?: string;
+  usp?: string;
+  natureOfBusiness?: string;
+  bestTime?: string;
+  bestModes?: string[];
+  whatsappDm?: boolean | null; // gated: "whatsapp"
+  // Personal
+  birthDate?: string | null; // gated: "birth_date"
+  bloodGroup?: string;
+  maritalStatus?: string | null; // gated: "marital_status"
+  anniversary?: string | null; // gated: "anniversary"
+  // Networking
+  areasOfInterest?: string | null; // gated: "areas_of_interest"
+  networkGroups?: string | null; // gated: "network_groups"
+  canConnect?: string | null; // gated: "can_connect"
+  wantConnect?: string | null; // gated: "want_connect"
+  favouriteTools?: string;
+  purpose?: string;
+  contribution?: string | null; // gated: "contribution"
+  // Community
+  interestedHelping?: string;
+  interestedCoaching?: string;
+  interestedNetworking?: string;
+  // Program journey
+  programBenefitWork?: string;
+  programBenefitPersonal?: string;
+  cqBatch?: string;
+  psBatch?: string;
+  bssBatch?: string;
+  conclavesAttended?: number | null;
 }
 
 // Bundled sample data — used as an offline fallback when Supabase is not

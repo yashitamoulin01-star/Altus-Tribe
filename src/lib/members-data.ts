@@ -62,6 +62,33 @@ type ProfileRow = {
   personal_instagram: string | null;
   youtube_url: string | null;
   company_website: string | null;
+  brand_names: string | null;
+  usp: string | null;
+  nature_of_business: string | null;
+  category: string | null;
+  best_time: string | null;
+  best_modes: string[] | null;
+  whatsapp_dm: boolean | null;
+  birth_date: string | null;
+  blood_group: string | null;
+  marital_status: string | null;
+  anniversary: string | null;
+  areas_of_interest: string | null;
+  network_groups: string | null;
+  can_connect: string | null;
+  want_connect: string | null;
+  favourite_tools: string | null;
+  purpose: string | null;
+  contribution: string | null;
+  interested_helping: string | null;
+  interested_coaching: string | null;
+  interested_networking: string | null;
+  program_benefit_work: string | null;
+  program_benefit_personal: string | null;
+  cq_batch: string | null;
+  ps_batch: string | null;
+  bss_batch: string | null;
+  conclaves_attended: number | null;
   field_visibility: FieldVisibility | null;
   businesses: {
     name: string | null;
@@ -88,6 +115,12 @@ const PROFILE_SELECT = `
   id, slug, full_name, photo_url, company_logo_url, role_title, industry, city,
   positioning, known_for, about, cell_no, alt_no, work_email, personal_email,
   linkedin_url, business_instagram, personal_instagram, youtube_url, company_website,
+  brand_names, usp, nature_of_business, category, best_time, best_modes, whatsapp_dm,
+  birth_date, blood_group, marital_status, anniversary,
+  areas_of_interest, network_groups, can_connect, want_connect, favourite_tools,
+  purpose, contribution, interested_helping, interested_coaching, interested_networking,
+  program_benefit_work, program_benefit_personal, cq_batch, ps_batch, bss_batch,
+  conclaves_attended,
   field_visibility,
   businesses ( name, description, founded_year, team_size, website ),
   expertise ( label, sort_order ),
@@ -225,6 +258,34 @@ async function rowToMember(
       home: addr("home", "home_address"),
       factory: addr("factory", "factory_address"),
     },
+    // Phase 4 — complete identity. Gated fields resolve to null when hidden.
+    brandNames: row.brand_names ?? undefined,
+    usp: row.usp ?? undefined,
+    natureOfBusiness: row.nature_of_business ?? undefined,
+    category: row.category ?? undefined,
+    bestTime: row.best_time ?? undefined,
+    bestModes: row.best_modes ?? undefined,
+    whatsappDm: show("whatsapp") ? row.whatsapp_dm : null,
+    birthDate: show("birth_date") ? row.birth_date : null,
+    bloodGroup: row.blood_group ?? undefined,
+    maritalStatus: show("marital_status") ? row.marital_status : null,
+    anniversary: show("anniversary") ? row.anniversary : null,
+    areasOfInterest: show("areas_of_interest") ? row.areas_of_interest : null,
+    networkGroups: show("network_groups") ? row.network_groups : null,
+    canConnect: show("can_connect") ? row.can_connect : null,
+    wantConnect: show("want_connect") ? row.want_connect : null,
+    favouriteTools: row.favourite_tools ?? undefined,
+    purpose: row.purpose ?? undefined,
+    contribution: show("contribution") ? row.contribution : null,
+    interestedHelping: row.interested_helping ?? undefined,
+    interestedCoaching: row.interested_coaching ?? undefined,
+    interestedNetworking: row.interested_networking ?? undefined,
+    programBenefitWork: row.program_benefit_work ?? undefined,
+    programBenefitPersonal: row.program_benefit_personal ?? undefined,
+    cqBatch: row.cq_batch ?? undefined,
+    psBatch: row.ps_batch ?? undefined,
+    bssBatch: row.bss_batch ?? undefined,
+    conclavesAttended: row.conclaves_attended ?? null,
   };
 }
 

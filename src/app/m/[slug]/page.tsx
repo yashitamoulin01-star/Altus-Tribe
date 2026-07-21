@@ -1,14 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMember } from "@/lib/members-data";
-import { type Member, type MemberAddress } from "@/lib/members";
+import { type Member } from "@/lib/members";
 import { getUser } from "@/lib/auth";
-import ShareButtons from "@/components/ShareButtons";
-import MessageMemberButton from "@/components/MessageMemberButton";
+import ProfileHeader from "./_components/ProfileHeader";
+import ActionBar from "./_components/ActionBar";
+import AddressCard from "./_components/AddressCard";
+import PortfolioGallery from "./_components/PortfolioGallery";
+import SectionCard, { Detail, DetailGrid, Prose } from "./_components/SectionCard";
 
-// The public feature is personalized per viewer — owner-only fields are stripped
-// and "Message" is gated on the signed-in user — so it reads cookies and must
-// render dynamically rather than as a static/ISR page.
+// Personalized per viewer (owner-only + hidden fields stripped, "Message" gated
+// on the signed-in user), so it reads cookies and renders dynamically.
 export const dynamic = "force-dynamic";
 
 const OPEN_TO_LABELS: Record<string, string> = {
@@ -18,342 +20,217 @@ const OPEN_TO_LABELS: Record<string, string> = {
   speaking: "Speaking",
   hiring: "Hiring",
 };
+const MODE_LABELS: Record<string, string> = {
+  call: "Call",
+  whatsapp: "WhatsApp",
+  email: "Email",
+  dnd: "DND",
+};
 
-/* One numbered Swiss section: label column + content column. */
-function Section({
-  index,
-  label,
-  children,
-}: {
-  index: number;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="border-t border-hairline py-12 md:py-16">
-      <div className="md:grid md:grid-cols-[112px_minmax(0,640px)] md:gap-10">
-        <div className="mb-4 flex items-baseline gap-3 md:mb-0">
-          <span className="font-mono text-xs tabular-nums text-red">
-            {String(index).padStart(2, "0")}
-          </span>
-          <span className="kicker md:hidden">{label}</span>
-        </div>
-        <div>
-          <p className="kicker mb-5 hidden md:block">{label}</p>
-          {children}
-        </div>
-      </div>
-    </section>
-  );
+function fmtDate(iso?: string | null) {
+  const s = (iso ?? "").trim();
+  if (!s) return "";
+  const d = new Date(s);
+  return Number.isNaN(d.getTime())
+    ? s
+    : d.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 }
 
-/* One postal address rendered as stacked lines + a maps link. */
-function AddressCard({ address }: { address: MemberAddress }) {
-  const cityLine = [address.city, address.state, address.pincode]
-    .filter(Boolean)
-    .join(", ");
-  return (
-    <div className="text-[16px] leading-relaxed text-ink-secondary">
-      {address.lines.map((l, i) => (
-        <p key={i}>{l}</p>
-      ))}
-      {cityLine && <p>{cityLine}</p>}
-      {address.country && <p>{address.country}</p>}
-      {address.mapLink && (
-        <a
-          href={address.mapLink}
-          className="mt-2 inline-block text-[14px] text-red transition-colors hover:text-red-hover"
-        >
-          View on map →
-        </a>
-      )}
-    </div>
-  );
-}
-
-function MemberFeature({
+function ProfileView({
   member,
+  isOwner,
   canMessage,
 }: {
   member: Member;
+  isOwner: boolean;
   canMessage: boolean;
 }) {
-  // Build the list of sections that actually have content, then number them.
-  const sections: { label: string; node: React.ReactNode }[] = [];
+  const b = member.business;
+  const modes = (member.bestModes ?? []).map((m) => MODE_LABELS[m] ?? m).join(", ");
 
-  if (member.knownFor) {
-    sections.push({
-      label: "Known For",
-      node: (
-        <p className="text-2xl md:text-3xl leading-tight tracking-tight text-ink">
-          {member.knownFor}
-        </p>
-      ),
-    });
-  }
-
-  if (member.about) {
-    sections.push({
-      label: "About",
-      node: (
-        <p className="text-[17px] leading-[1.7] text-ink-secondary">
-          {member.about}
-        </p>
-      ),
-    });
-  }
-
-  if (member.expertise.length) {
-    sections.push({
-      label: "Expertise",
-      node: (
-        <p className="text-lg leading-relaxed text-ink-secondary">
-          {member.expertise.join("  /  ")}
-        </p>
-      ),
-    });
-  }
-
-  if (member.business) {
-    const b = member.business;
-    sections.push({
-      label: "Business",
-      node: (
-        <div>
-          <div className="flex items-center gap-3">
-            {member.companyLogoUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={member.companyLogoUrl}
-                alt={`${b.name} logo`}
-                className="h-10 w-10 shrink-0 rounded object-contain"
-              />
-            )}
-            <p className="text-xl text-ink">{b.name}</p>
-          </div>
-          <p className="mt-1 text-[15px] text-ink-muted">
-            {[b.foundedYear && `Founded ${b.foundedYear}`, b.teamSize]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-          {b.description && (
-            <p className="mt-3 text-[17px] leading-[1.7] text-ink-secondary">
-              {b.description}
-            </p>
-          )}
-          {b.website && (
-            <a
-              href={`https://${b.website}`}
-              className="mt-3 inline-block text-[15px] text-red transition-colors hover:text-red-hover"
-            >
-              {b.website} →
-            </a>
-          )}
-        </div>
-      ),
-    });
-  }
-
-  if (member.offerings.length) {
-    sections.push({
-      label: "What I Do",
-      node: (
-        <ul className="space-y-5">
-          {member.offerings.map((o) => (
-            <li key={o.title}>
-              <p className="text-lg text-ink">{o.title}</p>
-              {o.description && (
-                <p className="mt-1 text-[16px] leading-relaxed text-ink-secondary">
-                  {o.description}
-                </p>
-              )}
-            </li>
-          ))}
-        </ul>
-      ),
-    });
-  }
-
-  if (member.work.length) {
-    sections.push({
-      label: "Work",
-      node: (
-        <div className="flex flex-wrap gap-3">
-          {member.work.map((w) => (
-            <a
-              key={w.title}
-              href={w.href}
-              className="rounded border border-hairline bg-surface px-4 py-3 text-[15px] text-ink transition-all duration-150 ease-[var(--ease-altus)] hover:-translate-y-0.5 hover:border-ink-muted"
-            >
-              {w.kind === "video" ? "▸ " : ""}
-              {w.title}
-            </a>
-          ))}
-        </div>
-      ),
-    });
-  }
-
-  if (member.openTo.length) {
-    sections.push({
-      label: "Open to",
-      node: (
-        <div className="flex flex-wrap gap-x-8 gap-y-3">
-          {member.openTo.map((o) => (
-            <span key={o} className="text-[17px] text-ink">
-              <span className="text-positive">✔</span>{" "}
-              {OPEN_TO_LABELS[o] ?? o}
-            </span>
-          ))}
-        </div>
-      ),
-    });
-  }
-
-  // Contact — only the fields that survived visibility stripping.
+  const aboutHas =
+    member.knownFor || member.about || member.expertise.length ||
+    member.birthDate || member.bloodGroup || member.maritalStatus || member.anniversary;
+  const businessHas =
+    b || member.natureOfBusiness || member.usp || member.offerings.length || member.openTo.length || member.brandNames;
   const contact = member.contact;
-  const contactRows = contact
-    ? ([
-        ["Cell", contact.cellNo, (v: string) => `tel:${v}`],
-        ["Alt", contact.altNo, (v: string) => `tel:${v}`],
-        ["Work email", contact.workEmail, (v: string) => `mailto:${v}`],
-        ["Personal email", contact.personalEmail, (v: string) => `mailto:${v}`],
-      ] as const).filter(([, v]) => Boolean(v))
-    : [];
-  if (contactRows.length) {
-    sections.push({
-      label: "Contact",
-      node: (
-        <dl className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-          {contactRows.map(([label, value, href]) => (
-            <div key={label}>
-              <dt className="kicker mb-1">{label}</dt>
-              <dd>
-                <a
-                  href={href(value as string)}
-                  className="text-[17px] text-ink transition-colors hover:text-red"
-                >
-                  {value}
-                </a>
-              </dd>
-            </div>
-          ))}
-        </dl>
-      ),
-    });
-  }
-
-  // Locations — work / home / factory, each already gated in the data layer.
-  const addressBlocks = (
-    [
-      ["Work", member.addresses?.work],
-      ["Home", member.addresses?.home],
-      ["Factory", member.addresses?.factory],
-    ] as const
-  ).filter(([, a]) => Boolean(a));
-  if (addressBlocks.length) {
-    sections.push({
-      label: "Locations",
-      node: (
-        <div className="grid gap-8 sm:grid-cols-2">
-          {addressBlocks.map(([label, a]) => (
-            <div key={label}>
-              <p className="kicker mb-2">{label}</p>
-              <AddressCard address={a as MemberAddress} />
-            </div>
-          ))}
-        </div>
-      ),
-    });
-  }
-
-  const initials = member.fullName
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("");
+  const contactHas =
+    contact?.cellNo || contact?.altNo || contact?.workEmail || contact?.personalEmail ||
+    member.bestTime || modes || member.whatsappDm;
+  const locations = [
+    ["Office", member.addresses?.work],
+    ["Home", member.addresses?.home],
+    ["Factory / Warehouse", member.addresses?.factory],
+  ] as const;
+  const locationsHas = locations.some(([, a]) => Boolean(a));
+  const portfolioHas = member.work.length || member.presence.length;
+  const networkingHas =
+    member.areasOfInterest || member.networkGroups || member.canConnect ||
+    member.wantConnect || member.favouriteTools || member.purpose;
+  const communityHas =
+    member.interestedHelping || member.interestedCoaching || member.interestedNetworking || member.contribution;
+  const journeyHas =
+    member.programBenefitWork || member.programBenefitPersonal ||
+    member.cqBatch || member.psBatch || member.bssBatch ||
+    (member.conclavesAttended != null && member.conclavesAttended > 0);
 
   return (
-    <main className="mx-auto w-full max-w-[900px] px-6 sm:px-10">
-      {/* Minimal top bar — one red affordance */}
-      <nav className="print-hide flex items-center justify-between py-6">
-        <Link
-          href="/"
-          className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
-        >
+    <main className="mx-auto w-full max-w-[960px] px-5 pb-24 sm:px-8 lg:pb-16">
+      <nav className="print-hide flex items-center justify-between py-5">
+        <Link href="/" className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
           ← The Tribe
         </Link>
       </nav>
 
-      {/* Hero */}
-      <header className="grid gap-8 pb-12 pt-4 md:grid-cols-[200px_1fr] md:gap-12">
-        <div className="aspect-[4/5] w-40 overflow-hidden rounded bg-surface-sunk md:w-full">
-          {member.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={member.photoUrl}
-              alt={member.fullName}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center">
-              <span className="font-mono text-3xl text-ink-muted">
-                {initials}
-              </span>
-            </div>
-          )}
-        </div>
+      <ProfileHeader member={member} />
 
-        <div className="flex flex-col justify-end">
-          <h1 className="text-4xl md:text-[44px] font-semibold leading-[1.05] tracking-[-0.02em] text-ink">
-            {member.fullName}
-          </h1>
-          <p className="mt-3 font-mono text-[13px] uppercase tracking-[0.12em] text-ink-muted">
-            {[member.roleTitle, member.industry, member.city]
-              .filter(Boolean)
-              .join("  /  ")}
-          </p>
-          <p className="mt-6 max-w-[36ch] text-xl leading-snug text-ink md:text-2xl">
-            {member.positioning}
-          </p>
-        </div>
-      </header>
-
-      {/* Numbered sections */}
-      {sections.map((s, i) => (
-        <Section key={s.label} index={i + 1} label={s.label}>
-          {s.node}
-        </Section>
-      ))}
-
-      {/* Connect — the one red CTA (+ Message for signed-in members) */}
-      <div className="border-t border-hairline py-14">
-        <div className="flex flex-wrap items-center gap-3">
-          <a
-            href={member.presence.find((p) => p.platform === "Email")?.url ?? "#"}
-            className="inline-block rounded bg-red px-7 py-3.5 text-[16px] font-medium text-paper transition-colors duration-150 hover:bg-red-hover"
-          >
-            Connect →
-          </a>
-          {canMessage && <MessageMemberButton profileId={member.id} />}
-        </div>
-        <p className="mt-5 flex flex-wrap gap-x-4 gap-y-1 text-[15px] text-ink-muted">
-          {member.presence.map((p) => (
-            <a
-              key={p.platform}
-              href={p.url}
-              className="transition-colors hover:text-ink"
-            >
-              {p.platform}
-            </a>
-          ))}
-        </p>
+      <div className="mt-7">
+        <ActionBar member={member} isOwner={isOwner} canMessage={canMessage} />
       </div>
 
-      {/* Share this feature — WhatsApp / Email / copy link / Download PDF (#105–107) */}
-      <div className="print-hide border-t border-hairline py-10">
-        <p className="kicker mb-3">Share this feature</p>
-        <ShareButtons slug={member.slug} name={member.fullName} showPdf />
+      <div className="mt-8 space-y-5">
+        {/* About */}
+        {aboutHas && (
+          <SectionCard label="About">
+            <div className="space-y-5">
+              {member.knownFor && (
+                <p className="text-2xl leading-tight tracking-tight text-ink">{member.knownFor}</p>
+              )}
+              <Prose value={member.about} />
+              {member.expertise.length > 0 && (
+                <p className="text-[16px] leading-relaxed text-ink-secondary">
+                  {member.expertise.join("  /  ")}
+                </p>
+              )}
+              <DetailGrid>
+                <Detail label="Birth date" value={fmtDate(member.birthDate)} />
+                <Detail label="Blood group" value={member.bloodGroup} />
+                <Detail label="Marital status" value={member.maritalStatus} />
+                <Detail label="Anniversary" value={fmtDate(member.anniversary)} />
+              </DetailGrid>
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Business */}
+        {businessHas && (
+          <SectionCard label="Business">
+            <div className="space-y-5">
+              {b && (
+                <div>
+                  <p className="text-xl text-ink">{b.name}</p>
+                  <p className="mt-1 text-[15px] text-ink-muted">
+                    {[b.foundedYear && `Founded ${b.foundedYear}`, b.teamSize].filter(Boolean).join(" · ")}
+                  </p>
+                  {b.description && (
+                    <p className="mt-3 text-[16px] leading-[1.7] text-ink-secondary">{b.description}</p>
+                  )}
+                </div>
+              )}
+              <Detail label="Brand names" value={member.brandNames} />
+              <Prose label="Nature of business" value={member.natureOfBusiness} />
+              <Prose label="Unique selling point" value={member.usp} />
+              {member.offerings.length > 0 && (
+                <div>
+                  <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-muted">What I do</p>
+                  <ul className="space-y-3">
+                    {member.offerings.map((o) => (
+                      <li key={o.title}>
+                        <p className="text-[16px] text-ink">{o.title}</p>
+                        {o.description && <p className="mt-0.5 text-[15px] leading-relaxed text-ink-secondary">{o.description}</p>}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {member.openTo.length > 0 && (
+                <div className="flex flex-wrap gap-x-6 gap-y-2">
+                  {member.openTo.map((o) => (
+                    <span key={o} className="text-[15px] text-ink"><span className="text-positive">✔</span> {OPEN_TO_LABELS[o] ?? o}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Contact */}
+        {contactHas && (
+          <SectionCard label="Contact">
+            <DetailGrid>
+              <Detail label="Cell" value={contact?.cellNo} href={contact?.cellNo ? `tel:${contact.cellNo}` : undefined} />
+              <Detail label="Alternate" value={contact?.altNo} href={contact?.altNo ? `tel:${contact.altNo}` : undefined} />
+              <Detail label="Work email" value={contact?.workEmail} href={contact?.workEmail ? `mailto:${contact.workEmail}` : undefined} />
+              <Detail label="Personal email" value={contact?.personalEmail} href={contact?.personalEmail ? `mailto:${contact.personalEmail}` : undefined} />
+              <Detail label="Best time to connect" value={member.bestTime} />
+              <Detail label="Best mode to connect" value={modes} />
+              {member.whatsappDm ? <Detail label="WhatsApp DM" value="Open to WhatsApp messages" /> : null}
+            </DetailGrid>
+          </SectionCard>
+        )}
+
+        {/* Locations */}
+        {locationsHas && (
+          <SectionCard label="Locations">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {locations.map(([label, a]) => (a ? <AddressCard key={label} label={label} address={a} /> : null))}
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Business presence / portfolio */}
+        {portfolioHas ? (
+          <SectionCard label="Business presence">
+            <PortfolioGallery member={member} />
+          </SectionCard>
+        ) : null}
+
+        {/* Networking */}
+        {networkingHas && (
+          <SectionCard label="Networking">
+            <div className="space-y-5">
+              <Prose label="Areas of interest" value={member.areasOfInterest} />
+              <Prose label="Associations & forums" value={member.networkGroups} />
+              <Prose label="Can connect others to" value={member.canConnect} />
+              <Prose label="Wants introductions to" value={member.wantConnect} />
+              <Detail label="Favourite tools" value={member.favouriteTools} />
+              <Prose label="Purpose / philosophy" value={member.purpose} />
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Community */}
+        {communityHas && (
+          <SectionCard label="Community">
+            <div className="space-y-5">
+              <DetailGrid>
+                <Detail label="Open to helping" value={member.interestedHelping} />
+                <Detail label="Open to coaching" value={member.interestedCoaching} />
+                <Detail label="Business networking" value={member.interestedNetworking} />
+              </DetailGrid>
+              <Prose label="Contribution to the Tribe" value={member.contribution} />
+            </div>
+          </SectionCard>
+        )}
+
+        {/* Program journey / achievements */}
+        {journeyHas && (
+          <SectionCard label="Program journey">
+            <div className="space-y-5">
+              <Prose label="How the programs helped at work" value={member.programBenefitWork} />
+              <Prose label="How the programs helped personally" value={member.programBenefitPersonal} />
+              <DetailGrid>
+                <Detail label="CQ batch" value={member.cqBatch} />
+                <Detail label="PS batch" value={member.psBatch} />
+                <Detail label="BSS batch" value={member.bssBatch} />
+                <Detail
+                  label="Conclaves attended"
+                  value={member.conclavesAttended != null && member.conclavesAttended > 0 ? String(member.conclavesAttended) : ""}
+                />
+              </DetailGrid>
+            </div>
+          </SectionCard>
+        )}
       </div>
     </main>
   );
@@ -363,6 +240,7 @@ export default async function Page({ params }: PageProps<"/m/[slug]">) {
   const { slug } = await params;
   const [member, viewer] = await Promise.all([getMember(slug), getUser()]);
   if (!member) notFound();
+  const isOwner = Boolean(viewer && member.id && viewer.id === member.id);
   const canMessage = Boolean(viewer && member.id && viewer.id !== member.id);
-  return <MemberFeature member={member} canMessage={canMessage} />;
+  return <ProfileView member={member} isOwner={isOwner} canMessage={canMessage} />;
 }
