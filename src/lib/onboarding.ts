@@ -73,9 +73,22 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
   };
 }
 
-// Where to send a user after auth: pending approval → /pending; otherwise
-// onboarding until done, then the Tribe home.
+// Where to send a user after auth: an unmet MFA challenge → /mfa; pending
+// approval → /pending; otherwise onboarding until done, then the Tribe home.
 export async function getPostAuthRedirect(): Promise<string> {
+  const supabase = await createClient();
+  if (supabase) {
+    try {
+      const { data: aal } =
+        await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+        return "/mfa";
+      }
+    } catch {
+      // Fail open — never block sign-in on an MFA lookup error.
+    }
+  }
+
   const state = await loadOnboarding();
   if (!state) return "/home";
   if (state.status === "pending") return "/pending";

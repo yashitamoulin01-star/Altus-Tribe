@@ -78,6 +78,23 @@ export async function updateSession(request: NextRequest) {
       pendingUrl.search = "";
       return NextResponse.redirect(pendingUrl);
     }
+
+    // MFA gate: a user who enrolled an authenticator but is still at aal1 must
+    // elevate before entering the worlds. Only affects MFA-enrolled users
+    // (nextLevel === 'aal2'); everyone else passes untouched. Fail open on any
+    // error so an AAL hiccup never locks the app.
+    try {
+      const { data: aal } =
+        await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal && aal.nextLevel === "aal2" && aal.currentLevel === "aal1") {
+        const mfaUrl = request.nextUrl.clone();
+        mfaUrl.pathname = "/mfa";
+        mfaUrl.search = "";
+        return NextResponse.redirect(mfaUrl);
+      }
+    } catch {
+      // ignore — do not block navigation on MFA lookup failure
+    }
   }
 
   return response;

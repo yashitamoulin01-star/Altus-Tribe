@@ -87,6 +87,11 @@ export default async function AccountPage() {
                 label: "Notification Settings",
                 hint: "Choose what reaches you.",
               },
+              {
+                href: "/settings/security" as const,
+                label: "Security & 2FA",
+                hint: "Add two-factor authentication to your account.",
+              },
             ].map((item) => (
               <Link
                 key={item.href}
