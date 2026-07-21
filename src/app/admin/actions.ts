@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getAdminContext } from "@/lib/admin";
 import { logError } from "@/lib/logger";
+import { logAudit } from "@/lib/audit";
 import { badId } from "@/lib/validation/actions";
 import type { MemberStatus, Role } from "@/lib/admin";
 import type { CrmImpact, RatingTier } from "@/lib/crm";
@@ -28,6 +29,7 @@ export async function setMemberStatus(id: string, status: MemberStatus) {
     logError("setMemberStatus", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("member.status", { entityType: "profile", entityId: id, metadata: { status } });
   revalidatePath("/admin/members");
   revalidatePath(`/admin/members/${id}`);
   return { ok: true };
@@ -45,6 +47,7 @@ export async function approveMember(id: string) {
     logError("approveMember", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("member.approve", { entityType: "profile", entityId: id });
   revalidatePath("/admin/approvals");
   revalidatePath("/admin/members");
   return { ok: true };
@@ -59,6 +62,7 @@ export async function rejectMember(id: string) {
     logError("rejectMember", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("member.reject", { entityType: "profile", entityId: id });
   revalidatePath("/admin/approvals");
   revalidatePath("/admin/members");
   return { ok: true };
@@ -73,6 +77,7 @@ export async function deleteMember(id: string) {
     logError("deleteMember", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("member.delete", { entityType: "profile", entityId: id });
   revalidatePath("/admin/members");
   return { ok: true };
 }
@@ -86,6 +91,7 @@ export async function setMemberRole(id: string, role: Role) {
     logError("setMemberRole", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("member.role", { entityType: "profile", entityId: id, metadata: { role } });
   revalidatePath("/admin/consultants");
   revalidatePath("/admin/members");
   return { ok: true };
@@ -104,6 +110,11 @@ export async function assignConsultant(memberId: string, consultantId: string | 
     logError("assignConsultant", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("member.assign_consultant", {
+    entityType: "profile",
+    entityId: memberId,
+    metadata: { consultantId },
+  });
   revalidatePath(`/admin/members/${memberId}`);
   return { ok: true };
 }
@@ -190,6 +201,7 @@ export async function deleteMessage(messageId: string) {
     logError("deleteMessage", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("message.delete", { entityType: "message", entityId: messageId });
   return { ok: true };
 }
 
@@ -214,6 +226,10 @@ export async function createAnnouncement(input: {
     logError("createAnnouncement", error, { userId: ctx.userId });
     return { ok: false, error: "Couldn't publish. Please try again." };
   }
+  await logAudit("asset.announcement.create", {
+    entityType: "announcement",
+    metadata: { title: input.title.trim(), published: input.publish },
+  });
   revalidatePath("/admin/assets");
   revalidatePath("/sacred-space");
   return { ok: true };
@@ -228,6 +244,7 @@ export async function deleteAnnouncement(id: string) {
     logError("deleteAnnouncement", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("asset.announcement.delete", { entityType: "announcement", entityId: id });
   revalidatePath("/admin/assets");
   revalidatePath("/sacred-space");
   return { ok: true };
@@ -257,6 +274,10 @@ export async function createResource(input: {
     logError("createResource", error, { userId: ctx.userId });
     return { ok: false, error: "Couldn't add. Please try again." };
   }
+  await logAudit("asset.resource.create", {
+    entityType: "resource",
+    metadata: { title: input.title.trim(), kind: input.kind },
+  });
   revalidatePath("/admin/assets");
   revalidatePath("/campus");
   return { ok: true };
@@ -271,6 +292,7 @@ export async function deleteResource(id: string) {
     logError("deleteResource", error, { userId: ctx.userId });
     return { ok: false };
   }
+  await logAudit("asset.resource.delete", { entityType: "resource", entityId: id });
   revalidatePath("/admin/assets");
   revalidatePath("/campus");
   return { ok: true };

@@ -23,6 +23,16 @@ export interface AdminResource {
   createdAt: string;
 }
 
+export interface AuditEntry {
+  id: string;
+  actorName: string | null;
+  action: string;
+  entityType: string | null;
+  entityId: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+}
+
 export interface Analytics {
   members: number;
   active: number;
@@ -81,6 +91,30 @@ export async function getAdminResources(): Promise<AdminResource[]> {
     filePath: (r.file_path as string) ?? null,
     createdAt: r.created_at as string,
   }));
+}
+
+export async function getAuditLog(limit = 100): Promise<AuditEntry[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("audit_logs")
+    .select("id, action, entity_type, entity_id, metadata, created_at, actor:profiles!audit_logs_actor_id_fkey(full_name)")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) return [];
+  return (data ?? []).map((r) => {
+    const actor = r.actor as { full_name?: string } | { full_name?: string }[] | null;
+    const actorName = Array.isArray(actor) ? actor[0]?.full_name ?? null : actor?.full_name ?? null;
+    return {
+      id: r.id as string,
+      actorName,
+      action: r.action as string,
+      entityType: (r.entity_type as string) ?? null,
+      entityId: (r.entity_id as string) ?? null,
+      metadata: (r.metadata as Record<string, unknown>) ?? {},
+      createdAt: r.created_at as string,
+    };
+  });
 }
 
 const SAMPLE_ANALYTICS: Analytics = {
