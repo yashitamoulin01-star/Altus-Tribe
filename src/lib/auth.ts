@@ -1,21 +1,22 @@
 import "server-only";
-import { createClient } from "@/lib/supabase/server";
-import type { User } from "@supabase/supabase-js";
+import { auth } from "@clerk/nextjs/server";
 
-// Returns the signed-in user, or null (also null when Supabase is unconfigured).
-export async function getUser(): Promise<User | null> {
-  const supabase = await createClient();
-  if (!supabase) return null;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
+// Session identity now comes from Clerk (auth migration). Returns a minimal user
+// shape (id = Clerk user id, plus email when present in the session claims), or
+// null when signed out. Consumers only read .id / .email.
+export interface SessionUser {
+  id: string;
+  email: string | null;
 }
 
-// Whether Supabase auth is wired up in this environment.
+export async function getUser(): Promise<SessionUser | null> {
+  const { userId, sessionClaims } = await auth();
+  if (!userId) return null;
+  const claims = sessionClaims as { email?: string } | null;
+  return { id: userId, email: claims?.email ?? null };
+}
+
+// Whether auth is wired up in this environment (Clerk publishable key present).
 export function isAuthConfigured(): boolean {
-  return Boolean(
-    process.env.NEXT_PUBLIC_SUPABASE_URL &&
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  );
+  return Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY);
 }

@@ -1,36 +1,64 @@
 'use client';
 
-import { useActionState, useState, useTransition } from 'react';
-import { login, sendMagicLink, type AuthState } from '../actions';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSignIn } from '@clerk/nextjs/legacy';
 import SubmitButton from '../SubmitButton';
 import { fieldClass, labelClass } from '../AuthShell';
 import CaptchaField from '@/components/CaptchaField';
 import LegalModal, { type LegalDocType } from '@/components/LegalModal';
 
+// Extracts a human-readable message from a Clerk error without exposing internals.
+function clerkMessage(err: unknown): string {
+  if (err && typeof err === 'object' && 'errors' in err) {
+    const first = (err as { errors?: { message?: string; longMessage?: string }[] }).errors?.[0];
+    return first?.longMessage || first?.message || 'Sign-in failed. Please check your details and try again.';
+  }
+  return 'Sign-in failed. Please try again.';
+}
+
 export default function LoginForm({ redirectTo }: { redirectTo: string }) {
-  const [state, action, pending] = useActionState<AuthState, FormData>(login, null);
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [email, setEmail] = useState('');
-  const [captchaToken, setCaptchaToken] = useState('');
-  const [magicPending, startMagic] = useTransition();
+  const [password, setPassword] = useState('');
+  const [, setCaptchaToken] = useState(''); // kept for UI parity; Clerk has its own bot protection
+  const [pending, setPending] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
   const [magic, setMagic] = useState<{ sent?: boolean; error?: string }>({});
-
-  const onMagicLink = () =>
-    startMagic(async () => {
-      setMagic({});
-      const res = await sendMagicLink(email, captchaToken);
-      if (res.ok) setMagic({ sent: true });
-      else setMagic({ error: res.error ?? res.fieldError ?? 'Could not send link.' });
-    });
-
   const [legalDoc, setLegalDoc] = useState<LegalDocType>(null);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded || pending) return;
+    setPending(true);
+    setErrors({});
+    try {
+      const res = await signIn.create({ identifier: email, password });
+      if (res.status === 'complete') {
+        await setActive({ session: res.createdSessionId });
+        router.push(redirectTo || '/home');
+        router.refresh();
+        return;
+      }
+      // Additional factors (email verification, MFA) are handled in a later checkpoint.
+      setErrors({ form: 'Additional verification is required to finish signing in.' });
+      setPending(false);
+    } catch (err) {
+      setErrors({ form: clerkMessage(err) });
+      setPending(false);
+    }
+  };
+
+  // Magic-link (passwordless) sign-in is wired in the next checkpoint.
+  const onMagicLink = () =>
+    setMagic({ error: 'Email sign-in links arrive in the next update — please use your password for now.' });
 
   return (
     <>
-      <form action={action} className="flex flex-col gap-2">
-        <input type="hidden" name="redirect" value={redirectTo} />
-
+      <form onSubmit={onSubmit} className="flex flex-col gap-2">
         {/* Email */}
         <div className="flex flex-col gap-1">
           <label
@@ -56,8 +84,8 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
               borderColor: focusedField === 'email' ? '#111111' : undefined,
             }}
           />
-          {state?.fieldErrors?.email && (
-            <p style={{ fontSize: '12px', color: '#c8102e' }}>{state.fieldErrors.email}</p>
+          {errors.email && (
+            <p style={{ fontSize: '12px', color: '#c8102e' }}>{errors.email}</p>
           )}
         </div>
 
@@ -78,6 +106,8 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
               required
               autoComplete="current-password"
               placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               onFocus={() => setFocusedField('password')}
               onBlur={() => setFocusedField(null)}
               className={fieldClass}
@@ -118,8 +148,8 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
               )}
             </button>
           </div>
-          {state?.fieldErrors?.password && (
-            <p style={{ fontSize: '12px', color: '#c8102e' }}>{state.fieldErrors.password}</p>
+          {errors.password && (
+            <p style={{ fontSize: '12px', color: '#c8102e' }}>{errors.password}</p>
           )}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1px' }}>
             <a
@@ -139,8 +169,8 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
         </div>
 
         {/* Error */}
-        {state?.error && (
-          <p style={{ fontSize: '13px', color: '#c8102e' }}>{state.error}</p>
+        {errors.form && (
+          <p style={{ fontSize: '13px', color: '#c8102e' }}>{errors.form}</p>
         )}
 
         <CaptchaField onToken={setCaptchaToken} />
@@ -158,7 +188,6 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
             <button
               type="button"
               onClick={onMagicLink}
-              disabled={magicPending}
               style={{
                 fontSize: '13px',
                 fontWeight: 500,
@@ -166,20 +195,15 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
                 background: 'none',
                 border: 'none',
                 padding: 0,
-                cursor: magicPending ? 'default' : 'pointer',
+                cursor: 'pointer',
               }}
             >
-              {magicPending ? 'Sending…' : 'Email me a sign-in link instead'}
+              Email me a sign-in link instead
             </button>
           ) : null}
           {magic.error && (
             <p style={{ fontSize: '12px', color: '#c8102e', textAlign: 'center', lineHeight: 1.5 }}>
-              {magic.error.includes('register first') ? (
-                <>
-                  Account not found. Magic links are not for new users —{' '}
-                  <a href="/signup" style={{ color: '#c8102e', fontWeight: 600 }}>please register first</a>.
-                </>
-              ) : magic.error}
+              {magic.error}
             </p>
           )}
         </div>
