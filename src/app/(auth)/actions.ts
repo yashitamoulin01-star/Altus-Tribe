@@ -45,10 +45,10 @@ function notConfigured(): AuthState {
 
 async function siteOrigin() {
   const h = await headers();
-  return (
+  const rawUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
-    `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`
-  );
+    `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
+  return rawUrl.replace(/\/+$/, "");
 }
 
 export async function login(
@@ -99,12 +99,13 @@ export async function signup(
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
   const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
 
+  const origin = await siteOrigin();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.fullName },
-      emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
       captchaToken,
     },
   });
@@ -135,11 +136,12 @@ export async function resendConfirmation(
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
 
   const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
+  const origin = await siteOrigin();
   const { error } = await supabase.auth.resend({
     type: "signup",
     email: parsed.data.email,
     options: {
-      emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
       captchaToken,
     },
   });
@@ -165,11 +167,12 @@ export async function sendMagicLink(
   const parsed = emailOnlySchema.safeParse({ email: email.trim() });
   if (!parsed.success) return { fieldError: fieldErrorsFrom(parsed.error).email };
 
+  const origin = await siteOrigin();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
       shouldCreateUser: false,
-      emailRedirectTo: `${await siteOrigin()}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback`,
       captchaToken: captchaToken || undefined,
     },
   });
@@ -208,8 +211,9 @@ export async function requestPasswordReset(
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
   const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
 
+  const origin = await siteOrigin();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${await siteOrigin()}/reset-password`,
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
     captchaToken,
   });
   if (error) return { error: error.message };
@@ -234,7 +238,7 @@ export async function updatePassword(
   });
   if (error) return { error: error.message };
 
-  redirect("/account");
+  redirect("/login?reset_success=1");
 }
 
 export async function signOut(): Promise<void> {

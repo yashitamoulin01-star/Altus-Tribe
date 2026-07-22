@@ -15,6 +15,21 @@ import SectionCard, { Detail, DetailGrid, Prose } from "./_components/SectionCar
 // on the signed-in user), so it reads cookies and renders dynamically.
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const member = await getMember(slug); // cached — shared with the page body
+  if (!member) return { title: "Member — Altus Tribe" };
+  const bits = [member.roleTitle, member.business?.name].filter(Boolean).join(" · ");
+  return {
+    title: `${member.fullName} — Altus Tribe`,
+    description: bits || member.positioning || undefined,
+  };
+}
+
 const OPEN_TO_LABELS: Record<string, string> = {
   mentoring: "Mentoring",
   partnerships: "Partnerships",

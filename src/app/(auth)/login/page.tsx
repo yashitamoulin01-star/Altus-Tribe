@@ -12,9 +12,9 @@ export const metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string; check_email?: string; email?: string; error?: string }>;
+  searchParams: Promise<{ redirect?: string; check_email?: string; email?: string; error?: string; reset_success?: string }>;
 }) {
-  const { redirect, check_email, email, error } = await searchParams;
+  const { redirect, check_email, email, error, reset_success } = await searchParams;
 
   return (
     <AuthShell
@@ -36,6 +36,11 @@ export default async function LoginPage({
       }
     >
       {check_email && <ResendConfirmation email={email} />}
+      {reset_success ? (
+        <p style={{ marginBottom: '16px', fontSize: '13px', color: '#059669', backgroundColor: '#ecfdf5', padding: '10px 14px', borderRadius: '4px', border: '1px solid #a7f3d0' }}>
+          Password updated successfully! Please sign in with your new password.
+        </p>
+      ) : null}
       {error === 'oauth' ? (
         <p style={{ marginBottom: '16px', fontSize: '13px', color: '#c8102e' }}>
           Social sign-in didn&apos;t complete. Please try again or use your email.

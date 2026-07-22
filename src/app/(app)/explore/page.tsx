@@ -5,6 +5,7 @@ import { getSuggestedMembers } from "@/lib/dashboard";
 import { getUser } from "@/lib/auth";
 import ExploreGallery from "./ExploreGallery";
 
+export const metadata = { title: "Explore People — Altus Tribe" };
 export const dynamic = "force-dynamic";
 
 export default async function ExplorePage({

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
 import { isFieldVisible, type FieldVisibility } from "@/lib/profile-fields";
@@ -289,7 +290,9 @@ async function rowToMember(
   };
 }
 
-export async function getMember(slug: string): Promise<Member | undefined> {
+// Wrapped in React cache() so the page body and generateMetadata share a single
+// request-scoped fetch instead of hitting the DB twice per profile view.
+export const getMember = cache(async (slug: string): Promise<Member | undefined> => {
   const supabase = await createClient();
   if (!supabase) return sampleMembers.find((m) => m.slug === slug);
 
@@ -311,7 +314,7 @@ export async function getMember(slug: string): Promise<Member | undefined> {
   const isOwner = user?.id === data.id;
 
   return rowToMember(data, isOwner, supabase.storage);
-}
+});
 
 export async function getAllMembers(): Promise<MemberCover[]> {
   const supabase = await createClient();

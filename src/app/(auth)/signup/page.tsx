@@ -4,6 +4,8 @@ import SignupForm from "./SignupForm";
 import ConclaveCountdown from "../ConclaveCountdown";
 import OAuthButtons from "../OAuthButtons";
 
+export const metadata = { title: "Request Access — Altus Tribe" };
+
 export default function SignupPage() {
   return (
     <AuthShell

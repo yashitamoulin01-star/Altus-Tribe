@@ -2,6 +2,8 @@ import Link from "next/link";
 import AuthShell from "../AuthShell";
 import ForgotForm from "./ForgotForm";
 
+export const metadata = { title: "Reset Password — Altus Tribe" };
+
 export default async function ForgotPasswordPage({
   searchParams,
 }: {
