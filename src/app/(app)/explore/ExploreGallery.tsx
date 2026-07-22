@@ -28,12 +28,16 @@ function CoverCard({
 }) {
   const initials = member.fullName.split(" ").map((n) => n[0]).slice(0, 2).join("");
   return (
-    <div className="flex flex-col overflow-hidden rounded border border-hairline bg-surface transition-all duration-150 hover:border-ink-muted">
-      <Link href={`/m/${member.slug}`} className="group flex flex-1 flex-col">
+    <div className="group flex flex-col overflow-hidden rounded-xl border border-hairline bg-surface transition-all duration-200 hover:border-hairline-bright hover:-translate-y-0.5 hover:shadow-[0_14px_44px_rgba(0,0,0,0.28)]">
+      <Link href={`/m/${member.slug}`} className="flex flex-1 flex-col">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface-sunk">
           {member.photoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={member.photoUrl} alt={member.fullName} className="h-full w-full object-cover" />
+            <img
+              src={member.photoUrl}
+              alt={member.fullName}
+              className="h-full w-full object-cover transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
               <span className="font-mono text-2xl text-ink-muted">{initials}</span>
@@ -41,21 +45,23 @@ function CoverCard({
           )}
           {online && (
             <span
-              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-ink/80 px-2 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-paper backdrop-blur"
+              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-white backdrop-blur-md"
               title="Online now"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-positive" />
+              <span className="h-1.5 w-1.5 rounded-full bg-red shadow-[0_0_6px_var(--color-red)]" />
               Online
             </span>
           )}
         </div>
         <div className="flex flex-1 flex-col p-4">
-          <p className="text-lg font-semibold leading-tight text-ink">{member.fullName}</p>
+          <p className="text-[17px] font-semibold leading-tight text-ink transition-colors group-hover:text-red">
+            {member.fullName}
+          </p>
           <p className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
-            {[member.roleTitle, member.industry, member.city].filter(Boolean).join("  /  ")}
+            {[member.roleTitle, member.industry, member.city].filter(Boolean).join("  ·  ")}
           </p>
           {member.businessName && <p className="mt-2 text-[13px] text-ink-muted">{member.businessName}</p>}
-          <p className="mt-3 line-clamp-2 text-[15px] leading-snug text-ink-secondary">{member.positioning}</p>
+          <p className="mt-3 line-clamp-2 text-[14px] leading-snug text-ink-secondary">{member.positioning}</p>
         </div>
       </Link>
       {state !== "self" && (
@@ -80,8 +86,10 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border px-3.5 py-1.5 text-[14px] transition-colors duration-150 ${
-        selected ? "border-ink bg-ink text-paper" : "border-hairline bg-surface-sunk text-ink-secondary hover:border-ink-muted"
+      className={`rounded-full border px-3.5 py-1.5 text-[13px] transition-all duration-200 ${
+        selected
+          ? "border-red/40 bg-red-muted text-red"
+          : "border-hairline bg-surface-sunk text-ink-secondary hover:border-hairline-bright hover:text-ink"
       }`}
     >
       {label}
@@ -197,13 +205,20 @@ export default function ExploreGallery({
   return (
     <div>
       {/* Concierge search */}
-      <div className="mt-10">
+      <div className="relative mt-10">
+        <svg
+          className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-muted"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M21 21l-4.3-4.3" />
+        </svg>
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name, business, industry, interest…"
-          className="w-full rounded border border-hairline bg-surface-sunk px-4 py-3.5 text-[17px] text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none focus:ring-2 focus:ring-red/40"
+          className="w-full rounded-xl border border-hairline bg-surface-sunk py-3.5 pl-12 pr-4 text-[16px] text-ink placeholder:text-ink-muted transition-all duration-200 focus:border-red/50 focus:outline-none focus:ring-4 focus:ring-red/10"
           aria-label="Search members"
         />
       </div>
