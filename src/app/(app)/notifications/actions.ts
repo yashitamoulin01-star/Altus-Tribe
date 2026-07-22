@@ -1,5 +1,6 @@
 "use server";
 
+import { getUser as getSessionUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
@@ -11,9 +12,7 @@ import type { NotificationPrefs } from "@/lib/notifications";
 export async function markAllRead(): Promise<void> {
   const supabase = await createClient();
   if (!supabase) return;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return;
 
   const { error } = await supabase
@@ -29,9 +28,7 @@ export async function markAllRead(): Promise<void> {
 export async function markRead(id: string): Promise<void> {
   const supabase = await createClient();
   if (!supabase) return;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return;
 
   const { error } = await supabase
@@ -48,9 +45,7 @@ export async function markRead(id: string): Promise<void> {
 export async function savePrefs(prefs: NotificationPrefs): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   if (!supabase) return { ok: false };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false };
 
   const { error } = await supabase.from("notification_prefs").upsert({
@@ -78,9 +73,7 @@ export async function registerPush(sub: {
 }): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   if (!supabase) return { ok: false };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false };
 
   const { error } = await supabase.from("push_subscriptions").upsert(
@@ -104,9 +97,7 @@ export async function registerPush(sub: {
 export async function unregisterPush(endpoint: string): Promise<{ ok: boolean }> {
   const supabase = await createClient();
   if (!supabase) return { ok: false };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false };
 
   const { error } = await supabase

@@ -1,4 +1,5 @@
 import "server-only";
+import { getUser as getSessionUser } from "@/lib/auth";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { createStaticClient } from "@/lib/supabase/static";
@@ -308,9 +309,7 @@ export const getMember = cache(async (slug: string): Promise<Member | undefined>
   }
   if (!data) return undefined;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   const isOwner = user?.id === data.id;
 
   return rowToMember(data, isOwner, supabase.storage);

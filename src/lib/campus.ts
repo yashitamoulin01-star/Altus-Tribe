@@ -1,4 +1,5 @@
 import "server-only";
+import { getUser as getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 // Campus data layer (Phase 5.3). Learning resources + per-member bookmark/
@@ -69,9 +70,7 @@ export async function getCampusResources(): Promise<CampusResource[]> {
     return [];
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   const activity = user ? await activityMap(supabase, user.id) : new Map();
 
   return (data ?? []).map((r) => {
@@ -115,9 +114,7 @@ export async function getCampusResource(
   }
   if (!data) return null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   const activity = user ? await activityMap(supabase, user.id) : new Map();
   const a = activity.get(data.id as string);
 

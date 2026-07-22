@@ -1,4 +1,5 @@
 import "server-only";
+import { getUser as getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 // Notifications data layer (docs/11-spec-messaging-notifications.md). In-app
@@ -72,9 +73,7 @@ const SAMPLE_NOTIFICATIONS: NotificationView[] = [
 export async function getNotifications(): Promise<NotificationView[]> {
   const supabase = await createClient();
   if (!supabase) return SAMPLE_NOTIFICATIONS;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return SAMPLE_NOTIFICATIONS;
 
   const { data, error } = await supabase
@@ -102,9 +101,7 @@ export async function getNotifications(): Promise<NotificationView[]> {
 export async function getUnreadCount(): Promise<number> {
   const supabase = await createClient();
   if (!supabase) return SAMPLE_NOTIFICATIONS.filter((n) => !n.read).length;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return 0;
 
   const { count, error } = await supabase
@@ -123,9 +120,7 @@ export async function getUnreadCount(): Promise<number> {
 export async function getPrefs(): Promise<NotificationPrefs> {
   const supabase = await createClient();
   if (!supabase) return DEFAULT_PREFS;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return DEFAULT_PREFS;
 
   const { data, error } = await supabase

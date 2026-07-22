@@ -1,5 +1,6 @@
 "use server";
 
+import { getUser as getSessionUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
@@ -19,9 +20,7 @@ export async function sendConnectionRequest(addresseeId: string): Promise<ConnRe
   if (badId(addresseeId)) return { ok: false, error: "invalid" };
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthenticated" };
   if (user.id === addresseeId) return { ok: false, error: "self" };
 
@@ -69,9 +68,7 @@ export async function respondToConnection(
   if (badId(requesterId)) return { ok: false, error: "invalid" };
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
   const { error } = await supabase
@@ -94,9 +91,7 @@ export async function removeConnection(otherId: string): Promise<ConnResult> {
   if (badId(otherId)) return { ok: false, error: "invalid" };
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
   const { error } = await supabase

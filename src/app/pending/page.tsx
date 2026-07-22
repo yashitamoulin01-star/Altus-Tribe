@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { signOut } from "@/app/(auth)/actions";
+import { getUser as getSessionUser } from "@/lib/auth";
+import SignOutButton from "@/components/SignOutButton";
 
 export const metadata = { title: "Under review — Altus Tribe" };
 
@@ -11,9 +12,7 @@ export default async function PendingPage() {
   const supabase = await createClient();
   if (!supabase) redirect("/login");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSessionUser();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -37,14 +36,9 @@ export default async function PendingPage() {
         get an email the moment you&apos;re approved, then you can build your feature and
         enter the Tribe.
       </p>
-      <form action={signOut} className="mt-8">
-        <button
-          type="submit"
-          className="rounded border border-hairline px-4 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted"
-        >
-          Sign out
-        </button>
-      </form>
+      <div className="mt-8">
+        <SignOutButton className="rounded border border-hairline px-4 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted" />
+      </div>
     </main>
   );
 }

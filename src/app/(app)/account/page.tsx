@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getUser, isAuthConfigured } from "@/lib/auth";
 import { getAdminContext } from "@/lib/admin";
-import { signOut } from "../../(auth)/actions";
+import SignOutButton from "@/components/SignOutButton";
 
 // Protected landing after sign-in. Middleware redirects unauthenticated users
 // to /login; this page also degrades gracefully when auth isn't configured.
@@ -55,14 +55,7 @@ export default async function AccountPage() {
             >
               Edit my feature
             </Link>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="rounded border border-hairline px-5 py-2.5 text-[15px] text-ink transition-colors hover:border-ink-muted"
-              >
-                Sign out
-              </button>
-            </form>
+            <SignOutButton className="rounded border border-hairline px-5 py-2.5 text-[15px] text-ink transition-colors hover:border-ink-muted" />
           </div>
 
           {/* Menu items (#134, #135) */}
