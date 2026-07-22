@@ -1,21 +1,10 @@
-"use client";
-
-import { useSignIn } from "@clerk/nextjs/legacy";
+import { signInWithProvider } from "./actions";
 import { type OAuthProvider } from "./oauth-providers";
 
-// Social sign-in buttons (Clerk). Renders only the providers listed in
-// NEXT_PUBLIC_OAUTH_PROVIDERS (comma-separated, e.g. "google,linkedin_oidc"),
-// so no broken buttons show before a provider is enabled in the Clerk Dashboard.
-// Each starts Clerk's OAuth redirect flow; completion lands on /sso-callback.
-
-const CLERK_STRATEGY: Record<
-  OAuthProvider,
-  "oauth_google" | "oauth_apple" | "oauth_linkedin_oidc"
-> = {
-  linkedin_oidc: "oauth_linkedin_oidc",
-  google: "oauth_google",
-  apple: "oauth_apple",
-};
+// Social sign-in buttons. Renders only the providers listed in
+// NEXT_PUBLIC_OAUTH_PROVIDERS (comma-separated, e.g. "linkedin_oidc,google"),
+// so no broken buttons show before a provider is enabled in Supabase. Each is a
+// tiny server-action form — no client JS needed.
 
 const META: Record<OAuthProvider, { label: string; icon: React.ReactNode }> = {
   linkedin_oidc: {
@@ -48,8 +37,6 @@ const META: Record<OAuthProvider, { label: string; icon: React.ReactNode }> = {
 };
 
 export default function OAuthButtons() {
-  const { isLoaded, signIn } = useSignIn();
-
   const providers = (process.env.NEXT_PUBLIC_OAUTH_PROVIDERS ?? "")
     .split(",")
     .map((s) => s.trim())
@@ -57,28 +44,20 @@ export default function OAuthButtons() {
 
   if (!providers.length) return null;
 
-  const start = (p: OAuthProvider) => {
-    if (!isLoaded) return;
-    void signIn.authenticateWithRedirect({
-      strategy: CLERK_STRATEGY[p],
-      redirectUrl: "/sso-callback",
-      redirectUrlComplete: "/home",
-    });
-  };
-
   return (
     <div className="mb-3">
       <div className="flex flex-col gap-2.5">
         {providers.map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => start(p)}
-            className="flex h-11 w-full items-center justify-center gap-2.5 rounded-[4px] border border-[#e1e3e4] bg-white text-[14px] font-medium text-[#111111] transition-colors hover:bg-[#fafafa]"
-          >
-            {META[p].icon}
-            Continue with {META[p].label}
-          </button>
+          <form key={p} action={signInWithProvider}>
+            <input type="hidden" name="provider" value={p} />
+            <button
+              type="submit"
+              className="flex h-11 w-full items-center justify-center gap-2.5 rounded-[4px] border border-[#e1e3e4] bg-white text-[14px] font-medium text-[#111111] transition-colors hover:bg-[#fafafa]"
+            >
+              {META[p].icon}
+              Continue with {META[p].label}
+            </button>
+          </form>
         ))}
       </div>
       <div className="mt-3 flex items-center gap-3">

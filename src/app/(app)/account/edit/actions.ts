@@ -1,6 +1,5 @@
 "use server";
 
-import { getUser as getSessionUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { failFrom } from "@/lib/validation/actions";
@@ -35,7 +34,9 @@ export async function saveProfile(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "not-configured" };
 
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "not-signed-in" };
 
   // Resolve whose profile is being written, authorizing admin edits of others.

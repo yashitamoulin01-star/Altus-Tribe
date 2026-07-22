@@ -1,12 +1,9 @@
 import { cookies } from "next/headers";
-import { auth } from "@clerk/nextjs/server";
 import { createServerClient } from "@supabase/ssr";
 
 // Server-side Supabase client (Server Components, Route Handlers, Server Actions).
-// Auth is now provided by Clerk: the accessToken callback hands Supabase the
-// Clerk session JWT, so Postgres RLS runs as the Clerk user (via the
-// Supabase third-party-auth integration; policies read auth.jwt()->>'sub').
-// Returns null when env is not configured — callers fall back to sample data.
+// Reads/writes the auth cookie so RLS runs as the signed-in user. Returns null
+// when env is not configured — callers fall back to bundled sample data.
 export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -15,7 +12,6 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient(url, key, {
-    accessToken: async () => (await auth()).getToken(),
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -26,7 +22,8 @@ export async function createClient() {
             cookieStore.set(name, value, options);
           }
         } catch {
-          // Called during a Server Component render — safe to ignore.
+          // called from a Server Component render — safe to ignore; the
+          // middleware/session refresh path handles cookie writes.
         }
       },
     },

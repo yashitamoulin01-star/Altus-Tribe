@@ -1,5 +1,4 @@
 import "server-only";
-import { getUser as getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
 
@@ -16,7 +15,9 @@ export async function logAudit(action: string, details: AuditDetails = {}): Prom
   try {
     const supabase = await createClient();
     if (!supabase) return;
-    const user = await getSessionUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) return;
 
     const { error } = await supabase.from("audit_logs").insert({

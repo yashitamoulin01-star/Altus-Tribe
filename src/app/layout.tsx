@@ -1,4 +1,3 @@
-import {ClerkProvider} from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -29,11 +28,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink font-sans">
-        {/* Headless Clerk: point at our own auth pages so Clerk never renders or
-            redirects to its default UI. Our /login, /signup etc. stay unchanged. */}
-        <ClerkProvider signInUrl="/login" signUpUrl="/signup">
-          {children}
-        </ClerkProvider>
+        {children}
       </body>
     </html>
   );

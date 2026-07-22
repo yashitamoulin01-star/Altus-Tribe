@@ -1,108 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSignUp } from "@clerk/nextjs/legacy";
+import { useActionState, useState } from "react";
+import { signup, type AuthState } from "../actions";
 import SubmitButton from "../SubmitButton";
 import { fieldClass, labelClass } from "../AuthShell";
 import { passwordStrength } from "@/lib/validation/auth";
+import CaptchaField from "@/components/CaptchaField";
 import LegalModal, { type LegalDocType } from "@/components/LegalModal";
 
-function clerkMessage(err: unknown): string {
-  if (err && typeof err === "object" && "errors" in err) {
-    const first = (err as { errors?: { message?: string; longMessage?: string }[] }).errors?.[0];
-    return first?.longMessage || first?.message || "Couldn't create your account. Please try again.";
-  }
-  return "Couldn't create your account. Please try again.";
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="mt-1 text-[12px] text-red">{message}</p>;
 }
 
 export default function SignupForm() {
-  const { isLoaded, signUp, setActive } = useSignUp();
-  const router = useRouter();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
+  const [state, action, pending] = useActionState<AuthState, FormData>(
+    signup,
+    null,
+  );
   const [password, setPassword] = useState("");
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | undefined>();
-  const [verifying, setVerifying] = useState(false);
-  const [code, setCode] = useState("");
   const [legalDoc, setLegalDoc] = useState<LegalDocType>(null);
   const strength = passwordStrength(password);
 
-  const onCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isLoaded || pending) return;
-    setPending(true);
-    setError(undefined);
-    try {
-      await signUp.create({
-        emailAddress: email,
-        password,
-        unsafeMetadata: { full_name: fullName },
-      });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setVerifying(true);
-      setPending(false);
-    } catch (err) {
-      setError(clerkMessage(err));
-      setPending(false);
-    }
-  };
-
-  const onVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isLoaded || pending) return;
-    setPending(true);
-    setError(undefined);
-    try {
-      const res = await signUp.attemptEmailAddressVerification({ code });
-      if (res.status === "complete") {
-        await setActive({ session: res.createdSessionId });
-        router.push("/onboarding");
-        router.refresh();
-        return;
-      }
-      setError("That code didn't verify. Please check and try again.");
-      setPending(false);
-    } catch (err) {
-      setError(clerkMessage(err));
-      setPending(false);
-    }
-  };
-
-  // Verification step — shown after the account is created and a code is emailed.
-  if (verifying) {
-    return (
-      <form onSubmit={onVerify} className="space-y-4">
-        <p className="text-[14px] text-ink-secondary">
-          We emailed a 6-digit code to <span className="font-medium text-ink">{email}</span>.
-          Enter it below to confirm your account.
-        </p>
-        <div>
-          <label htmlFor="code" className={labelClass}>
-            Verification code
-          </label>
-          <input
-            id="code"
-            name="code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            required
-            placeholder="123456"
-            className={fieldClass}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-          />
-        </div>
-        {error && <p className="text-[14px] text-red">{error}</p>}
-        <SubmitButton pending={pending}>Confirm & continue</SubmitButton>
-      </form>
-    );
-  }
-
   return (
     <>
-      <form onSubmit={onCreate} className="space-y-4">
+      <form action={action} className="space-y-4">
         <div>
           <label htmlFor="full_name" className={labelClass}>
             Full name
@@ -115,9 +37,8 @@ export default function SignupForm() {
             autoComplete="name"
             placeholder="Your name"
             className={fieldClass}
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
           />
+          <FieldError message={state?.fieldErrors?.fullName} />
         </div>
         <div>
           <label htmlFor="email" className={labelClass}>
@@ -131,9 +52,8 @@ export default function SignupForm() {
             autoComplete="email"
             placeholder="you@company.com"
             className={fieldClass}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
           />
+          <FieldError message={state?.fieldErrors?.email} />
         </div>
         <div>
           <label htmlFor="password" className={labelClass}>
@@ -168,6 +88,7 @@ export default function SignupForm() {
               </span>
             </div>
           )}
+          <FieldError message={state?.fieldErrors?.password} />
         </div>
 
         {/* Legal Checkboxes */}
@@ -228,10 +149,9 @@ export default function SignupForm() {
           </label>
         </div>
 
-        {/* Clerk Smart CAPTCHA mounts here only when a challenge is required. */}
-        <div id="clerk-captcha" />
+        <CaptchaField />
 
-        {error && <p className="text-[14px] text-red">{error}</p>}
+        {state?.error && <p className="text-[14px] text-red">{state.error}</p>}
 
         <SubmitButton pending={pending}>Create account</SubmitButton>
       </form>

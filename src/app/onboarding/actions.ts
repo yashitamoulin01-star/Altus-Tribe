@@ -1,6 +1,5 @@
 "use server";
 
-import { getUser as getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +11,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function finishOnboarding(): Promise<void> {
   const supabase = await createClient();
   if (supabase) {
-    const user = await getSessionUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       await supabase
         .from("profiles")

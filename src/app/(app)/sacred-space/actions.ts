@@ -1,6 +1,5 @@
 "use server";
 
-import { getUser as getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
 
@@ -10,7 +9,9 @@ import { logError } from "@/lib/logger";
 export async function askManan(): Promise<{ id: string | null }> {
   const supabase = await createClient();
   if (!supabase) return { id: null };
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { id: null };
 
   // Existing support conversation I'm already in?

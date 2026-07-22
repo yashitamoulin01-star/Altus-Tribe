@@ -1,6 +1,5 @@
 "use server";
 
-import { getUser as getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { badId } from "@/lib/validation/actions";
 
@@ -12,7 +11,9 @@ export async function recordProfileView(ownerId: string): Promise<void> {
   if (badId(ownerId)) return;
   const supabase = await createClient();
   if (!supabase) return;
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user || user.id === ownerId) return;
 
   await supabase.from("profile_views").upsert(

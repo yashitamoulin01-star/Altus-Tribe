@@ -1,6 +1,5 @@
 "use server";
 
-import { getUser as getSessionUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
@@ -25,7 +24,9 @@ export async function sendMessage(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
 
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
   // Per-user spam guard: 20 messages / 10s. Keyed by user id (not IP) so it
@@ -99,7 +100,9 @@ export async function getOrCreateDirectConversation(
   const supabase = await createClient();
   if (!supabase) return { id: null, error: "offline" };
 
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { id: null, error: "unauthenticated" };
   if (user.id === otherProfileId) return { id: null, error: "self" };
 

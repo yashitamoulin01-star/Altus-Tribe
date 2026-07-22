@@ -1,5 +1,4 @@
 import "server-only";
-import { getUser as getSessionUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { emptyOnboarding, type OnboardingData } from "@/lib/onboarding-shared";
 import { loadEditable } from "@/lib/profile-edit";
@@ -56,7 +55,9 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
   const supabase = await createClient();
   if (!supabase) return null;
 
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return null;
 
   const { data: profile } = await supabase

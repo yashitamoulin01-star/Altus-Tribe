@@ -1,6 +1,5 @@
 "use server";
 
-import { getUser as getSessionUser } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
@@ -16,7 +15,9 @@ async function setFlag(
   if (badId(resourceId)) return { ok: false };
   const supabase = await createClient();
   if (!supabase) return { ok: false };
-  const user = await getSessionUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) return { ok: false };
 
   const { error } = await supabase.from("resource_activity").upsert(
