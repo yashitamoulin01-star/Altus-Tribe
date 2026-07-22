@@ -25,6 +25,15 @@ function isProtected(pathname: string) {
 // Refreshes the Supabase auth session on every request and gates protected
 // routes. No-ops gracefully when Supabase env is not configured so the offline
 // sample-data demo keeps working.
+// Build a redirect that carries over any auth cookies the session refresh just
+// wrote onto `response`. Without this, a token refreshed during getUser() is lost
+// on the redirect branches and the user is silently logged out on the next hop.
+function redirectWithCookies(from: NextResponse, url: URL): NextResponse {
+  const res = NextResponse.redirect(url);
+  for (const cookie of from.cookies.getAll()) res.cookies.set(cookie);
+  return res;
+}
+
 export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request });
 
@@ -60,7 +69,7 @@ export async function updateSession(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    return redirectWithCookies(response, loginUrl);
   }
 
   // Invitation-only gate: a signed-in member still awaiting admin approval is
@@ -76,7 +85,7 @@ export async function updateSession(request: NextRequest) {
       const pendingUrl = request.nextUrl.clone();
       pendingUrl.pathname = "/pending";
       pendingUrl.search = "";
-      return NextResponse.redirect(pendingUrl);
+      return redirectWithCookies(response, pendingUrl);
     }
 
     // MFA gate: a user who enrolled an authenticator but is still at aal1 must
@@ -90,7 +99,7 @@ export async function updateSession(request: NextRequest) {
         const mfaUrl = request.nextUrl.clone();
         mfaUrl.pathname = "/mfa";
         mfaUrl.search = "";
-        return NextResponse.redirect(mfaUrl);
+        return redirectWithCookies(response, mfaUrl);
       }
     } catch {
       // ignore — do not block navigation on MFA lookup failure
