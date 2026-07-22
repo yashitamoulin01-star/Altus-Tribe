@@ -1,30 +1,67 @@
 @import "tailwindcss";
 
 /*
-  Altus Tribe — Swiss Minimal, strict brand palette.
-  ONLY red · black · grey · white are allowed (client brand rule).
-  No warm tints, no green, no other chroma. Red is the single accent.
-  Humanity comes from photography, typography, and whitespace — not colour.
+  ALTUS TRIBE — FAANG-Grade Dark-First Design System.
+  Strict Palette: Black · White · Grey · Red accents ONLY.
+  No warm tints, blue, green, purple, orange, or rainbow gradients.
 */
 
+:root {
+  /* Dark Mode (Default Primary Experience) */
+  --color-paper: #09090b;
+  --color-surface: #121215;
+  --color-surface-hover: #1c1c21;
+  --color-surface-sunk: #16161a;
+  
+  --color-ink: #f4f4f5;
+  --color-ink-secondary: #a1a1aa;
+  --color-ink-muted: #71717a;
+  --color-hairline: #27272a;
+  --color-hairline-bright: #3f3f46;
+
+  /* Red Accent — Single Chroma Allowed */
+  --color-red: #ef4444;
+  --color-red-hover: #dc2626;
+  --color-red-muted: rgba(239, 68, 68, 0.15);
+  --color-red-glow: rgba(239, 68, 68, 0.25);
+
+  --ease-altus: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="light"] {
+  --color-paper: #ffffff;
+  --color-surface: #fafafa;
+  --color-surface-hover: #f4f4f5;
+  --color-surface-sunk: #f4f4f3;
+
+  --color-ink: #09090b;
+  --color-ink-secondary: #52525b;
+  --color-ink-muted: #a1a1aa;
+  --color-hairline: #e4e4e7;
+  --color-hairline-bright: #d4d4d8;
+
+  --color-red: #dc2626;
+  --color-red-hover: #b91c1c;
+  --color-red-muted: rgba(220, 38, 38, 0.1);
+  --color-red-glow: rgba(220, 38, 38, 0.2);
+}
+
 @theme {
-  /* White */
-  --color-paper: #ffffff; /* app background */
-  --color-surface: #ffffff; /* cards / covers */
-  --color-surface-sunk: #f4f4f3; /* light-grey wells, inputs */
+  --color-paper: var(--color-paper);
+  --color-surface: var(--color-surface);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-surface-sunk: var(--color-surface-sunk);
 
-  /* Black + Grey (neutral, no warmth) */
-  --color-ink: #111111; /* black — headlines, names, body */
-  --color-ink-secondary: #5f5f5f; /* mid grey — secondary text */
-  --color-ink-muted: #9a9a9a; /* light grey — labels, meta */
-  --color-hairline: #e4e4e2; /* grey — 1px rules, borders */
+  --color-ink: var(--color-ink);
+  --color-ink-secondary: var(--color-ink-secondary);
+  --color-ink-muted: var(--color-ink-muted);
+  --color-hairline: var(--color-hairline);
 
-  /* Red — the ONLY accent (CTAs, kickers, key highlights) */
-  --color-red: #b3122b;
-  --color-red-hover: #8f0e22;
+  --color-red: var(--color-red);
+  --color-red-hover: var(--color-red-hover);
+  --color-red-muted: var(--color-red-muted);
 
-  /* Motion */
-  --ease-altus: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-altus: var(--ease-altus);
 }
 
 @theme inline {
@@ -32,21 +69,115 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html {
+  color-scheme: dark;
+  background-color: var(--color-paper);
+}
+
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* The Swiss numbered-section kicker */
+/* Swiss Numbered-Section Kicker */
 .kicker {
   font-family: var(--font-mono), monospace;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-ink-muted);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-hairline);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-muted);
+}
+
+/* Glassmorphism & Micro-effects */
+.glass-panel {
+  background: rgba(18, 18, 21, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--color-hairline);
+}
+
+.glass-card {
+  background: rgba(22, 22, 26, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-hairline);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card:hover {
+  border-color: var(--color-hairline-bright);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Light-mode glass overrides (the panels above are tuned for dark). */
+[data-theme="light"] .glass-panel {
+  background: rgba(255, 255, 255, 0.72);
+}
+[data-theme="light"] .glass-card {
+  background: rgba(255, 255, 255, 0.6);
+}
+[data-theme="light"] .glass-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Premium content reveal — a single calm entrance, honored once per mount.
+   Used sparingly to make sections feel composed rather than snapped-in. */
+@keyframes altus-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  animation: altus-reveal 0.5s var(--ease-altus) both;
+}
+.reveal-1 { animation-delay: 0.04s; }
+.reveal-2 { animation-delay: 0.08s; }
+.reveal-3 { animation-delay: 0.12s; }
+.reveal-4 { animation-delay: 0.16s; }
+
+.red-glow-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.red-glow-hover:hover {
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+/* Pulsing Red Indicator */
+.red-dot-pulse {
+  position: relative;
+}
+.red-dot-pulse::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 8px; height: 8px;
+  background-color: var(--color-red);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--color-red);
+  animation: pulse-red 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(1.3); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -56,13 +187,12 @@ body {
   }
 }
 
-/* Download-PDF path (window.print): drop app chrome and interactive-only
-   affordances so the printed feature reads as a clean document (#105). */
 @media print {
   .print-hide {
     display: none !important;
   }
   body {
     background: #fff;
+    color: #000;
   }
 }

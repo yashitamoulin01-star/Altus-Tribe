@@ -6,11 +6,6 @@ import { sendMessage } from "../actions";
 import { deleteMessage } from "@/app/admin/actions";
 import type { MessageView } from "@/lib/messaging";
 
-// Live conversation thread. Renders the initial server-loaded messages, then
-// subscribes to Supabase Realtime for new rows in this conversation. Sending
-// posts through the server action; the optimistic row is reconciled by the
-// realtime echo (deduped on id). Enterprise-calm bubbles, no tails/gloss.
-
 function fmtTime(iso: string) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -70,10 +65,6 @@ export default function Thread({
               createdAt: row.created_at,
               mine: row.sender_id === currentUserId,
             };
-            // Reconcile my own optimistic echo: the temp row carries a "tmp-" id
-            // while this real row carries the DB uuid, so an id-only check would
-            // leave both and show my message twice. Replace the first matching
-            // optimistic row in place instead of appending a duplicate.
             if (row.sender_id === currentUserId) {
               const i = prev.findIndex(
                 (m) => m.id.startsWith("tmp-") && m.body === row.body,
@@ -101,7 +92,6 @@ export default function Thread({
     setError(null);
     setDraft("");
 
-    // Optimistic echo — reconciled/deduped by the realtime insert.
     const optimistic: MessageView = {
       id: `tmp-${Date.now()}`,
       senderId: currentUserId,
@@ -115,16 +105,13 @@ export default function Thread({
     startTransition(async () => {
       const res = await sendMessage(conversationId, text);
       if (!res.ok && res.error !== "offline") {
-        setError("Couldn't send. Tap to retry.");
+        setError("Couldn't send message. Tap to retry.");
         setMessages((prev) => prev.filter((m) => m.id !== optimistic.id));
         setDraft(text);
       }
     });
   };
 
-  // Moderation (#174 / P5): admins soft-delete a message. The server action
-  // re-checks admin; on success we drop it from the live view (getMessages
-  // already filters deleted_at on reload).
   const moderate = (id: string) => {
     if (!isAdmin || id.startsWith("tmp-")) return;
     setMessages((prev) => prev.filter((m) => m.id !== id));
@@ -135,13 +122,14 @@ export default function Thread({
   };
 
   return (
-    <div className="flex min-h-[calc(100dvh-9rem)] flex-col">
-      {/* Scrollback */}
-      <div className="flex-1 space-y-3 py-6">
+    <div className="flex min-h-[calc(100dvh-10rem)] flex-col justify-between">
+      {/* Scrollback Message List */}
+      <div className="flex-1 space-y-4 py-6 px-1">
         {messages.length === 0 && (
-          <p className="py-16 text-center text-[15px] text-ink-muted">
-            No messages yet. Say hello.
-          </p>
+          <div className="py-20 text-center">
+            <p className="text-3xl mb-2">💬</p>
+            <p className="text-[14px] text-ink-muted">No messages yet. Send a greeting to start the conversation.</p>
+          </div>
         )}
         {messages.map((m) => (
           <div
@@ -149,11 +137,11 @@ export default function Thread({
             className={`flex flex-col ${m.mine ? "items-end" : "items-start"}`}
           >
             {!m.mine && (
-              <span className="mb-1 ml-1 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-muted">
+              <span className="mb-1 ml-2 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted">
                 {m.senderName}
               </span>
             )}
-            <div className="group flex items-center gap-2">
+            <div className="group flex items-center gap-2 max-w-[85%] sm:max-w-[75%]">
               {isAdmin && m.mine && !m.id.startsWith("tmp-") && (
                 <button
                   type="button"
@@ -166,10 +154,10 @@ export default function Thread({
                 </button>
               )}
               <div
-                className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${
+                className={`rounded-2xl px-4.5 py-3 text-[14px] leading-relaxed shadow-sm transition-all ${
                   m.mine
-                    ? "bg-red text-paper"
-                    : "border border-hairline bg-surface text-ink"
+                    ? "bg-red text-white shadow-red/20 rounded-br-xs"
+                    : "border border-hairline/80 bg-surface/90 text-ink backdrop-blur-md rounded-bl-xs"
                 }`}
               >
                 {m.body}
@@ -186,7 +174,7 @@ export default function Thread({
                 </button>
               )}
             </div>
-            <span className="mt-1 px-1 font-mono text-[10px] text-ink-muted">
+            <span className="mt-1 px-2 font-mono text-[9px] text-ink-muted/80">
               {fmtTime(m.createdAt)}
             </span>
           </div>
@@ -194,18 +182,18 @@ export default function Thread({
         <div ref={endRef} />
       </div>
 
-      {/* Composer */}
-      <div className="sticky bottom-0 border-t border-hairline bg-paper py-3">
+      {/* Composer Bar */}
+      <div className="sticky bottom-0 border-t border-hairline/80 bg-paper/95 pt-3 pb-4 backdrop-blur-xl">
         {error && (
           <button
             type="button"
             onClick={submit}
-            className="mb-2 block text-[13px] text-red hover:text-red-hover"
+            className="mb-2 block font-mono text-[12px] text-red hover:text-red-hover"
           >
-            {error}
+            ⚠️ {error}
           </button>
         )}
-        <div className="flex items-end gap-2">
+        <div className="flex items-end gap-2.5">
           <textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -218,13 +206,13 @@ export default function Thread({
             rows={1}
             placeholder="Write a message…"
             maxLength={4000}
-            className="max-h-40 min-h-[44px] flex-1 resize-none rounded-lg border border-hairline bg-surface-sunk px-4 py-3 text-[15px] text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none"
+            className="max-h-36 min-h-[46px] flex-1 resize-none rounded-xl border border-hairline bg-surface-sunk/80 px-4 py-3 text-[14px] text-ink placeholder:text-ink-muted focus:border-red focus:outline-none focus:ring-2 focus:ring-red/20 transition-all"
           />
           <button
             type="button"
             onClick={submit}
             disabled={!draft.trim() || pending}
-            className="h-[44px] shrink-0 rounded-lg bg-red px-5 text-[15px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-40"
+            className="h-[46px] shrink-0 rounded-xl bg-red px-5 text-[14px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover active:scale-95 disabled:opacity-40"
           >
             Send
           </button>
@@ -233,3 +221,4 @@ export default function Thread({
     </div>
   );
 }
+

@@ -635,21 +635,13 @@ export default function OnboardingWizard({
 
       {/* ---- Step 12: Completion ---- */}
       {step === COMPLETION && (
-        <div className="py-10 text-center">
-          <p className="text-4xl">🎉</p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-[-0.02em] text-ink">Welcome to Altus Tribe.</h1>
-          <p className="mt-3 text-[16px] leading-relaxed text-ink-secondary">
-            {composeFullName(d) || "Your"} professional identity is ready.
-          </p>
-          {slug && configured && (
-            <a href={`/m/${slug}`} className="mt-6 inline-block text-[15px] text-red transition-colors hover:text-red-hover">Preview your public feature →</a>
-          )}
-          <div className="mt-8">
-            <button type="button" onClick={enter} disabled={finishing} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-60">
-              {finishing ? "…" : "Explore your community →"}
-            </button>
-          </div>
-        </div>
+        <CompletionStep
+          fullName={composeFullName(d)}
+          slug={slug}
+          configured={configured}
+          onEnter={enter}
+          finishing={finishing}
+        />
       )}
 
       {/* Nav (content steps only) */}
@@ -830,3 +822,87 @@ function ReviewGroup({
     </div>
   );
 }
+
+function CompletionStep({
+  fullName,
+  slug,
+  configured,
+  onEnter,
+  finishing,
+}: {
+  fullName: string;
+  slug: string | null;
+  configured: boolean;
+  onEnter: () => void;
+  finishing: boolean;
+}) {
+  const [countdown, setCountdown] = useState(3);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          onEnter();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [onEnter]);
+
+  return (
+    <div className="py-12 text-center space-y-6">
+      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red/10 border border-red/30 shadow-lg shadow-red/20 red-dot-pulse">
+        <span className="text-3xl">✨</span>
+      </div>
+      
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+          Welcome to Altus Tribe
+        </h1>
+        <p className="mt-2 text-[16px] leading-relaxed text-ink-secondary">
+          {fullName || "Your"} professional identity is ready.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-hairline/80 bg-surface/80 p-6 backdrop-blur-md max-w-sm mx-auto shadow-xl">
+        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-red font-semibold mb-2">
+          Redirecting to Dashboard
+        </p>
+        <div className="h-1.5 w-full bg-surface-sunk rounded-full overflow-hidden mb-3">
+          <div
+            className="h-full bg-red transition-all duration-1000 ease-linear rounded-full"
+            style={{ width: `${((3 - countdown) / 3) * 100}%` }}
+          />
+        </div>
+        <p className="text-[13px] text-ink-muted">
+          Entering in {countdown} second{countdown === 1 ? "" : "s"}…
+        </p>
+      </div>
+
+      <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+        <button
+          type="button"
+          onClick={onEnter}
+          disabled={finishing}
+          className="rounded-xl bg-red px-8 py-3 text-[15px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover active:scale-95 disabled:opacity-60"
+        >
+          {finishing ? "Entering…" : "Go to Dashboard now →"}
+        </button>
+
+        {slug && configured && (
+          <a
+            href={`/m/${slug}`}
+            className="rounded-xl border border-hairline px-6 py-3 text-[14px] font-medium text-ink transition-colors hover:border-hairline-bright"
+          >
+            Preview Feature Page
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+

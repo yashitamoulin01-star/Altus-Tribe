@@ -1,4 +1,5 @@
 'use client';
+
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AnimatedList from '@/components/AnimatedList';
@@ -17,14 +18,12 @@ interface Notification {
 
 const GLYPH: Record<string, string> = {
   message: '✉',
-  announcement: '◆',
+  announcement: '📢',
   mention: '@',
-  referral: '↗',
-  system: '•',
+  referral: '🤝',
+  system: '⚡',
 };
 
-// Filter tabs keyed off notification kind. "all" / "unread" are always shown;
-// category tabs appear only when at least one notification of that kind exists.
 const CATEGORIES: { key: string; label: string }[] = [
   { key: 'message', label: 'Messages' },
   { key: 'announcement', label: 'Announcements' },
@@ -67,15 +66,12 @@ export default function NotificationsClient({
   const [list, setList] = useState<Notification[]>(items);
   const [filter, setFilter] = useState<string>('all');
 
-  // Reconcile with the server snapshot when it changes (e.g. after markAllRead
-  // revalidates) — the documented "reset state on prop change" render-phase pattern.
   const [seenItems, setSeenItems] = useState(items);
   if (items !== seenItems) {
     setSeenItems(items);
     setList(items);
   }
 
-  // Real-time: live-apply inserts/updates for this member's notifications.
   useEffect(() => {
     if (!userId) return;
     const supabase = createClient();
@@ -131,7 +127,7 @@ export default function NotificationsClient({
   const tabs = useMemo(() => {
     const present = new Set(list.map((n) => n.kind));
     return [
-      { key: 'all', label: 'All' },
+      { key: 'all', label: 'All Activity' },
       { key: 'unread', label: 'Unread' },
       ...CATEGORIES.filter((c) => present.has(c.key)),
     ];
@@ -156,71 +152,78 @@ export default function NotificationsClient({
   };
 
   return (
-    <div>
-      <div className="mt-6 flex flex-wrap gap-2">
+    <div className="space-y-6">
+      {/* Category Tabs */}
+      <div className="flex flex-wrap gap-2">
         {tabs.map((t) => (
           <button
             key={t.key}
             type="button"
             onClick={() => setFilter(t.key)}
-            className={`rounded-full border px-3.5 py-1.5 text-[13px] transition-colors ${
+            className={`rounded-xl px-4 py-2 text-[13px] font-medium transition-all ${
               filter === t.key
-                ? 'border-ink bg-ink text-paper'
-                : 'border-hairline text-ink-secondary hover:border-ink-muted'
+                ? 'bg-red text-white shadow-md shadow-red/20'
+                : 'border border-hairline bg-surface/80 text-ink-secondary hover:border-hairline-bright hover:text-ink'
             }`}
           >
             {t.label}
             {t.key === 'unread' && unreadCount > 0 && (
-              <span className="ml-1.5 font-mono text-[11px]">{unreadCount}</span>
+              <span className="ml-2 font-mono text-[10px] rounded-full bg-white/20 px-1.5 py-0.5 text-white font-bold">{unreadCount}</span>
             )}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 ? (
-        <p className="py-16 text-center text-[17px] text-ink-secondary">
-          {filter === 'unread' ? "You're all caught up." : 'Nothing here yet.'}
-        </p>
+        <div className="py-16 text-center border border-dashed border-hairline rounded-2xl bg-surface/40">
+          <p className="text-3xl mb-2">🔔</p>
+          <p className="text-[15px] font-medium text-ink">
+            {filter === 'unread' ? "You're all caught up." : 'No notifications yet.'}
+          </p>
+          <p className="mt-1 text-[13px] text-ink-muted">All updates from Sacred Space, messages, and mentions will show up here.</p>
+        </div>
       ) : (
-        <AnimatedList
-          items={filtered}
-          onItemSelect={handleSelect}
-          showGradients
-          displayScrollbar={false}
-          className="mt-4"
-          renderItem={(n: Notification, isSelected: boolean) => (
-            <div
-              className={`flex gap-4 py-2 transition-all duration-150 ${
-                n.read ? '' : 'rounded border-l-2 border-red pl-3 -ml-3'
-              } ${isSelected ? 'opacity-80' : ''}`}
-            >
-              <span
-                aria-hidden
-                className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-hairline font-mono text-[13px] text-ink-muted"
+        <div className="rounded-2xl border border-hairline/80 bg-surface/80 p-2 backdrop-blur-md">
+          <AnimatedList
+            items={filtered}
+            onItemSelect={handleSelect}
+            showGradients
+            displayScrollbar={false}
+            renderItem={(n: Notification, isSelected: boolean) => (
+              <div
+                className={`flex gap-4 p-3 rounded-xl transition-all duration-200 ${
+                  n.read ? 'opacity-90' : 'bg-surface-hover/80 border-l-2 border-red pl-4'
+                } ${isSelected ? 'border-red/60 shadow-lg shadow-red/5' : ''}`}
               >
-                {GLYPH[n.kind] ?? '•'}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-3">
-                  <p className="text-[15px] font-medium text-ink">{n.title}</p>
-                  <span className="shrink-0 font-mono text-[11px] text-ink-muted">
-                    {relTime(n.createdAt)}
-                  </span>
+                <span
+                  aria-hidden
+                  className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-hairline bg-surface-sunk font-mono text-[14px] text-red shadow-inner"
+                >
+                  {GLYPH[n.kind] ?? '•'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className={`text-[15px] ${n.read ? 'font-medium text-ink' : 'font-bold text-ink'}`}>{n.title}</p>
+                    <span className="shrink-0 font-mono text-[11px] text-ink-muted">
+                      {relTime(n.createdAt)}
+                    </span>
+                  </div>
+                  {n.body && (
+                    <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">{n.body}</p>
+                  )}
                 </div>
-                {n.body && (
-                  <p className="mt-1 text-[14px] leading-relaxed text-ink-secondary">{n.body}</p>
+                {!n.read && (
+                  <span
+                    className="mt-2 h-2.5 w-2.5 shrink-0 rounded-full bg-red red-dot-pulse"
+                    aria-label="unread"
+                  />
                 )}
               </div>
-              {!n.read && (
-                <span
-                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-red"
-                  aria-label="unread"
-                />
-              )}
-            </div>
-          )}
-        />
+            )}
+          />
+        </div>
       )}
     </div>
   );
 }
+

@@ -686,20 +686,36 @@ export default function EditFeature({
             />
           </Section>
 
-          <Section title="Presence" note="Add your social handles or paste full URLs. Each has a show/hide toggle.">
+          <Section title="Presence & Social Channels" note="Choose how members find you — connect automatically or manually enter link URLs.">
+            <div className="mb-4 flex rounded-xl border border-hairline bg-surface-sunk p-1 max-w-md">
+              <button
+                type="button"
+                className="flex-1 rounded-lg py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all bg-red text-white shadow-sm"
+              >
+                Manual Link Input
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-lg py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all text-ink-muted hover:text-ink"
+              >
+                Auto-Connect (OAuth)
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <TextField label="LinkedIn" value={d.linkedin} onChange={(v) => set("linkedin", v)} placeholder="linkedin.com/in/yourname" {...visProps("linkedin")} />
-              <TextField label="GitHub" value={d.github} onChange={(v) => set("github", v)} placeholder="github.com/yourname" />
-              <TextField label="Business Instagram" value={d.businessInstagram} onChange={(v) => set("businessInstagram", v)} {...visProps("business_instagram")} />
-              <TextField label="Personal Instagram" value={d.personalInstagram} onChange={(v) => set("personalInstagram", v)} {...visProps("personal_instagram")} />
-              <TextField label="YouTube" value={d.youtube} onChange={(v) => set("youtube", v)} />
-              <TextField label="Telegram handle / link" value={d.telegram} onChange={(v) => set("telegram", v)} placeholder="t.me/yourhandle" />
-              <TextField label="WhatsApp number or link" value={d.whatsappLink} onChange={(v) => set("whatsappLink", v)} placeholder="+91 XXXXXXXXXX or wa.me/91…" {...visProps("whatsapp")} />
-              <TextField label="Other link (portfolio / Calendly / etc.)" value={d.customLink} onChange={(v) => set("customLink", v)} placeholder="https://…" />
+              <TextField label="LinkedIn URL / Handle" value={d.linkedin} onChange={(v) => set("linkedin", v)} placeholder="https://linkedin.com/in/username" {...visProps("linkedin")} />
+              <TextField label="GitHub URL / Handle" value={d.github} onChange={(v) => set("github", v)} placeholder="https://github.com/username" />
+              <TextField label="Business Instagram" value={d.businessInstagram} onChange={(v) => set("businessInstagram", v)} placeholder="https://instagram.com/brand" {...visProps("business_instagram")} />
+              <TextField label="Personal Instagram" value={d.personalInstagram} onChange={(v) => set("personalInstagram", v)} placeholder="https://instagram.com/username" {...visProps("personal_instagram")} />
+              <TextField label="YouTube Channel / Video" value={d.youtube} onChange={(v) => set("youtube", v)} placeholder="https://youtube.com/@channel" />
+              <TextField label="Telegram handle / link" value={d.telegram} onChange={(v) => set("telegram", v)} placeholder="https://t.me/username" />
+              <TextField label="WhatsApp number or link" value={d.whatsappLink} onChange={(v) => set("whatsappLink", v)} placeholder="+91 XXXXXXXXXX or https://wa.me/..." {...visProps("whatsapp")} />
+              <TextField label="Portfolio / Website Link" value={d.customLink} onChange={(v) => set("customLink", v)} placeholder="https://yourportfolio.com" />
               <TextField label="Best time to connect" value={d.bestTime} onChange={(v) => set("bestTime", v)} placeholder="10am–7pm Mon–Fri" />
             </div>
-            <div className="mt-2">
-              <span className={labelCls + " mb-1.5 block"}>Best mode to connect</span>
+
+            <div className="mt-4">
+              <span className={labelCls + " mb-2 block"}>Best mode to connect</span>
               <div className="flex flex-wrap gap-2">
                 {CONNECT_MODES.map((m) => {
                   const on = d.bestModes.includes(m.value);
@@ -709,10 +725,10 @@ export default function EditFeature({
                       type="button"
                       onClick={() => toggleBestMode(m.value)}
                       aria-pressed={on}
-                      className={`rounded border px-3 py-1.5 text-[14px] transition-colors ${
+                      className={`rounded-xl border px-3.5 py-1.5 text-[13px] font-medium transition-all ${
                         on
-                          ? "border-red bg-red/10 text-red"
-                          : "border-hairline text-ink-muted hover:border-ink-muted"
+                          ? "border-red bg-red/10 text-red shadow-sm"
+                          : "border-hairline bg-surface/70 text-ink-muted hover:border-hairline-bright hover:text-ink"
                       }`}
                     >
                       {m.label}
@@ -721,11 +737,12 @@ export default function EditFeature({
                 })}
               </div>
             </div>
-            <label className="mt-2 flex items-center justify-between">
-              <span className={labelCls}>Allow WhatsApp DM from the portal</span>
+
+            <label className="mt-3 flex items-center justify-between rounded-xl border border-hairline/80 bg-surface/60 px-4 py-3">
+              <span className="text-[14px] text-ink">Allow WhatsApp DM direct from the portal</span>
               <span className="flex items-center gap-3">
                 <EyeToggle on={isFieldVisible(vis, "whatsapp")} onClick={visProps("whatsapp").onToggleVis} />
-                <input type="checkbox" checked={d.whatsappDm} onChange={(e) => set("whatsappDm", e.target.checked)} className="h-4 w-4 accent-[var(--color-red)]" />
+                <input type="checkbox" checked={d.whatsappDm} onChange={(e) => set("whatsappDm", e.target.checked)} className="h-4 w-4 accent-red rounded cursor-pointer" />
               </span>
             </label>
           </Section>
