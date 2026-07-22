@@ -183,9 +183,9 @@ export default function OnboardingWizard({
     setSaveState("saving");
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
-      saveProfile(d, vis, undefined, step).then((r) =>
-        setSaveState(r.ok ? "saved" : "error"),
-      );
+      saveProfile(d, vis, undefined, step)
+        .then((r) => setSaveState(r.ok ? "saved" : "error"))
+        .catch(() => setSaveState("error"));
     }, 900);
     return () => clearTimeout(timer.current);
   }, [d, vis, step, configured]);

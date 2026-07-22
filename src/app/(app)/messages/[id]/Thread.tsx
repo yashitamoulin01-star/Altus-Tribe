@@ -62,17 +62,29 @@ export default function Thread({
           };
           setMessages((prev) => {
             if (prev.some((m) => m.id === row.id)) return prev;
-            return [
-              ...prev,
-              {
-                id: row.id,
-                senderId: row.sender_id,
-                senderName: row.sender_id === currentUserId ? "You" : "Member",
-                body: row.body,
-                createdAt: row.created_at,
-                mine: row.sender_id === currentUserId,
-              },
-            ];
+            const mapped: MessageView = {
+              id: row.id,
+              senderId: row.sender_id,
+              senderName: row.sender_id === currentUserId ? "You" : "Member",
+              body: row.body,
+              createdAt: row.created_at,
+              mine: row.sender_id === currentUserId,
+            };
+            // Reconcile my own optimistic echo: the temp row carries a "tmp-" id
+            // while this real row carries the DB uuid, so an id-only check would
+            // leave both and show my message twice. Replace the first matching
+            // optimistic row in place instead of appending a duplicate.
+            if (row.sender_id === currentUserId) {
+              const i = prev.findIndex(
+                (m) => m.id.startsWith("tmp-") && m.body === row.body,
+              );
+              if (i !== -1) {
+                const next = [...prev];
+                next[i] = mapped;
+                return next;
+              }
+            }
+            return [...prev, mapped];
           });
         },
       )
