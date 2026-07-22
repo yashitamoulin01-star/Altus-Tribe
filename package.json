@@ -10,6 +10,7 @@
     "seed": "node supabase/seed.mjs"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.5.22",
     "@supabase/ssr": "^0.12.3",
     "@supabase/supabase-js": "^2.110.7",
     "motion": "^12.42.2",
