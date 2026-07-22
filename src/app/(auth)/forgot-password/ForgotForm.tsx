@@ -1,19 +1,47 @@
 "use client";
 
-import { useActionState } from "react";
-import { requestPasswordReset, type AuthState } from "../actions";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSignIn } from "@clerk/nextjs/legacy";
 import SubmitButton from "../SubmitButton";
 import { fieldClass, labelClass } from "../AuthShell";
-import CaptchaField from "@/components/CaptchaField";
+
+function clerkMessage(err: unknown): string {
+  if (err && typeof err === "object" && "errors" in err) {
+    const first = (err as { errors?: { message?: string; longMessage?: string }[] }).errors?.[0];
+    return first?.longMessage || first?.message || "Couldn't send the reset code. Please try again.";
+  }
+  return "Couldn't send the reset code. Please try again.";
+}
 
 export default function ForgotForm() {
-  const [state, action, pending] = useActionState<AuthState, FormData>(
-    requestPasswordReset,
-    null,
-  );
+  const { isLoaded, signIn } = useSignIn();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | undefined>();
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded || pending) return;
+    setPending(true);
+    setError(undefined);
+    try {
+      await signIn.create({
+        strategy: "reset_password_email_code",
+        identifier: email,
+      });
+      // Code emailed — continue on the reset page (the Clerk sign-in attempt
+      // persists on the client across this navigation).
+      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
+    } catch (err) {
+      setError(clerkMessage(err));
+      setPending(false);
+    }
+  };
 
   return (
-    <form action={action} className="space-y-5">
+    <form onSubmit={onSubmit} className="space-y-5">
       <div>
         <label htmlFor="email" className={labelClass}>
           Email
@@ -26,17 +54,14 @@ export default function ForgotForm() {
           autoComplete="email"
           placeholder="you@company.com"
           className={fieldClass}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
-        {state?.fieldErrors?.email && (
-          <p className="mt-1 text-[12px] text-red">{state.fieldErrors.email}</p>
-        )}
       </div>
 
-      <CaptchaField />
+      {error && <p className="text-[14px] text-red">{error}</p>}
 
-      {state?.error && <p className="text-[14px] text-red">{state.error}</p>}
-
-      <SubmitButton pending={pending}>Send reset link</SubmitButton>
+      <SubmitButton pending={pending}>Send reset code</SubmitButton>
     </form>
   );
 }
