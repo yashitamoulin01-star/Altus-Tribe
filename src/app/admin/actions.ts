@@ -97,6 +97,46 @@ export async function setMemberRole(id: string, role: Role) {
   return { ok: true };
 }
 
+// Admin access approval (two-person security). Only an already-approved admin
+// (ctx.isAdmin now requires approval) may grant or revoke another admin's access.
+export async function approveAdminAccess(id: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ admin_approved: true })
+    .eq("id", id)
+    .eq("role", "admin");
+  if (error) {
+    logError("approveAdminAccess", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("admin.access.approve", { entityType: "profile", entityId: id });
+  revalidatePath("/admin/admins");
+  return { ok: true };
+}
+
+export async function revokeAdminAccess(id: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  // Guard: an admin cannot revoke their own access (would lock themselves out).
+  if (ctx.userId === id) return { ok: false, error: "You can't revoke your own admin access." };
+  const { error } = await supabase
+    .from("profiles")
+    .update({ admin_approved: false })
+    .eq("id", id)
+    .eq("role", "admin");
+  if (error) {
+    logError("revokeAdminAccess", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("admin.access.revoke", { entityType: "profile", entityId: id });
+  revalidatePath("/admin/admins");
+  return { ok: true };
+}
+
 export async function assignConsultant(memberId: string, consultantId: string | null) {
   if (badId(memberId)) return { ok: false };
   if (consultantId !== null && badId(consultantId)) return { ok: false };
