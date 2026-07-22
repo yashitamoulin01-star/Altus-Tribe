@@ -14,7 +14,7 @@ update public.profiles p
 set role = 'admin', status = 'active'
 from auth.users u
 where u.id = p.id
-  and lower(u.email) = lower('YOUR_LOGIN_EMAIL@example.com');
+  and lower(u.email) = lower('mouliyashita@gmail.com');
 
 -- --- Verify it worked (should return your row) ---
 select p.full_name, p.role, p.status, u.email

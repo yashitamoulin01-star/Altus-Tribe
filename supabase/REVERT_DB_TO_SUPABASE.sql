@@ -104,20 +104,27 @@ create policy "notes admin or designated consultant" on public.admin_notes for a
 drop policy if exists "actor appends own audit" on public.audit_logs;
 create policy "actor appends own audit" on public.audit_logs for insert to authenticated with check ( actor_id=auth.uid() );
 
--- ---------- 3. Restore the profile auto-create trigger (from migration 0008) ----------
+-- ---------- 3. Restore the profile auto-create trigger, with the "request to get
+--             in" (pending approval) gate PAUSED: new users are created ACTIVE and
+--             go straight into the app (no admin approval queue). To re-enable the
+--             gate later, change 'active' back to 'pending' below. ----------
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path=public as $$
 declare display_name text;
 begin
   display_name := coalesce(nullif(trim(new.raw_user_meta_data->>'full_name'),''), split_part(new.email,'@',1), 'Member');
-  insert into public.profiles (id, slug, full_name)
-  values (new.id, public.generate_profile_slug(display_name), display_name)
+  insert into public.profiles (id, slug, full_name, status)
+  values (new.id, public.generate_profile_slug(display_name), display_name, 'active')
   on conflict (id) do nothing;
   return new;
 exception when others then
   raise warning 'handle_new_user failed for auth user %: % (SQLSTATE %)', new.id, sqlerrm, sqlstate;
   return new;
 end; $$;
+
+-- Pause the gate for anyone already stuck in the queue: make existing pending
+-- members active so they aren't held on /pending.
+update public.profiles set status='active' where status='pending';
 
 grant execute on function public.handle_new_user() to supabase_auth_admin;
 
@@ -141,7 +148,27 @@ begin
   end loop;
 end $$;
 
+-- ---------- 5. Make mouliyashita@gmail.com the admin ----------
+-- Promote by email (works once the auth user + profile exist).
+update public.profiles p
+set role='admin', status='active'
+from auth.users u
+where u.id = p.id and lower(u.email) = lower('mouliyashita@gmail.com');
+
+-- Belt-and-suspenders: also promote by the known UUID, creating the profile row
+-- if it is somehow missing (idempotent). UUID = mouliyashita@gmail.com.
+insert into public.profiles (id, slug, full_name, role, status)
+values ('e0e7e24c-5026-4ead-9e0a-fa5012a48807',
+        public.generate_profile_slug('Yashita Mouli'), 'Yashita Mouli', 'admin', 'active')
+on conflict (id) do update set role='admin', status='active';
+
+-- Verify (should return the admin row):
+select p.full_name, p.role, p.status, u.email
+from public.profiles p join auth.users u on u.id=p.id
+where p.role='admin';
+
 -- ============================================================
--- DONE. Your DB is back on Supabase Auth. Verify after signing in:
---   select auth.uid();   -- should return your Supabase user id
+-- DONE. Your DB is back on Supabase Auth, the pending gate is paused
+-- (new users = active), and mouliyashita@gmail.com is admin.
+-- Verify after signing in:  select auth.uid();
 -- ============================================================
