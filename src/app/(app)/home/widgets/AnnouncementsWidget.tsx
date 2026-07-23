@@ -9,7 +9,7 @@ function fmt(iso: string | null) {
     : d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
-// Latest announcements from Manan & the team (PRD Feature #4).
+// Latest announcements from Manan Vasa & the team (PRD Feature #4).
 export default async function AnnouncementsWidget() {
   const items = (await getAnnouncements()).slice(0, 3);
 

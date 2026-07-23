@@ -584,7 +584,7 @@ export default function OnboardingWizard({
           <Field label="How can you contribute to this Tribe?"><div className="flex items-start gap-2"><textarea className={area} value={d.contribution} onChange={(e) => set("contribution", e.target.value)} />{eye("contribution")}</div></Field>
           <Field label="Interested in coaching / mentoring others?"><Segmented value={d.interestedCoaching} options={YES_NO_MAYBE} onChange={(v) => set("interestedCoaching", v)} /></Field>
           <Field label="Interested in business networking?"><Segmented value={d.interestedNetworking} options={NETWORK_PREF} onChange={(v) => set("interestedNetworking", v)} /></Field>
-          <Field label="How did Manan's programs benefit you at work?"><textarea className={area} value={d.programBenefitWork} onChange={(e) => set("programBenefitWork", e.target.value)} /></Field>
+          <Field label="How did Manan Vasa's programs benefit you at work?"><textarea className={area} value={d.programBenefitWork} onChange={(e) => set("programBenefitWork", e.target.value)} /></Field>
           <Field label="How did they benefit you personally?"><textarea className={area} value={d.programBenefitPersonal} onChange={(e) => set("programBenefitPersonal", e.target.value)} /></Field>
         </Screen>
       )}

@@ -773,8 +773,8 @@ export default function EditFeature({
             <AreaField label="Companies you want to connect with" value={d.wantConnect} onChange={(v) => set("wantConnect", v)} {...visProps("want_connect")} />
             <AreaField label="Your purpose / success mantra" value={d.purpose} onChange={(v) => set("purpose", v)} />
             <AreaField label="Favourite productivity tools" value={d.favouriteTools} onChange={(v) => set("favouriteTools", v)} />
-            <AreaField label="How Manan's programs helped you at work" value={d.programBenefitWork} onChange={(v) => set("programBenefitWork", v)} />
-            <AreaField label="How Manan's programs helped you personally" value={d.programBenefitPersonal} onChange={(v) => set("programBenefitPersonal", v)} />
+            <AreaField label="How Manan Vasa's programs helped you at work" value={d.programBenefitWork} onChange={(v) => set("programBenefitWork", v)} />
+            <AreaField label="How Manan Vasa's programs helped you personally" value={d.programBenefitPersonal} onChange={(v) => set("programBenefitPersonal", v)} />
             <AreaField label="How can you contribute to the Tribe" value={d.contribution} onChange={(v) => set("contribution", v)} {...visProps("contribution")} />
           </Section>
 

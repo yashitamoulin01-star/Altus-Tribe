@@ -18,7 +18,7 @@ export default async function CampusPage() {
           Keep sharpening.
         </h1>
         <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
-          Manan&apos;s library, member wins, and the playbooks that keep the Tribe
+          Manan Vasa&apos;s library, member wins, and the playbooks that keep the Tribe
           productive. Save what matters and track what you&apos;ve finished.
         </p>
       </header>

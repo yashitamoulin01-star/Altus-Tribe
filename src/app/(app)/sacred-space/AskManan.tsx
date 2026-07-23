@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { askManan } from "./actions";
 
-// Opens (or creates) the member's private support thread with Manan & team.
+// Opens (or creates) the member's private support thread with Manan Vasa & team.
 // Falls back to the Messages world when offline / unauthenticated.
 export default function AskManan() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function AskManan() {
       }
       className="mt-6 inline-block rounded bg-red px-6 py-3 text-[15px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-60"
     >
-      {pending ? "Opening…" : "Ask Manan / Team →"}
+      {pending ? "Opening…" : "Ask Manan Vasa / Team →"}
     </button>
   );
 }

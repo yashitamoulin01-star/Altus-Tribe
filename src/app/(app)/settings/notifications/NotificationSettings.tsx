@@ -16,7 +16,7 @@ const PREFS: Pref[] = [
   {
     key: "announcements",
     label: "Announcements",
-    hint: "Notes from Manan and the team in Sacred Space.",
+    hint: "Notes from Manan Vasa and the team in Sacred Space.",
   },
   {
     key: "messages",

@@ -3,7 +3,7 @@ import Link from "next/link";
 const ACTIONS: { label: string; desc: string; href: string; icon: string }[] = [
   { label: "Explore Members", desc: "Discover the Tribe", href: "/explore", icon: "🔍" },
   { label: "Tribe Chat", desc: "1:1 & group chats", href: "/messages", icon: "💬" },
-  { label: "Sacred Space", desc: "Manan & the team", href: "/sacred-space", icon: "🏛️" },
+  { label: "Sacred Space", desc: "Manan Vasa & the team", href: "/sacred-space", icon: "🏛️" },
   { label: "Campus", desc: "Videos & learning", href: "/campus", icon: "🎓" },
   { label: "Referral Rounds", desc: "Every Wednesday", href: "/refer", icon: "🤝" },
   { label: "Announcements", desc: "Latest updates", href: "/sacred-space", icon: "📢" },

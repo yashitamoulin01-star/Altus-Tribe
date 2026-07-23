@@ -3,8 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
 
-// Ask Manan (Phase 5.4): resolve-or-create the member's support conversation
-// with the Manan/team side (the founding admin). Support conversations are
+// Ask Manan Vasa (Phase 5.4): resolve-or-create the member's support conversation
+// with the Manan Vasa/team side (the founding admin). Support conversations are
 // visible to all admins via RLS; adding the admin as a member lets them reply.
 export async function askManan(): Promise<{ id: string | null }> {
   const supabase = await createClient();
@@ -25,7 +25,7 @@ export async function askManan(): Promise<{ id: string | null }> {
   });
   if (existing) return { id: existing.conversation_id as string };
 
-  // "Manan" = the founding admin (oldest admin account).
+  // "Manan Vasa" = the founding admin (oldest admin account).
   const { data: manan } = await supabase
     .from("profiles")
     .select("id")
@@ -36,7 +36,7 @@ export async function askManan(): Promise<{ id: string | null }> {
 
   const { data: conv, error } = await supabase
     .from("conversations")
-    .insert({ kind: "support", title: "Manan & Team", created_by: user.id })
+    .insert({ kind: "support", title: "Manan Vasa & Team", created_by: user.id })
     .select("id")
     .single();
   if (error || !conv) {

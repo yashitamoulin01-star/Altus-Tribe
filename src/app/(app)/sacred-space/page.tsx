@@ -26,7 +26,7 @@ export default async function SacredSpacePage() {
       <header className="border-b border-hairline pb-10">
         <p className="kicker mb-4">Sacred Space</p>
         <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
-          From Manan.
+          From Manan Vasa.
         </h1>
         <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
           Ask the team anything, and read the notes from the leader of the Tribe.
