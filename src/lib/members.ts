@@ -70,7 +70,8 @@ export interface Member {
   natureOfBusiness?: string;
   bestTime?: string;
   bestModes?: string[];
-  whatsappDm?: boolean | null; // gated: "whatsapp"
+  whatsappDm?: boolean | null; // legacy, gated: "whatsapp"
+  whatsappDmPref?: "yes" | "no" | "dnd" | null; // gated: "whatsapp"
   whatsapp?: string | null; // WhatsApp number (E.164), gated: "whatsapp"
   // Personal
   birthDate?: string | null; // gated: "birth_date"

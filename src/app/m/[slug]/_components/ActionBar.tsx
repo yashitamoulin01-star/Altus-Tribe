@@ -24,8 +24,12 @@ export default function ActionBar({
   connectionState: ConnectionState;
 }) {
   // Prefer the member's dedicated WhatsApp number; fall back to their cell.
+  // Show the WhatsApp action only when their preference allows it (No/DND hide it).
   const waNumber = toWaNumber(member.whatsapp || member.contact?.cellNo || "");
-  const waLink = waNumber && member.whatsappDm !== false ? `https://wa.me/${waNumber}` : null;
+  const waAllowed = member.whatsappDmPref
+    ? member.whatsappDmPref === "yes"
+    : member.whatsappDm !== false;
+  const waLink = waNumber && waAllowed ? `https://wa.me/${waNumber}` : null;
   const email = member.contact?.workEmail ?? null;
   const website = member.presence.find((p) => p.platform === "Website")?.url ?? null;
 

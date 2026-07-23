@@ -738,13 +738,26 @@ export default function EditFeature({
               </div>
             </div>
 
-            <label className="mt-3 flex items-center justify-between rounded-xl border border-hairline/80 bg-surface/60 px-4 py-3">
-              <span className="text-[14px] text-ink">Allow WhatsApp DM direct from the portal</span>
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-hairline/80 bg-surface/60 px-4 py-3">
+              <span className="text-[14px] text-ink">WhatsApp DM direct from the portal</span>
               <span className="flex items-center gap-3">
+                <div className="flex gap-1.5">
+                  {(["yes", "no", "dnd"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => set("whatsappDmPref", p)}
+                      className={`rounded-lg border px-3 py-1.5 text-[13px] uppercase transition-all ${
+                        d.whatsappDmPref === p ? "border-red/40 bg-red-muted text-red" : "border-hairline text-ink-muted hover:text-ink"
+                      }`}
+                    >
+                      {p === "dnd" ? "DND" : p}
+                    </button>
+                  ))}
+                </div>
                 <EyeToggle on={isFieldVisible(vis, "whatsapp")} onClick={visProps("whatsapp").onToggleVis} />
-                <input type="checkbox" checked={d.whatsappDm} onChange={(e) => set("whatsappDm", e.target.checked)} className="h-4 w-4 accent-red rounded cursor-pointer" />
               </span>
-            </label>
+            </div>
           </Section>
 
           <Section title="Personal" note="Sensitive fields carry a toggle.">

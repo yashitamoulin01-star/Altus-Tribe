@@ -57,6 +57,7 @@ type ProfileRow = {
   cell_no: string | null;
   alt_no: string | null;
   whatsapp_link: string | null;
+  whatsapp_dm_pref: string | null;
   work_email: string | null;
   personal_email: string | null;
   linkedin_url: string | null;
@@ -117,7 +118,7 @@ const PROFILE_SELECT = `
   id, slug, full_name, photo_url, company_logo_url, role_title, industry, city,
   positioning, known_for, about, cell_no, alt_no, work_email, personal_email,
   linkedin_url, business_instagram, personal_instagram, youtube_url, company_website,
-  brand_names, usp, nature_of_business, category, best_time, best_modes, whatsapp_dm, whatsapp_link,
+  brand_names, usp, nature_of_business, category, best_time, best_modes, whatsapp_dm, whatsapp_dm_pref, whatsapp_link,
   birth_date, blood_group, marital_status, anniversary,
   areas_of_interest, network_groups, can_connect, want_connect, favourite_tools,
   purpose, contribution, interested_helping, interested_coaching, interested_networking,
@@ -268,6 +269,13 @@ async function rowToMember(
     bestTime: row.best_time ?? undefined,
     bestModes: row.best_modes ?? undefined,
     whatsappDm: show("whatsapp") ? row.whatsapp_dm : null,
+    whatsappDmPref: show("whatsapp")
+      ? (["yes", "no", "dnd"].includes(row.whatsapp_dm_pref ?? "")
+          ? (row.whatsapp_dm_pref as "yes" | "no" | "dnd")
+          : row.whatsapp_dm
+            ? "yes"
+            : "no")
+      : null,
     whatsapp: show("whatsapp") ? row.whatsapp_link : null,
     birthDate: show("birth_date") ? row.birth_date : null,
     bloodGroup: show("blood_group") ? (row.blood_group ?? undefined) : undefined,

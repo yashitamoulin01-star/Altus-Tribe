@@ -89,7 +89,8 @@ export async function saveProfile(
       telegram_url: clean(d.telegram),
       whatsapp_link: clean(d.whatsappLink),
       custom_link: clean(d.customLink),
-      whatsapp_dm: d.whatsappDm,
+      whatsapp_dm_pref: d.whatsappDmPref,
+      whatsapp_dm: d.whatsappDmPref === "yes", // keep legacy boolean in sync
       best_time: clean(d.bestTime),
       best_modes: d.bestModes.filter((m) =>
         ["call", "whatsapp", "email", "dnd"].includes(m),

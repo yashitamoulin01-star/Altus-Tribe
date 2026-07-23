@@ -88,7 +88,8 @@ export interface EditableProfile {
   telegram: string;
   whatsappLink: string;
   customLink: string;
-  whatsappDm: boolean;
+  whatsappDm: boolean; // legacy boolean (kept in sync for back-compat)
+  whatsappDmPref: "yes" | "no" | "dnd"; // #28 canonical preference
   bestTime: string;
   bestModes: string[]; // #23 — subset of CONNECT_MODES
   // Personal
@@ -179,6 +180,7 @@ export const emptyEditable: EditableProfile = {
   whatsappLink: "",
   customLink: "",
   whatsappDm: false,
+  whatsappDmPref: "yes",
   bestTime: "",
   bestModes: [],
   birthDate: "",

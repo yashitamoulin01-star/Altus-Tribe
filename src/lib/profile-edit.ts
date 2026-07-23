@@ -157,6 +157,12 @@ export async function loadEditable(
     whatsappLink: str(p.whatsapp_link),
     customLink: str(p.custom_link),
     whatsappDm: Boolean(p.whatsapp_dm),
+    whatsappDmPref:
+      p.whatsapp_dm_pref === "yes" || p.whatsapp_dm_pref === "no" || p.whatsapp_dm_pref === "dnd"
+        ? p.whatsapp_dm_pref
+        : p.whatsapp_dm
+          ? "yes"
+          : "no",
     bestTime: str(p.best_time),
     bestModes: Array.isArray(p.best_modes) ? (p.best_modes as string[]) : [],
     birthDate: str(p.birth_date),

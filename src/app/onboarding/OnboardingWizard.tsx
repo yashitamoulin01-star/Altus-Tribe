@@ -436,10 +436,16 @@ export default function OnboardingWizard({
               })}
             </div>
           </Field>
-          <label className="flex items-center justify-between rounded-lg border border-hairline px-4 py-3">
-            <span className="text-[15px] text-ink">Allow WhatsApp DM from the portal</span>
-            <span className="flex items-center gap-3">{eye("whatsapp")}<input type="checkbox" checked={d.whatsappDm} onChange={(e) => set("whatsappDm", e.target.checked)} className="h-4 w-4 accent-[var(--color-red)]" /></span>
-          </label>
+          <Field label="WhatsApp DM from the portal">
+            <div className="flex items-center gap-3">
+              <Segmented
+                value={d.whatsappDmPref === "yes" ? "Yes" : d.whatsappDmPref === "dnd" ? "DND" : "No"}
+                options={["Yes", "No", "DND"]}
+                onChange={(v) => set("whatsappDmPref", v === "Yes" ? "yes" : v === "DND" ? "dnd" : "no")}
+              />
+              {eye("whatsapp")}
+            </div>
+          </Field>
         </Screen>
       )}
 
