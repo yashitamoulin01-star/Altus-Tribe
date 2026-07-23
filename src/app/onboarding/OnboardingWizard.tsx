@@ -13,6 +13,7 @@ import {
   isFieldVisible,
   isFileKind,
   MAX_ATTACHMENTS,
+  requiredSetupMissing,
   validateField,
   VISIBILITY_FIELDS,
   type AttachmentKind,
@@ -191,6 +192,8 @@ export default function OnboardingWizard({
   }, [d, vis, step, configured]);
 
   const completion = computeProfileCompletion(d);
+  const missingRequired = requiredSetupMissing(d);
+  const canFinish = missingRequired.length === 0;
   const set = <K extends keyof EditableProfile>(k: K, v: EditableProfile[K]) => {
     setD((p) => ({ ...p, [k]: v }));
     setSaveState("idle");
@@ -585,10 +588,28 @@ export default function OnboardingWizard({
             ["Interests", trunc(d.areasOfInterest)],
             ["Tools", d.favouriteTools || "—"],
           ]} />
-          <div className="rounded-lg border border-hairline bg-surface-sunk px-4 py-3">
-            <p className="text-[14px] text-ink">Profile completeness: <span className="font-semibold text-red">{completion}%</span></p>
-            {completion < 100 && <p className="mt-1 text-[13px] text-ink-muted">You can submit now and complete the rest anytime from your profile.</p>}
-          </div>
+          {!canFinish ? (
+            <div className="rounded-lg border border-red/30 bg-red-muted px-4 py-3">
+              <p className="text-[14px] font-medium text-ink">A few required details are still needed to finish:</p>
+              <ul className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-red">
+                {missingRequired.map((m) => (
+                  <li key={m}>• {m}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-hairline bg-surface-sunk px-4 py-3">
+              <p className="text-[14px] text-ink">
+                Ready to go live. Profile richness:{" "}
+                <span className="font-semibold text-red">{completion}%</span>
+              </p>
+              {completion < 100 && (
+                <p className="mt-1 text-[13px] text-ink-muted">
+                  Optional details like your biography and socials can be added anytime from your profile.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Legal Declarations for Onboarding Submission */}
           <div className="mt-5 space-y-3 border-t border-hairline pt-4 text-[13px] text-ink-secondary">
@@ -651,7 +672,7 @@ export default function OnboardingWizard({
           {step < LAST_CONTENT ? (
             <button type="button" onClick={next} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover">Continue →</button>
           ) : (
-            <button type="button" onClick={submit} disabled={finishing || !certifyAccurate || !understandDisplay || !agreeDeclaration} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-60">{finishing ? "…" : "Submit & finish →"}</button>
+            <button type="button" onClick={submit} disabled={finishing || !canFinish || !certifyAccurate || !understandDisplay || !agreeDeclaration} className="rounded-lg bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-60">{finishing ? "…" : "Submit & finish →"}</button>
           )}
         </div>
       )}

@@ -224,6 +224,32 @@ export function computeProfileCompletion(d: EditableProfile): number {
   return Math.round((passed / COMPLETION_CHECKS.length) * 100);
 }
 
+// --- Required-setup gate (spec §G) -----------------------------------------
+// "Required setup completion" determines whether a member may finish onboarding.
+// Optional fields (biography, socials, etc.) NEVER block completion — those feed
+// the separate "profile richness" percentage above. Returns the human labels of
+// any missing required fields so the review screen can list what's left.
+const REQUIRED_SETUP: { label: string; ok: (d: EditableProfile) => boolean }[] = [
+  { label: "First name", ok: (d) => d.firstName.trim().length > 0 },
+  { label: "Last name", ok: (d) => d.lastName.trim().length > 0 },
+  { label: "Business name", ok: (d) => d.businessName.trim().length > 0 },
+  { label: "Brand name", ok: (d) => d.brandNames.trim().length > 0 },
+  { label: "Business category", ok: (d) => d.category.trim().length > 0 },
+  { label: "Industry", ok: (d) => d.industry.trim().length > 0 },
+  { label: "Cell number", ok: (d) => /^\d{10}$/.test(d.cellNo.trim()) },
+  { label: "Alternate number", ok: (d) => /^\d{10}$/.test(d.altNo.trim()) },
+  { label: "Work email", ok: (d) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.workEmail.trim()) },
+  { label: "Personal email", ok: (d) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.personalEmail.trim()) },
+  { label: "Work address", ok: (d) => [d.workAddress.line1, d.workAddress.pincode, d.workAddress.city, d.workAddress.state, d.workAddress.country].every((v) => v.trim().length > 0) },
+  { label: "Best mode to connect", ok: (d) => d.bestModes.length > 0 },
+  { label: "Birth date", ok: (d) => d.birthDate.trim().length > 0 },
+  { label: "Blood group", ok: (d) => d.bloodGroup.trim().length > 0 },
+];
+
+export function requiredSetupMissing(d: EditableProfile): string[] {
+  return REQUIRED_SETUP.filter((r) => !r.ok(d)).map((r) => r.label);
+}
+
 // The fields a member can individually show/hide (spec "Permission to Show", 👁).
 // Keys are stored in profiles.field_visibility as { key: boolean } (true = show).
 export const VISIBILITY_FIELDS: { key: string; label: string }[] = [
