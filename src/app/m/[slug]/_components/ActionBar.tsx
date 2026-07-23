@@ -6,7 +6,7 @@ import MessageMemberButton from "@/components/MessageMemberButton";
 import ConnectButton from "@/components/ConnectButton";
 
 const btn =
-  "rounded-lg border border-hairline px-4 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted";
+  "rounded-lg border border-hairline px-4 py-2 text-[14px] text-ink transition-all duration-200 hover:border-hairline-bright hover:bg-surface-hover";
 
 // Quick actions for the profile: message, WhatsApp, email, website, edit (owner),
 // share + download PDF. Contact links use only fields the viewer is allowed to

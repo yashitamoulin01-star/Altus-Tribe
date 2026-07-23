@@ -24,9 +24,9 @@ export default function PortfolioGallery({ member }: { member: Member }) {
               href={w.href}
               target="_blank"
               rel="noreferrer"
-              className="group flex items-center gap-3 rounded-lg border border-hairline bg-surface-sunk p-4 transition-colors hover:border-ink-muted"
+              className="group flex items-center gap-3 rounded-xl border border-hairline bg-surface-sunk p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-bright"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-ink-muted" aria-hidden>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface text-ink-muted transition-colors group-hover:text-red" aria-hidden>
                 {w.kind === "video" ? (
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                 ) : (
@@ -34,7 +34,7 @@ export default function PortfolioGallery({ member }: { member: Member }) {
                 )}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[15px] font-medium text-ink">{w.title || KIND_LABEL[w.kind]}</p>
+                <p className="truncate text-[15px] font-medium text-ink transition-colors group-hover:text-red">{w.title || KIND_LABEL[w.kind]}</p>
                 <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">{KIND_LABEL[w.kind] ?? w.kind}</p>
               </div>
             </a>
@@ -50,7 +50,7 @@ export default function PortfolioGallery({ member }: { member: Member }) {
               href={p.url}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg border border-hairline px-3.5 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted"
+              className="rounded-lg border border-hairline px-3.5 py-2 text-[14px] text-ink transition-all duration-200 hover:border-hairline-bright hover:bg-surface-hover"
             >
               {p.platform} →
             </a>
