@@ -35,18 +35,23 @@ export default async function AccountPage() {
         </p>
       ) : user ? (
         <>
-          <dl className="mt-6 space-y-4 border-t border-hairline pt-6">
-            <div className="grid grid-cols-[112px_1fr] gap-4">
-              <dt className="kicker">Email</dt>
-              <dd className="text-[16px] text-ink">{user.email}</dd>
+          <div className="mt-6 flex items-center gap-4 rounded-2xl border border-hairline bg-surface/80 p-5 backdrop-blur-md">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-hairline-bright bg-surface-sunk font-mono text-[18px] font-semibold text-ink-muted">
+              {(user.email ?? "?").slice(0, 2).toUpperCase()}
             </div>
-            <div className="grid grid-cols-[112px_1fr] gap-4">
-              <dt className="kicker">User ID</dt>
-              <dd className="break-all font-mono text-[13px] text-ink-secondary">
-                {user.id}
-              </dd>
-            </div>
-          </dl>
+            <dl className="min-w-0 flex-1 space-y-2">
+              <div>
+                <dt className="kicker">Email</dt>
+                <dd className="mt-0.5 truncate text-[16px] text-ink">{user.email}</dd>
+              </div>
+              <div>
+                <dt className="kicker">User ID</dt>
+                <dd className="mt-0.5 break-all font-mono text-[12px] text-ink-muted">
+                  {user.id}
+                </dd>
+              </div>
+            </dl>
+          </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
