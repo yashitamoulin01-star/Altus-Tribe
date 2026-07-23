@@ -35,6 +35,26 @@ export async function setMemberStatus(id: string, status: MemberStatus) {
   return { ok: true };
 }
 
+// Sacred Space team inbox: make the current admin a member of a support thread so
+// they can reply. The messages INSERT policy requires conversation membership;
+// the conversation_members INSERT policy allows is_admin() to join. Idempotent.
+export async function joinSupportThread(conversationId: string) {
+  if (badId(conversationId)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin || !ctx.userId) return { ok: false };
+  const { error } = await supabase
+    .from("conversation_members")
+    .upsert(
+      { conversation_id: conversationId, profile_id: ctx.userId, role: "member" },
+      { onConflict: "conversation_id,profile_id", ignoreDuplicates: true },
+    );
+  if (error) {
+    logError("joinSupportThread", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  return { ok: true };
+}
+
 // Invitation-only approval queue. Approve promotes a pending signup to active
 // (full access to the worlds); reject parks them as inactive (kept for audit,
 // not deleted). Both re-check admin server-side; RLS is the real boundary.

@@ -170,3 +170,49 @@ export async function getRecentSignups(limit = 8): Promise<RecentSignup[]> {
     completed: Boolean(r.onboarding_completed_at),
   }));
 }
+
+// --- Sacred Space team inbox (admin) ---------------------------------------
+export interface SupportThread {
+  id: string;
+  memberName: string; // the member who opened the thread (non-admin side)
+  snippet: string;
+  lastMessageAt: string | null;
+}
+
+// All `support` conversations, newest first. Admins read every support thread via
+// RLS (is_admin()); this powers the Sacred Space team inbox so the team can reply.
+export async function getSupportConversations(): Promise<SupportThread[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("conversations")
+    .select(
+      `id, last_message_at, created_by,
+       messages ( body, created_at ),
+       conversation_members ( profile_id, role, profiles ( full_name ) )`,
+    )
+    .eq("kind", "support")
+    .order("last_message_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((c) => {
+    const msgs = (c.messages ?? []) as { body: string; created_at: string }[];
+    const last = [...msgs].sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+    // The member side = the owner (created_by), else the first non-owner member.
+    const members = (c.conversation_members ?? []) as {
+      profile_id: string;
+      role: string;
+      profiles?: { full_name?: string } | { full_name?: string }[];
+    }[];
+    const owner = members.find((m) => m.profile_id === c.created_by) ?? members[0];
+    const p = Array.isArray(owner?.profiles) ? owner?.profiles[0] : owner?.profiles;
+    return {
+      id: c.id as string,
+      memberName: p?.full_name ?? "Member",
+      snippet: last?.body ?? "",
+      lastMessageAt: (c.last_message_at as string) ?? null,
+    };
+  });
+}
