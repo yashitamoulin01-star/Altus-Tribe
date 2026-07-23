@@ -175,6 +175,10 @@ export async function loadEditable(
     interestedNetworking: str(p.interested_networking),
     programBenefitWork: str(p.program_benefit_work),
     programBenefitPersonal: str(p.program_benefit_personal),
+    psBatch: str(p.ps_batch),
+    cqBatch: str(p.cq_batch),
+    bssBatch: str(p.bss_batch),
+    conclavesAttended: typeof p.conclaves_attended === "number" ? p.conclaves_attended : 0,
     visibility:
       p.visibility === "public" || p.visibility === "private"
         ? p.visibility

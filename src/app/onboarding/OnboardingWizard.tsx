@@ -557,7 +557,19 @@ export default function OnboardingWizard({
 
       {/* ---- Step 9: Community ---- */}
       {step === 9 && (
-        <Screen title="Giving back." intro="How you'd like to contribute to the Tribe.">
+        <Screen title="Your Altus journey." intro="Your program batches and how you'd like to contribute to the Tribe.">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Field label="PS batch"><input className={input} value={d.psBatch} onChange={(e) => set("psBatch", e.target.value)} placeholder="e.g. PS-12" /></Field>
+            <Field label="CQ batch"><input className={input} value={d.cqBatch} onChange={(e) => set("cqBatch", e.target.value)} placeholder="e.g. CQ-07" /></Field>
+            <Field label="BSS batch"><input className={input} value={d.bssBatch} onChange={(e) => set("bssBatch", e.target.value)} placeholder="e.g. BSS-03" /></Field>
+          </div>
+          <div className="rounded-lg border border-hairline bg-surface-sunk px-4 py-3">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">Conclaves attended</p>
+            <p className="mt-1 text-[15px] text-ink">
+              {d.conclavesAttended}
+              <span className="ml-2 text-[13px] text-ink-muted">· from Altus records</span>
+            </p>
+          </div>
           <Field label="Interested in helping / assisting others?">
             <Segmented value={d.interestedHelping} options={YES_NO_MAYBE} onChange={(v) => set("interestedHelping", v)} />
           </Field>

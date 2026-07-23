@@ -764,6 +764,21 @@ export default function EditFeature({
             <AreaField label="How Manan's programs helped you personally" value={d.programBenefitPersonal} onChange={(v) => set("programBenefitPersonal", v)} />
             <AreaField label="How can you contribute to the Tribe" value={d.contribution} onChange={(v) => set("contribution", v)} {...visProps("contribution")} />
           </Section>
+
+          <Section title="Altus program" note="Your batch numbers. Conclaves attended is set from Altus records.">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <TextField label="PS batch" value={d.psBatch} onChange={(v) => set("psBatch", v)} placeholder="PS-12" />
+              <TextField label="CQ batch" value={d.cqBatch} onChange={(v) => set("cqBatch", v)} placeholder="CQ-07" />
+              <TextField label="BSS batch" value={d.bssBatch} onChange={(v) => set("bssBatch", v)} placeholder="BSS-03" />
+            </div>
+            <div className="rounded-lg border border-hairline bg-surface-sunk px-4 py-3">
+              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">Conclaves attended</p>
+              <p className="mt-1 text-[15px] text-ink">
+                {d.conclavesAttended}
+                <span className="ml-2 text-[13px] text-ink-muted">· from Altus records</span>
+              </p>
+            </div>
+          </Section>
         </div>
 
         {/* Live preview */}

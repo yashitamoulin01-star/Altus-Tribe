@@ -108,6 +108,12 @@ export interface EditableProfile {
   interestedNetworking: string;
   programBenefitWork: string; // #40
   programBenefitPersonal: string; // #41
+  // Altus program (member-writable; admin can correct). #29/#30
+  psBatch: string;
+  cqBatch: string;
+  bssBatch: string;
+  // System-derived; read-only for members (admin-editable elsewhere). #48
+  conclavesAttended: number;
   // Profile-level visibility (maps to profiles.visibility enum). Governs who can
   // see the whole feature; per-field show/hide is handled by field_visibility.
   visibility: "public" | "tribe" | "private";
@@ -191,6 +197,10 @@ export const emptyEditable: EditableProfile = {
   interestedNetworking: "",
   programBenefitWork: "",
   programBenefitPersonal: "",
+  psBatch: "",
+  cqBatch: "",
+  bssBatch: "",
+  conclavesAttended: 0,
   visibility: "tribe",
 };
 
@@ -247,6 +257,9 @@ const REQUIRED_SETUP: { label: string; ok: (d: EditableProfile) => boolean }[] =
   { label: "Best mode to connect", ok: (d) => d.bestModes.length > 0 },
   { label: "Birth date", ok: (d) => d.birthDate.trim().length > 0 },
   { label: "Blood group", ok: (d) => d.bloodGroup.trim().length > 0 },
+  { label: "PS (Productivity Shastra) batch", ok: (d) => d.psBatch.trim().length > 0 },
+  { label: "CQ batch", ok: (d) => d.cqBatch.trim().length > 0 },
+  { label: "BSS batch", ok: (d) => d.bssBatch.trim().length > 0 },
 ];
 
 export function requiredSetupMissing(d: EditableProfile): string[] {

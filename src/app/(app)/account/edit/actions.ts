@@ -110,6 +110,11 @@ export async function saveProfile(
       interested_networking: clean(d.interestedNetworking),
       program_benefit_work: clean(d.programBenefitWork),
       program_benefit_personal: clean(d.programBenefitPersonal),
+      // Member-writable batch numbers (admin can still correct). conclaves_attended
+      // is intentionally NOT written here — it is system-derived / admin-only.
+      ps_batch: clean(d.psBatch),
+      cq_batch: clean(d.cqBatch),
+      bss_batch: clean(d.bssBatch),
       visibility: d.visibility,
       field_visibility: visibility,
       // Onboarding autosave persists the current step in the same write.
