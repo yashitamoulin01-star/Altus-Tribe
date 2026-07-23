@@ -45,10 +45,16 @@ function notConfigured(): AuthState {
 
 async function siteOrigin() {
   const h = await headers();
-  const rawUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host") ?? "localhost:3000"}`;
-  return rawUrl.replace(/\/+$/, "");
+  // Prefer the ACTUAL request host so reset / magic-link / confirmation emails
+  // always point at the domain the user is on (correct on every Vercel deploy or
+  // preview), rather than a possibly-stale NEXT_PUBLIC_SITE_URL. Falls back to the
+  // configured URL only when no host header is available.
+  const forwardedHost = h.get("x-forwarded-host") ?? h.get("host");
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const raw = forwardedHost
+    ? `${proto}://${forwardedHost}`
+    : process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  return raw.replace(/\/+$/, "");
 }
 
 export async function login(
