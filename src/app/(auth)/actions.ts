@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { getPostAuthRedirect } from "@/lib/onboarding";
-import { rateLimit, ipKey } from "@/lib/rate-limit";
 import {
   loginSchema,
   signupSchema,
@@ -25,15 +24,14 @@ export type AuthState = {
 // caller is over budget, or null to proceed. Keeps brute-force / email-bombing
 // in check before we ever call Supabase Auth.
 async function throttle(
-  namespace: string,
-  limit: number,
-  windowMs: number,
+  _namespace: string,
+  _limit: number,
+  _windowMs: number,
 ): Promise<AuthState> {
-  const { ok, retryAfterSec } = rateLimit(await ipKey(namespace), limit, windowMs);
-  if (ok) return null;
-  return {
-    error: `Too many attempts. Please try again in ${retryAfterSec ?? 60}s.`,
-  };
+  // App-level auth rate limiting temporarily DISABLED (per request — was blocking
+  // legitimate testing). Supabase's own auth rate limits still apply. Re-enable by
+  // restoring the rateLimit()/ipKey() check below.
+  return null;
 }
 
 function notConfigured(): AuthState {
@@ -168,8 +166,7 @@ export async function sendMagicLink(
   const supabase = await createClient();
   if (!supabase) return { error: "Sign-in is not configured yet." };
 
-  const { ok, retryAfterSec } = rateLimit(await ipKey("magic-link"), 5, 15 * 60_000);
-  if (!ok) return { error: `Too many attempts. Please try again in ${retryAfterSec ?? 60}s.` };
+  // App-level magic-link throttle disabled per request (Supabase limits still apply).
 
   const parsed = emailOnlySchema.safeParse({ email: email.trim() });
   if (!parsed.success) return { fieldError: fieldErrorsFrom(parsed.error).email };
