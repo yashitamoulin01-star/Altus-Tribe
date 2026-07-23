@@ -54,7 +54,7 @@ async function login(page: import("@playwright/test").Page, email: string, passw
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
-  await page.waitForLoadState("networkidle");
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 15000 }).catch(() => {});
 }
 
 test.describe("authorization — existing admin (needs ADMIN_* creds)", () => {

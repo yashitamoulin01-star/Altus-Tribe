@@ -16,7 +16,9 @@ async function login(page: Page, email: string, password: string) {
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
   await page.click('button[type="submit"]');
-  await page.waitForLoadState("networkidle");
+  // Wait for the real post-login navigation (server action → redirect), not
+  // networkidle which can resolve mid-redirect and race the session cookie.
+  await page.waitForURL((url) => !url.pathname.startsWith("/login"), { timeout: 15000 });
 }
 
 test.describe("member journey (needs MEMBER_* creds)", () => {
