@@ -34,6 +34,7 @@ export default async function AdminOverviewPage() {
     { href: "/admin/inbox", title: "Sacred Space inbox", hint: "Read and reply to in-app support threads from members." },
     { href: "/admin/consultants", title: "Consultants", hint: "Add consultants and assign designated consultants." },
     { href: "/admin/assets", title: "Asset Manager", hint: "Publish announcements and curate Campus resources." },
+    { href: "/admin/events", title: "Events", hint: "Schedule conclaves, referral rounds and orientations." },
     { href: "/admin/analytics", title: "Analytics", hint: "Members, engagement, and content at a glance." },
     { href: "/admin/import", title: "Bulk import", hint: "Upload a CSV/Excel, map columns, confirm." },
     { href: "/admin/exports", title: "Exports & outreach", hint: "Excel / PDF master DB; WhatsApp / Email." },

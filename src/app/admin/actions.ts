@@ -35,6 +35,67 @@ export async function setMemberStatus(id: string, status: MemberStatus) {
   return { ok: true };
 }
 
+// --- Events (ADMIN-7) -------------------------------------------------------
+export interface EventInput {
+  id?: string;
+  title: string;
+  description: string;
+  location: string;
+  link: string;
+  startsAt: string; // ISO (from a datetime-local input, already normalized)
+  endsAt: string;
+  featured: boolean;
+}
+
+function eventRow(e: EventInput, createdBy?: string | null) {
+  return {
+    title: e.title.trim(),
+    description: e.description.trim() || null,
+    location: e.location.trim() || null,
+    link: e.link.trim() || null,
+    starts_at: e.startsAt,
+    ends_at: e.endsAt || null,
+    featured: e.featured,
+    ...(createdBy ? { created_by: createdBy } : {}),
+  };
+}
+
+export async function saveEvent(e: EventInput) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  if (!e.title.trim() || !e.startsAt) return { ok: false, error: "Title and start time are required." };
+
+  const { error } = e.id
+    ? await supabase.from("events").update(eventRow(e)).eq("id", e.id)
+    : await supabase.from("events").insert(eventRow(e, ctx.userId));
+  if (error) {
+    logError("saveEvent", error, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't save the event." };
+  }
+  await logAudit(e.id ? "event.update" : "event.create", {
+    entityType: "event",
+    entityId: e.id,
+  });
+  revalidatePath("/admin/events");
+  revalidatePath("/home");
+  return { ok: true };
+}
+
+export async function deleteEvent(id: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase.from("events").delete().eq("id", id);
+  if (error) {
+    logError("deleteEvent", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("event.delete", { entityType: "event", entityId: id });
+  revalidatePath("/admin/events");
+  revalidatePath("/home");
+  return { ok: true };
+}
+
 // Sacred Space team inbox: make the current admin a member of a support thread so
 // they can reply. The messages INSERT policy requires conversation membership;
 // the conversation_members INSERT policy allows is_admin() to join. Idempotent.

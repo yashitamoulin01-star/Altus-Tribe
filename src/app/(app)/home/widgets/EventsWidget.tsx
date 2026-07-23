@@ -1,4 +1,5 @@
 import { nextConclave } from "@/lib/conclave";
+import { getUpcomingEvents } from "@/lib/events";
 import { Card, WidgetHeader } from "./_shared";
 
 // Next date (>= today) that falls on the given weekday (0=Sun … 3=Wed).
@@ -16,15 +17,30 @@ const fmtConclave = (iso: string) => {
     ? ""
     : d.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 };
+const fmtEvent = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+};
 
-// Upcoming events — Conclave, weekly Referral Round, PS Orientation.
-export default function EventsWidget() {
-  const referralWed = nextWeekday(3); // Wednesday
-  const events = [
-    { title: nextConclave.edition, when: `${fmtConclave(nextConclave.date)} · ${nextConclave.city}`, tag: "Conclave" },
-    { title: "Referral Round", when: `${fmtDay(referralWed)} · 10–11am`, tag: "Weekly" },
-    { title: "PS Orientation", when: "Invite a guest — link inside Campus", tag: "Open" },
-  ];
+// Admin-curated upcoming events; falls back to the standing programme (Conclave,
+// weekly Referral Round, PS Orientation) when none have been scheduled yet.
+export default async function EventsWidget() {
+  const scheduled = await getUpcomingEvents(4);
+
+  const events =
+    scheduled.length > 0
+      ? scheduled.map((e) => ({
+          title: e.title,
+          when: [fmtEvent(e.startsAt), e.location].filter(Boolean).join(" · "),
+          tag: e.featured ? "Featured" : "Event",
+        }))
+      : [
+          { title: nextConclave.edition, when: `${fmtConclave(nextConclave.date)} · ${nextConclave.city}`, tag: "Conclave" },
+          { title: "Referral Round", when: `${fmtDay(nextWeekday(3))} · 10–11am`, tag: "Weekly" },
+          { title: "PS Orientation", when: "Invite a guest — link inside Campus", tag: "Open" },
+        ];
 
   return (
     <Card>

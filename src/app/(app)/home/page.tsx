@@ -51,7 +51,9 @@ export default function HomePage() {
 
         {/* Events Bento Tile */}
         <MagicBentoCard span="col-span-1">
-          <EventsWidget />
+          <Suspense fallback={<WidgetSkeleton />}>
+            <EventsWidget />
+          </Suspense>
         </MagicBentoCard>
 
         {/* Recent Messages Bento Tile */}
