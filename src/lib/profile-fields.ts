@@ -2,6 +2,8 @@
 // list of per-field privacy toggles (👁), and validation helpers. Shared by the
 // Edit composer (client) and the save action (server).
 
+import { isValidPhone } from "@/lib/phone";
+
 export interface EditableAddress {
   line1: string;
   line2: string;
@@ -230,14 +232,15 @@ export function computeProfileCompletion(d: EditableProfile): number {
 // the separate "profile richness" percentage above. Returns the human labels of
 // any missing required fields so the review screen can list what's left.
 const REQUIRED_SETUP: { label: string; ok: (d: EditableProfile) => boolean }[] = [
+  { label: "Participant photo", ok: (d) => d.photoUrl.trim().length > 0 },
   { label: "First name", ok: (d) => d.firstName.trim().length > 0 },
   { label: "Last name", ok: (d) => d.lastName.trim().length > 0 },
   { label: "Business name", ok: (d) => d.businessName.trim().length > 0 },
   { label: "Brand name", ok: (d) => d.brandNames.trim().length > 0 },
   { label: "Business category", ok: (d) => d.category.trim().length > 0 },
   { label: "Industry", ok: (d) => d.industry.trim().length > 0 },
-  { label: "Cell number", ok: (d) => /^\d{10}$/.test(d.cellNo.trim()) },
-  { label: "Alternate number", ok: (d) => /^\d{10}$/.test(d.altNo.trim()) },
+  { label: "Cell number", ok: (d) => isValidPhone(d.cellNo) },
+  { label: "Alternate number", ok: (d) => isValidPhone(d.altNo) },
   { label: "Work email", ok: (d) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.workEmail.trim()) },
   { label: "Personal email", ok: (d) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.personalEmail.trim()) },
   { label: "Work address", ok: (d) => [d.workAddress.line1, d.workAddress.pincode, d.workAddress.city, d.workAddress.state, d.workAddress.country].every((v) => v.trim().length > 0) },
@@ -248,6 +251,26 @@ const REQUIRED_SETUP: { label: string; ok: (d: EditableProfile) => boolean }[] =
 
 export function requiredSetupMissing(d: EditableProfile): string[] {
   return REQUIRED_SETUP.filter((r) => !r.ok(d)).map((r) => r.label);
+}
+
+// Factory/warehouse address is optional, but IF the member starts filling it,
+// the structured fields (incl. landmark, §7) become required. Returns missing
+// labels only when the address has been started.
+const FACTORY_STARTED = (a: EditableAddress) =>
+  [a.line1, a.line2, a.line3, a.line4, a.landmark, a.pincode, a.city, a.state, a.country]
+    .some((v) => v.trim().length > 0);
+
+export function factoryAddressMissing(a: EditableAddress): string[] {
+  if (!FACTORY_STARTED(a)) return [];
+  const need: [string, string][] = [
+    ["Address line 1", a.line1],
+    ["Nearby landmark", a.landmark],
+    ["PIN / postal code", a.pincode],
+    ["City", a.city],
+    ["State", a.state],
+    ["Country", a.country],
+  ];
+  return need.filter(([, v]) => !v.trim()).map(([label]) => label);
 }
 
 // The fields a member can individually show/hide (spec "Permission to Show", 👁).
@@ -293,7 +316,7 @@ export function validateField(
   switch (field) {
     case "cellNo":
     case "altNo":
-      return /^\d{10}$/.test(v) ? null : "Enter a 10-digit number.";
+      return isValidPhone(v) ? null : "Enter a valid mobile number.";
     case "workEmail":
     case "personalEmail":
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : "Enter a valid email.";

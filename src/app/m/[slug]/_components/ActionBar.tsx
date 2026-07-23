@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Member } from "@/lib/members";
 import type { ConnectionState } from "@/lib/connections";
+import { toWaNumber } from "@/lib/phone";
 import ShareButtons from "@/components/ShareButtons";
 import MessageMemberButton from "@/components/MessageMemberButton";
 import ConnectButton from "@/components/ConnectButton";
@@ -22,9 +23,9 @@ export default function ActionBar({
   canMessage: boolean;
   connectionState: ConnectionState;
 }) {
-  const cell = member.contact?.cellNo?.replace(/[^0-9]/g, "") ?? "";
-  const waNumber = cell.length === 10 ? `91${cell}` : cell;
-  const waLink = cell && member.whatsappDm !== false ? `https://wa.me/${waNumber}` : null;
+  // Prefer the member's dedicated WhatsApp number; fall back to their cell.
+  const waNumber = toWaNumber(member.whatsapp || member.contact?.cellNo || "");
+  const waLink = waNumber && member.whatsappDm !== false ? `https://wa.me/${waNumber}` : null;
   const email = member.contact?.workEmail ?? null;
   const website = member.presence.find((p) => p.platform === "Website")?.url ?? null;
 

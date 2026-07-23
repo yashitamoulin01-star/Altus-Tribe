@@ -71,6 +71,7 @@ export interface Member {
   bestTime?: string;
   bestModes?: string[];
   whatsappDm?: boolean | null; // gated: "whatsapp"
+  whatsapp?: string | null; // WhatsApp number (E.164), gated: "whatsapp"
   // Personal
   birthDate?: string | null; // gated: "birth_date"
   bloodGroup?: string;

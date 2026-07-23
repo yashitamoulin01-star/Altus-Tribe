@@ -5,6 +5,10 @@ import { saveProfile } from "@/app/(app)/account/edit/actions";
 import { finishOnboarding } from "./actions";
 import { uploadFile } from "@/lib/storage-client";
 import { lookupPincode } from "@/lib/pincode";
+import { isValidPhone } from "@/lib/phone";
+import PhoneField from "@/components/PhoneField";
+import ChipInput from "@/components/ChipInput";
+import BestTimePicker from "@/components/BestTimePicker";
 import LegalModal, { type LegalDocType } from "@/components/LegalModal";
 import {
   ATTACHMENT_KIND_LABELS,
@@ -15,6 +19,7 @@ import {
   isFileKind,
   MAX_ATTACHMENTS,
   requiredSetupMissing,
+  factoryAddressMissing,
   validateField,
   VISIBILITY_FIELDS,
   type AttachmentKind,
@@ -171,6 +176,8 @@ export default function OnboardingWizard({
   const [understandDisplay, setUnderstandDisplay] = useState(false);
   const [agreeDeclaration, setAgreeDeclaration] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDocType>(null);
+  // Home-address choice (§6). Optional field; "none" simply hides the inputs.
+  const [homeMode, setHomeMode] = useState<"enter" | "same" | "none">("enter");
 
   const firstRender = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -193,7 +200,11 @@ export default function OnboardingWizard({
   }, [d, vis, step, configured]);
 
   const completion = computeProfileCompletion(d);
-  const missingRequired = requiredSetupMissing(d);
+  const factoryMissing = factoryAddressMissing(d.factoryAddress);
+  const missingRequired = [
+    ...requiredSetupMissing(d),
+    ...factoryMissing.map((f) => `Factory address — ${f}`),
+  ];
   const canFinish = missingRequired.length === 0;
   const set = <K extends keyof EditableProfile>(k: K, v: EditableProfile[K]) => {
     setD((p) => ({ ...p, [k]: v }));
@@ -400,11 +411,14 @@ export default function OnboardingWizard({
       {step === 3 && (
         <Screen title="How to reach you." intro="Members connect through these. Toggle privacy on any of them.">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Mobile" error={validateField("cellNo", d.cellNo)}>
-              <div className="flex items-center gap-2"><input inputMode="numeric" className={input} value={d.cellNo} onChange={(e) => set("cellNo", e.target.value.replace(/[^0-9]/g, ""))} placeholder="10-digit" />{eye("cell_no")}</div>
+            <Field label="Mobile" error={d.cellNo && !isValidPhone(d.cellNo) ? "Enter a valid mobile number." : null}>
+              <div className="flex items-center gap-2"><div className="flex-1"><PhoneField value={d.cellNo} onChange={(v) => set("cellNo", v)} autoComplete="tel" /></div>{eye("cell_no")}</div>
             </Field>
-            <Field label="Alternate mobile" error={validateField("altNo", d.altNo)}>
-              <div className="flex items-center gap-2"><input inputMode="numeric" className={input} value={d.altNo} onChange={(e) => set("altNo", e.target.value.replace(/[^0-9]/g, ""))} placeholder="10-digit" />{eye("alt_no")}</div>
+            <Field label="Alternate mobile" error={d.altNo && !isValidPhone(d.altNo) ? "Enter a valid mobile number." : null}>
+              <div className="flex items-center gap-2"><div className="flex-1"><PhoneField value={d.altNo} onChange={(v) => set("altNo", v)} /></div>{eye("alt_no")}</div>
+            </Field>
+            <Field label="WhatsApp number" hint="Used when members tap “WhatsApp” on your profile." error={d.whatsappLink && !isValidPhone(d.whatsappLink) ? "Enter a valid WhatsApp number." : null}>
+              <div className="flex items-center gap-2"><div className="flex-1"><PhoneField value={d.whatsappLink} onChange={(v) => set("whatsappLink", v)} /></div>{eye("whatsapp")}</div>
             </Field>
             <Field label="Work email" error={validateField("workEmail", d.workEmail)}>
               <div className="flex items-center gap-2"><input type="email" className={input} value={d.workEmail} onChange={(e) => set("workEmail", e.target.value)} />{eye("work_email")}</div>
@@ -413,7 +427,7 @@ export default function OnboardingWizard({
               <div className="flex items-center gap-2"><input type="email" className={input} value={d.personalEmail} onChange={(e) => set("personalEmail", e.target.value)} />{eye("personal_email")}</div>
             </Field>
           </div>
-          <Field label="Best time to connect" hint="e.g. 10am–7pm, Mon–Fri"><input className={input} value={d.bestTime} onChange={(e) => set("bestTime", e.target.value)} /></Field>
+          <Field label="Best time to connect" hint="Optional — pick your days and hours."><BestTimePicker value={d.bestTime} onChange={(v) => set("bestTime", v)} /></Field>
           <Field label="Best mode to connect">
             <div className="flex flex-wrap gap-2">
               {CONNECT_MODES.map((m) => {
@@ -438,11 +452,39 @@ export default function OnboardingWizard({
       )}
       {step === 5 && (
         <Screen title="Home address." intro="Optional — kept private unless you choose to show it.">
-          <div className="flex items-center justify-between">
-            <button type="button" onClick={() => copyFromWork("homeAddress")} className="rounded-lg border border-hairline px-3.5 py-2 text-[14px] text-ink-muted transition-colors hover:border-ink-muted hover:text-ink">✔ Same as business address</button>
-            {eye("home_address")}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              {([
+                ["enter", "Enter home address"],
+                ["same", "Same as business"],
+                ["none", "Don’t wish to provide"],
+              ] as const).map(([mode, label]) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    setHomeMode(mode);
+                    if (mode === "same") copyFromWork("homeAddress");
+                  }}
+                  className={`rounded-lg border px-3.5 py-2 text-[14px] transition-all ${
+                    homeMode === mode ? "border-red/40 bg-red-muted text-red" : "border-hairline text-ink-muted hover:text-ink"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {homeMode !== "none" && eye("home_address")}
           </div>
-          <AddressFields value={d.homeAddress} onChange={(k, v) => setAddr("homeAddress", k, v)} />
+          {homeMode === "enter" && (
+            <AddressFields value={d.homeAddress} onChange={(k, v) => setAddr("homeAddress", k, v)} />
+          )}
+          {homeMode === "same" && (
+            <p className="text-[14px] text-ink-muted">Using your business address as your home address.</p>
+          )}
+          {homeMode === "none" && (
+            <p className="text-[14px] text-ink-muted">No home address will be saved. You can add one later from your profile.</p>
+          )}
         </Screen>
       )}
       {step === 6 && (
@@ -497,9 +539,9 @@ export default function OnboardingWizard({
           <Field label="Expertise" hint="Comma separated.">
             <input className={input} value={d.expertise.join(", ")} placeholder="Manufacturing, Exports, B2B Sales" onChange={(e) => set("expertise", e.target.value.split(",").map((s) => s.trimStart()))} onBlur={(e) => set("expertise", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))} />
           </Field>
-          <Field label="Associations & forums" hint="e.g. BNI Premiere, Ascent Imperium"><div className="flex items-start gap-2"><textarea className={area} value={d.networkGroups} onChange={(e) => set("networkGroups", e.target.value)} />{eye("network_groups")}</div></Field>
-          <Field label="Companies / people you can connect others to"><div className="flex items-start gap-2"><textarea className={area} value={d.canConnect} onChange={(e) => set("canConnect", e.target.value)} />{eye("can_connect")}</div></Field>
-          <Field label="Companies / people you want to connect with"><div className="flex items-start gap-2"><textarea className={area} value={d.wantConnect} onChange={(e) => set("wantConnect", e.target.value)} />{eye("want_connect")}</div></Field>
+          <Field label="Associations & forums" hint="Add each one — e.g. BNI Premiere, Ascent Imperium"><div className="flex items-start gap-2"><div className="flex-1"><ChipInput value={d.networkGroups} onChange={(v) => set("networkGroups", v)} placeholder="Add an association or forum" /></div>{eye("network_groups")}</div></Field>
+          <Field label="Companies / people you can connect others to" hint="e.g. Hindustan Lever — Mr. Mitra, Director"><div className="flex items-start gap-2"><div className="flex-1"><ChipInput value={d.canConnect} onChange={(v) => set("canConnect", v)} placeholder="Add a company or person" /></div>{eye("can_connect")}</div></Field>
+          <Field label="Companies / people you want to connect with"><div className="flex items-start gap-2"><div className="flex-1"><ChipInput value={d.wantConnect} onChange={(v) => set("wantConnect", v)} placeholder="Add a company or person" /></div>{eye("want_connect")}</div></Field>
           <Field label="Favourite productivity tools" hint={`Pick up to 3 · ${tools.length}/3 selected`}>
             <div className="flex flex-wrap gap-2">
               {TOOLS.map((t) => {
