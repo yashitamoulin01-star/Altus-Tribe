@@ -41,7 +41,7 @@ export default async function SacredSpacePage() {
           <ul className="divide-y divide-hairline">
             {queries.map((c) => (
               <li key={c.id}>
-                <Link href={`/messages/${c.id}`} className="flex items-center gap-3 py-3">
+                <Link href={`/messages/${c.id}`} className="-mx-3 flex items-center gap-3 rounded-lg px-3 py-3 transition-colors hover:bg-surface-hover">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px] font-medium text-ink">{c.title}</p>
                     <p className="truncate text-[13px] text-ink-muted">{c.snippet || "No messages yet"}</p>
@@ -93,8 +93,8 @@ export default async function SacredSpacePage() {
           <ul className="space-y-3">
             {resources.slice(0, 4).map((r) => (
               <li key={r.id}>
-                <Link href={`/campus/${r.id}`} className="block rounded-lg border border-hairline bg-surface p-4 transition-colors hover:border-ink-muted">
-                  <p className="text-[15px] font-medium text-ink">{r.title}</p>
+                <Link href={`/campus/${r.id}`} className="group block rounded-xl border border-hairline bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-bright">
+                  <p className="text-[15px] font-medium text-ink transition-colors group-hover:text-red">{r.title}</p>
                   {r.description && <p className="mt-0.5 text-[13px] leading-snug text-ink-muted">{r.description}</p>}
                 </Link>
               </li>
