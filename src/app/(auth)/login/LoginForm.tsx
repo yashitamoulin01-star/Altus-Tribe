@@ -138,28 +138,6 @@ export default function LoginForm({ redirectTo }: { redirectTo: string }) {
           </div>
         </div>
 
-        {/* Admin login toggle (two-person security). When ticked, only an
-            approved admin account is allowed in; anyone else is rejected. */}
-        <label
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontSize: '13px',
-            color: '#5f5f5f',
-            cursor: 'pointer',
-            marginTop: '2px',
-          }}
-        >
-          <input
-            type="checkbox"
-            name="mode"
-            value="admin"
-            style={{ width: '14px', height: '14px', accentColor: '#c8102e', cursor: 'pointer' }}
-          />
-          Log in as administrator
-        </label>
-
         {/* Error */}
         {state?.error && (
           <p style={{ fontSize: '13px', color: '#c8102e' }}>{state.error}</p>

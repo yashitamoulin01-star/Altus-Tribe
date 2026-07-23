@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getRosterMember, getConsultants, getAdminContext } from "@/lib/admin";
 import { getCrm } from "@/lib/crm";
 import CrmEditor from "./CrmEditor";
+import RoleControl from "./RoleControl";
 
 export default async function AdminMemberDetailPage({
   params,
@@ -54,6 +55,21 @@ export default async function AdminMemberDetailPage({
           </Link>
         </div>
       </header>
+
+      {/* Role / administrator access (admins only) */}
+      {ctx.isAdmin && member.id !== ctx.userId && (
+        <section className="flex items-center justify-between gap-4 border-b border-hairline py-6">
+          <div>
+            <p className="kicker mb-1">Administrator access</p>
+            <p className="text-[14px] text-ink-secondary">
+              {member.role === "admin"
+                ? "This member has full administrator access."
+                : "Grant this member access to the admin portal."}
+            </p>
+          </div>
+          <RoleControl id={member.id} role={member.role} />
+        </section>
+      )}
 
       {/* Private CRM */}
       <section className="pt-8">

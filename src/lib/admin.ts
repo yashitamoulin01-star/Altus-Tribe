@@ -12,10 +12,8 @@ export type MemberStatus = "active" | "hidden" | "inactive" | "pending";
 export interface AdminContext {
   configured: boolean;
   role: Role | null;
-  canAccess: boolean; // approved admin or consultant
-  isAdmin: boolean; // role admin AND approved
-  adminApproved: boolean; // role admin but approval status (false = pending)
-  pendingAdmin: boolean; // role admin but NOT yet approved
+  canAccess: boolean; // admin or consultant
+  isAdmin: boolean; // role === admin
   userId: string | null;
 }
 
@@ -48,50 +46,25 @@ export async function getAdminContext(): Promise<AdminContext> {
   const supabase = await createClient();
   if (!supabase) {
     // Offline preview: allow viewing the (sample) admin so the demo works.
-    return { configured: false, role: null, canAccess: true, isAdmin: true, adminApproved: true, pendingAdmin: false, userId: null };
+    return { configured: false, role: null, canAccess: true, isAdmin: true, userId: null };
   }
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { configured: true, role: null, canAccess: false, isAdmin: false, adminApproved: false, pendingAdmin: false, userId: null };
+  if (!user) return { configured: true, role: null, canAccess: false, isAdmin: false, userId: null };
 
   const { data } = await supabase
     .from("profiles")
-    .select("role, admin_approved")
+    .select("role")
     .eq("id", user.id)
     .maybeSingle();
 
+  // Authoritative role model: profiles.role. An existing admin is an admin — no
+  // second approval gate. Consultants get access (CRM); members do not.
   const role = (data?.role as Role) ?? "member";
-  const adminApproved = Boolean(data?.admin_approved);
-  // An admin must be approved by another admin before they can use admin features.
-  const isAdmin = role === "admin" && adminApproved;
-  const pendingAdmin = role === "admin" && !adminApproved;
-  const canAccess = isAdmin || role === "consultant";
-  return { configured: true, role, canAccess, isAdmin, adminApproved, pendingAdmin, userId: user.id };
-}
-
-// Admins awaiting access approval (role='admin', not yet approved). Shown to
-// approved admins on the Admins page so they can grant or deny access.
-export interface AdminRow {
-  id: string;
-  fullName: string;
-  slug: string;
-  approved: boolean;
-}
-export async function getAdmins(): Promise<AdminRow[]> {
-  const supabase = await createClient();
-  if (!supabase) return [];
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, full_name, slug, admin_approved")
-    .eq("role", "admin")
-    .order("full_name");
-  return (data ?? []).map((r) => ({
-    id: r.id as string,
-    fullName: r.full_name as string,
-    slug: r.slug as string,
-    approved: Boolean(r.admin_approved),
-  }));
+  const isAdmin = role === "admin";
+  const canAccess = role === "admin" || role === "consultant";
+  return { configured: true, role, canAccess, isAdmin, userId: user.id };
 }
 
 export async function getRoster(query?: string): Promise<RosterMember[]> {

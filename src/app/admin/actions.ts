@@ -82,58 +82,43 @@ export async function deleteMember(id: string) {
   return { ok: true };
 }
 
+const VALID_ROLES: Role[] = ["member", "consultant", "admin"];
+
+// Change a member's role (the canonical promotion/demotion mechanism, e.g.
+// "Grant Administrator Access"). Server validates the acting admin, the target,
+// and the role enum; guards against removing the last active administrator.
 export async function setMemberRole(id: string, role: Role) {
-  if (badId(id)) return { ok: false };
+  if (badId(id)) return { ok: false, error: "Invalid request." };
+  if (!VALID_ROLES.includes(role)) return { ok: false, error: "Invalid role." };
   const { supabase, ctx } = await ensureAdmin();
-  if (!supabase || !ctx.isAdmin) return { ok: false };
+  if (!supabase || !ctx.isAdmin) return { ok: false, error: "Not authorized." };
+
+  // Zero-admin protection (§13): if this demotes an admin, ensure another active
+  // admin remains so the system can never end up with no administrators.
+  if (role !== "admin") {
+    const { data: target } = await supabase
+      .from("profiles").select("role").eq("id", id).maybeSingle();
+    if (target?.role === "admin") {
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "admin")
+        .eq("status", "active");
+      if ((count ?? 0) <= 1) {
+        return { ok: false, error: "Can't remove the last administrator. Promote another admin first." };
+      }
+    }
+  }
+
   const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
   if (error) {
     logError("setMemberRole", error, { userId: ctx.userId });
-    return { ok: false };
+    return { ok: false, error: "Couldn't update the role. Please try again." };
   }
   await logAudit("member.role", { entityType: "profile", entityId: id, metadata: { role } });
   revalidatePath("/admin/consultants");
   revalidatePath("/admin/members");
-  return { ok: true };
-}
-
-// Admin access approval (two-person security). Only an already-approved admin
-// (ctx.isAdmin now requires approval) may grant or revoke another admin's access.
-export async function approveAdminAccess(id: string) {
-  if (badId(id)) return { ok: false };
-  const { supabase, ctx } = await ensureAdmin();
-  if (!supabase || !ctx.isAdmin) return { ok: false };
-  const { error } = await supabase
-    .from("profiles")
-    .update({ admin_approved: true })
-    .eq("id", id)
-    .eq("role", "admin");
-  if (error) {
-    logError("approveAdminAccess", error, { userId: ctx.userId });
-    return { ok: false };
-  }
-  await logAudit("admin.access.approve", { entityType: "profile", entityId: id });
-  revalidatePath("/admin/admins");
-  return { ok: true };
-}
-
-export async function revokeAdminAccess(id: string) {
-  if (badId(id)) return { ok: false };
-  const { supabase, ctx } = await ensureAdmin();
-  if (!supabase || !ctx.isAdmin) return { ok: false };
-  // Guard: an admin cannot revoke their own access (would lock themselves out).
-  if (ctx.userId === id) return { ok: false, error: "You can't revoke your own admin access." };
-  const { error } = await supabase
-    .from("profiles")
-    .update({ admin_approved: false })
-    .eq("id", id)
-    .eq("role", "admin");
-  if (error) {
-    logError("revokeAdminAccess", error, { userId: ctx.userId });
-    return { ok: false };
-  }
-  await logAudit("admin.access.revoke", { entityType: "profile", entityId: id });
-  revalidatePath("/admin/admins");
+  revalidatePath(`/admin/members/${id}`);
   return { ok: true };
 }
 

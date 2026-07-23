@@ -68,41 +68,16 @@ export async function login(
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
   const redirectTo = String(formData.get("redirect") ?? "");
   const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
-  const adminMode = String(formData.get("mode") ?? "") === "admin";
 
-  const { data: signInData, error } = await supabase.auth.signInWithPassword({
+  const { error } = await supabase.auth.signInWithPassword({
     ...parsed.data,
     options: { captchaToken },
   });
   if (error) return { error: error.message };
 
-  // Admin login path (two-person security). The account must be role='admin' AND
-  // approved by another admin. Anything else is rejected and the session is
-  // dropped so no access is granted.
-  if (adminMode) {
-    const uid = signInData.user?.id;
-    const { data: prof } = await supabase
-      .from("profiles")
-      .select("role, admin_approved")
-      .eq("id", uid ?? "")
-      .maybeSingle();
-
-    if (!prof || prof.role !== "admin") {
-      await supabase.auth.signOut();
-      return { error: "This admin account doesn't exist." };
-    }
-    if (!prof.admin_approved) {
-      await supabase.auth.signOut();
-      return {
-        error:
-          "Your admin access is awaiting approval by an existing administrator.",
-      };
-    }
-    redirect("/admin");
-  }
-
-  // Honor an explicit protected-route redirect; otherwise route through
-  // onboarding until the member's feature is complete.
+  // One login for everyone. Identity is authenticated here; the authoritative
+  // role (profiles.role) is resolved by getPostAuthRedirect — admins/consultants
+  // bypass onboarding, members go through it. No role selection at login.
   if (redirectTo && redirectTo !== "/account") redirect(redirectTo);
   redirect(await getPostAuthRedirect());
 }
