@@ -67,9 +67,12 @@ export async function getAdminContext(): Promise<AdminContext> {
   return { configured: true, role, canAccess, isAdmin, userId: user.id };
 }
 
-export async function getRoster(query?: string): Promise<RosterMember[]> {
+export async function getRoster(
+  query?: string,
+  status?: MemberStatus,
+): Promise<RosterMember[]> {
   const supabase = await createClient();
-  if (!supabase) return filterRoster(SAMPLE_ROSTER, query);
+  if (!supabase) return filterRoster(SAMPLE_ROSTER, query, status);
 
   const { data, error } = await supabase
     .from("profiles")
@@ -77,7 +80,7 @@ export async function getRoster(query?: string): Promise<RosterMember[]> {
     .order("full_name", { ascending: true });
 
   if (error) {
-    if (schemaMissing(error)) return filterRoster(SAMPLE_ROSTER, query);
+    if (schemaMissing(error)) return filterRoster(SAMPLE_ROSTER, query, status);
     return [];
   }
   const rows: RosterMember[] = (data ?? []).map((r) => ({
@@ -92,19 +95,27 @@ export async function getRoster(query?: string): Promise<RosterMember[]> {
     cqBatch: (r.cq_batch as string) ?? null,
     psBatch: (r.ps_batch as string) ?? null,
   }));
-  return filterRoster(rows, query);
+  return filterRoster(rows, query, status);
 }
 
-function filterRoster(rows: RosterMember[], query?: string): RosterMember[] {
+function filterRoster(
+  rows: RosterMember[],
+  query?: string,
+  status?: MemberStatus,
+): RosterMember[] {
+  let out = rows;
+  if (status) out = out.filter((r) => r.status === status);
   const q = query?.trim().toLowerCase();
-  if (!q) return rows;
-  return rows.filter((r) =>
-    [r.fullName, r.city, r.industry, r.cqBatch, r.psBatch]
-      .filter(Boolean)
-      .join(" ")
-      .toLowerCase()
-      .includes(q),
-  );
+  if (q) {
+    out = out.filter((r) =>
+      [r.fullName, r.city, r.industry, r.cqBatch, r.psBatch]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q),
+    );
+  }
+  return out;
 }
 
 export async function getConsultants(): Promise<RosterMember[]> {

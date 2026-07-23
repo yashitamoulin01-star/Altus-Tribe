@@ -13,12 +13,32 @@ function initials(name: string) {
   return name.split(" ").map((n) => n[0]).filter(Boolean).slice(0, 2).join("");
 }
 
+const STATUS_TABS: { value: "" | MemberStatus; label: string }[] = [
+  { value: "", label: "All" },
+  { value: "active", label: "Active" },
+  { value: "pending", label: "Pending" },
+  { value: "hidden", label: "Hidden" },
+  { value: "inactive", label: "Inactive" },
+];
+
 export default async function AdminMembersPage({
   searchParams,
 }: PageProps<"/admin/members">) {
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q : "";
-  const roster = await getRoster(q);
+  const statusParam = typeof sp.status === "string" ? sp.status : "";
+  const status = (["active", "hidden", "inactive", "pending"].includes(statusParam)
+    ? statusParam
+    : undefined) as MemberStatus | undefined;
+  const roster = await getRoster(q, status);
+
+  const tabHref = (value: string) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (value) params.set("status", value);
+    const qs = params.toString();
+    return qs ? `/admin/members?${qs}` : "/admin/members";
+  };
 
   return (
     <main className="mx-auto w-full max-w-[1200px] px-6 py-8 sm:px-10">
@@ -27,12 +47,14 @@ export default async function AdminMembersPage({
           <p className="kicker mb-3">Roster</p>
           <h1 className="text-3xl font-semibold tracking-[-0.02em] text-ink">
             {roster.length} {roster.length === 1 ? "member" : "members"}
+            {status ? ` · ${status}` : ""}
           </h1>
         </div>
       </div>
 
-      {/* Search (GET form → ?q=) */}
+      {/* Search (GET form → ?q=). Keeps the active status filter on submit. */}
       <form className="mt-6" action="/admin/members">
+        {status && <input type="hidden" name="status" value={status} />}
         <input
           type="search"
           name="q"
@@ -41,6 +63,26 @@ export default async function AdminMembersPage({
           className="w-full max-w-md rounded-lg border border-hairline bg-surface-sunk px-4 py-2.5 text-[15px] text-ink placeholder:text-ink-muted transition-all duration-200 focus:border-red/50 focus:outline-none focus:ring-4 focus:ring-red/10"
         />
       </form>
+
+      {/* Status filter tabs */}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {STATUS_TABS.map((t) => {
+          const active = (t.value || undefined) === status;
+          return (
+            <Link
+              key={t.value || "all"}
+              href={tabHref(t.value)}
+              className={`rounded-full border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.1em] transition-colors ${
+                active
+                  ? "border-red bg-red/10 text-red"
+                  : "border-hairline text-ink-muted hover:border-ink-muted hover:text-ink"
+              }`}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
+      </div>
 
       <div className="mt-6 overflow-x-auto rounded-xl border border-hairline">
         <table className="w-full border-collapse text-left">

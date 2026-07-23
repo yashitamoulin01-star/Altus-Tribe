@@ -24,8 +24,8 @@ export default async function AdminOverviewPage() {
 
   const stats = [
     { label: "Members", value: roster.length, href: "/admin/members" },
-    { label: "Active", value: active, href: "/admin/members" },
-    { label: "Hidden / inactive", value: hidden + inactive, href: "/admin/members" },
+    { label: "Active", value: active, href: "/admin/members?status=active" },
+    { label: "Hidden / inactive", value: hidden + inactive, href: "/admin/members?status=hidden" },
     { label: "Consultants", value: consultants, href: "/admin/consultants" },
   ];
 
