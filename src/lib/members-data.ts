@@ -270,7 +270,7 @@ async function rowToMember(
     whatsappDm: show("whatsapp") ? row.whatsapp_dm : null,
     whatsapp: show("whatsapp") ? row.whatsapp_link : null,
     birthDate: show("birth_date") ? row.birth_date : null,
-    bloodGroup: row.blood_group ?? undefined,
+    bloodGroup: show("blood_group") ? (row.blood_group ?? undefined) : undefined,
     maritalStatus: show("marital_status") ? row.marital_status : null,
     anniversary: show("anniversary") ? row.anniversary : null,
     areasOfInterest: show("areas_of_interest") ? row.areas_of_interest : null,

@@ -752,7 +752,7 @@ export default function EditFeature({
               <TextField label="Birth date" type="date" value={d.birthDate} onChange={(v) => set("birthDate", v)} {...visProps("birth_date")} />
               <TextField label="Anniversary" type="date" value={d.anniversary} onChange={(v) => set("anniversary", v)} {...visProps("anniversary")} />
               <TextField label="Marital status" value={d.maritalStatus} onChange={(v) => set("maritalStatus", v)} {...visProps("marital_status")} />
-              <TextField label="Blood group" value={d.bloodGroup} onChange={(v) => set("bloodGroup", v)} placeholder="O+" />
+              <TextField label="Blood group" value={d.bloodGroup} onChange={(v) => set("bloodGroup", v)} placeholder="O+" {...visProps("blood_group")} />
             </div>
             <AreaField label="Areas of interest" value={d.areasOfInterest} onChange={(v) => set("areasOfInterest", v)} {...visProps("areas_of_interest")} />
             <AreaField label="Associations affiliated with" value={d.networkGroups} onChange={(v) => set("networkGroups", v)} {...visProps("network_groups")} />

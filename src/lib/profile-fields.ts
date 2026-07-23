@@ -303,6 +303,7 @@ export const VISIBILITY_FIELDS: { key: string; label: string }[] = [
   { key: "birth_date", label: "Birth date" },
   { key: "anniversary", label: "Anniversary" },
   { key: "marital_status", label: "Marital status" },
+  { key: "blood_group", label: "Blood group" },
   { key: "areas_of_interest", label: "Areas of interest" },
   { key: "network_groups", label: "Associations" },
   { key: "can_connect", label: "Can connect others to" },
@@ -312,8 +313,21 @@ export const VISIBILITY_FIELDS: { key: string; label: string }[] = [
 
 export type FieldVisibility = Record<string, boolean>;
 
-// A field is shown unless the member has explicitly turned it off.
+// Sensitive fields default to HIDDEN (conservative privacy, spec U14): the member
+// must explicitly opt in to show them. Everything else defaults to shown.
+const DEFAULT_HIDDEN = new Set([
+  "blood_group",
+  "birth_date",
+  "anniversary",
+  "marital_status",
+  "home_address",
+  "personal_email",
+  "alt_no",
+]);
+
+// Visible if the member explicitly set it; otherwise the conservative default.
 export function isFieldVisible(v: FieldVisibility, key: string): boolean {
+  if (v[key] === undefined) return !DEFAULT_HIDDEN.has(key);
   return v[key] !== false;
 }
 
