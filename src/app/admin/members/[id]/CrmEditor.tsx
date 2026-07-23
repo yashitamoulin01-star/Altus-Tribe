@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { saveCrm, saveCrmAssets, assignConsultant } from "../../actions";
 import { CRM_ASSET_FIELDS } from "@/lib/crm-fields";
+import { uploadFile } from "@/lib/storage-client";
 import type { CrmAsset, CrmImpact, CrmRecord, RatingTier } from "@/lib/crm";
 import type { RosterMember } from "@/lib/admin";
 
@@ -229,11 +230,10 @@ export default function CrmEditor({
                     />
                   )}
                   {f.image && (
-                    <input
-                      className={field}
-                      placeholder="Image URL or storage path"
+                    <CrmImageInput
+                      participantId={form.profileId}
                       value={slot.image}
-                      onChange={(e) => setSlot(f.kind, { image: e.target.value })}
+                      onChange={(v) => setSlot(f.kind, { image: v })}
                     />
                   )}
                 </div>
@@ -242,6 +242,12 @@ export default function CrmEditor({
           })}
         </div>
       </section>
+
+      <p className="text-[12px] text-ink-muted">
+        Image uploads go to the private <code className="font-mono">crm-assets</code>{" "}
+        bucket (admins + the designated consultant only). Paste a URL/path if you
+        prefer.
+      </p>
 
       <div className="flex items-center gap-3 border-t border-hairline pt-5">
         <button
@@ -260,6 +266,61 @@ export default function CrmEditor({
               : "Changes save automatically"}
         </span>
       </div>
+    </div>
+  );
+}
+
+// Asset proof image: upload to the private crm-assets bucket under the
+// participant's folder, or paste a URL/path. Stores the storage path (or URL).
+function CrmImageInput({
+  participantId,
+  value,
+  onChange,
+}: {
+  participantId: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setErr(null);
+    setBusy(true);
+    const r = await uploadFile("crm-assets", participantId, file, { allow: "image" });
+    setBusy(false);
+    if (r.ok) onChange(r.path);
+    else setErr(r.error);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <input
+          className={field}
+          placeholder="Image URL or storage path"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <input
+          ref={ref}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => pick(e.target.files?.[0])}
+        />
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          disabled={busy}
+          className="shrink-0 rounded border border-hairline px-3 py-2 text-[13px] text-ink transition-colors hover:border-ink-muted disabled:opacity-50"
+        >
+          {busy ? "Uploading…" : "Upload"}
+        </button>
+      </div>
+      {err && <p className="text-[12px] text-red">{err}</p>}
     </div>
   );
 }
