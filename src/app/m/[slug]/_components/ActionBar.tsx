@@ -23,8 +23,11 @@ export default function ActionBar({
   canMessage: boolean;
   connectionState: ConnectionState;
 }) {
-  // Prefer the member's dedicated WhatsApp number; fall back to their cell.
-  // Show the WhatsApp action only when their preference allows it (No/DND hide it).
+  // Chat routing (member's own choice, made in onboarding):
+  //  • Shared a WhatsApp number + allows it → one-click WhatsApp is the chat action.
+  //  • No WhatsApp (or DND) → fall back to the in-app 1:1 chat.
+  // This keeps the reliable channel (WhatsApp) primary for those who opted in,
+  // and only uses in-app messaging for members who didn't share a number.
   const waNumber = toWaNumber(member.whatsapp || member.contact?.cellNo || "");
   const waAllowed = member.whatsappDmPref
     ? member.whatsappDmPref === "yes"
@@ -37,11 +40,12 @@ export default function ActionBar({
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
         {!isOwner && <ConnectButton profileId={member.id} initialState={connectionState} />}
-        {canMessage && <MessageMemberButton profileId={member.id} />}
-        {waLink && (
+        {waLink ? (
           <a href={waLink} target="_blank" rel="noreferrer" className={btn}>
-            WhatsApp
+            Message on WhatsApp
           </a>
+        ) : (
+          canMessage && <MessageMemberButton profileId={member.id} />
         )}
         {email && (
           <a href={`mailto:${email}`} className={btn}>
