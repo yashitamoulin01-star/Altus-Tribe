@@ -49,7 +49,7 @@ export default async function AdminAuditPage() {
           {entries.map((e) => {
             const meta = Object.entries(e.metadata).filter(([, v]) => v !== null && v !== "");
             return (
-              <li key={e.id} className="flex items-start justify-between gap-4 py-3.5">
+              <li key={e.id} className="-mx-3 flex items-start justify-between gap-4 rounded-lg px-3 py-3.5 transition-colors hover:bg-surface-hover">
                 <div className="min-w-0">
                   <p className="text-[15px] text-ink">
                     <span className="font-medium">{e.actorName ?? "Someone"}</span>{" "}
