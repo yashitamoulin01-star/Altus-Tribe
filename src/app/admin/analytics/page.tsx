@@ -46,9 +46,14 @@ export default async function AdminAnalyticsPage() {
             <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">{g.title}</h2>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
               {g.cards.map((c) => (
-                <div key={c.label} className="rounded-xl border border-hairline bg-surface p-5">
+                <div
+                  key={c.label}
+                  className="group rounded-xl border border-hairline bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-bright"
+                >
                   <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">{c.label}</p>
-                  <p className="mt-2 text-3xl font-semibold tabular-nums text-ink">{c.value}</p>
+                  <p className="mt-2 text-3xl font-semibold tabular-nums text-ink transition-colors group-hover:text-red">
+                    {c.value}
+                  </p>
                 </div>
               ))}
             </div>

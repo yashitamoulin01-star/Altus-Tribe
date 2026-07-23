@@ -226,7 +226,7 @@ export default function CrmEditor({
         >
           {pending ? "Saving…" : "Save CRM"}
         </button>
-        {saved && <span className="text-[13px] text-positive">Saved ✓</span>}
+        {saved && <span className="text-[13px] text-ink">Saved ✓</span>}
       </div>
     </div>
   );

@@ -62,7 +62,7 @@ export default function AnnouncementManager({
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-[15px] font-medium text-ink">
                 {a.title}
-                <span className={`rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] ${a.published ? "bg-positive/10 text-positive" : "bg-surface-sunk text-ink-muted"}`}>
+                <span className={`rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] ${a.published ? "bg-ink/10 text-ink" : "bg-surface-sunk text-ink-muted"}`}>
                   {a.published ? "Published" : "Draft"}
                 </span>
               </p>

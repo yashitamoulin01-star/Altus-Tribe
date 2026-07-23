@@ -36,12 +36,14 @@ export default async function AdminOverviewPage() {
           <Link
             key={s.label}
             href={s.href}
-            className="rounded border border-hairline bg-surface p-5 transition-colors hover:border-ink-muted"
+            className="group rounded-xl border border-hairline bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-bright"
           >
             <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
               {s.label}
             </p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums text-ink">{s.value}</p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums text-ink transition-colors group-hover:text-red">
+              {s.value}
+            </p>
           </Link>
         ))}
       </div>
@@ -51,7 +53,7 @@ export default async function AdminOverviewPage() {
           <Link
             key={l.href}
             href={l.href}
-            className="group rounded border border-hairline bg-surface p-6 transition-all hover:-translate-y-0.5 hover:border-ink-muted"
+            className="group rounded-xl border border-hairline bg-surface p-6 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-bright"
           >
             <p className="text-lg font-semibold text-ink transition-colors group-hover:text-red">
               {l.title}

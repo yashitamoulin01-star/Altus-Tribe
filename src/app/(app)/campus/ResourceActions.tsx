@@ -50,7 +50,7 @@ export default function ResourceActions({
           {c ? "✓ Completed" : "Mark complete"}
         </button>
       ) : (
-        c && <span className="text-[12px] font-medium text-positive">✓ Completed</span>
+        c && <span className="text-[12px] font-medium text-ink">✓ Completed</span>
       )}
     </div>
   );

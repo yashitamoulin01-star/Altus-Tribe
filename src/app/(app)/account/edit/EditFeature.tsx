@@ -348,7 +348,7 @@ function AttachmentFile({
         )}
       </div>
       {filePath && (
-        <p className="truncate font-mono text-[11px] text-positive">✓ {filePath}</p>
+        <p className="truncate font-mono text-[11px] text-ink">✓ {filePath}</p>
       )}
       {err && <p className="text-[13px] text-red">{err}</p>}
     </div>

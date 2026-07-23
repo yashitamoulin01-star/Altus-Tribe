@@ -83,7 +83,7 @@ export default function ResourceManager({
           <button type="button" disabled={busy || !userId} onClick={() => fileRef.current?.click()} className="rounded-lg border border-hairline px-3.5 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted disabled:opacity-50">
             {busy ? "Uploading…" : filePath ? "Replace file" : "Upload file"}
           </button>
-          {filePath && <span className="truncate font-mono text-[11px] text-positive">✓ {filePath}</span>}
+          {filePath && <span className="truncate font-mono text-[11px] text-ink">✓ {filePath}</span>}
         </div>
         {err && <p className="mt-2 text-[13px] text-red">{err}</p>}
         <div className="mt-3">

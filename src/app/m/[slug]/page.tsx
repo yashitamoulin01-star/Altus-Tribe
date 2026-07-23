@@ -171,7 +171,7 @@ function ProfileView({
               {member.openTo.length > 0 && (
                 <div className="flex flex-wrap gap-x-6 gap-y-2">
                   {member.openTo.map((o) => (
-                    <span key={o} className="text-[15px] text-ink"><span className="text-positive">✔</span> {OPEN_TO_LABELS[o] ?? o}</span>
+                    <span key={o} className="text-[15px] text-ink"><span className="text-ink">✔</span> {OPEN_TO_LABELS[o] ?? o}</span>
                   ))}
                 </div>
               )}

@@ -3,10 +3,10 @@ import { getRoster, type MemberStatus } from "@/lib/admin";
 import RowActions from "./RowActions";
 
 const STATUS_STYLE: Record<MemberStatus, string> = {
-  active: "bg-positive/10 text-positive",
+  active: "bg-ink/10 text-ink",
   hidden: "bg-surface-sunk text-ink-muted",
-  inactive: "bg-red/10 text-red",
-  pending: "bg-red/10 text-red",
+  inactive: "bg-red-muted text-red",
+  pending: "bg-red-muted text-red",
 };
 
 function initials(name: string) {
@@ -38,11 +38,11 @@ export default async function AdminMembersPage({
           name="q"
           defaultValue={q}
           placeholder="Search name, city, industry, batch…"
-          className="w-full max-w-md rounded border border-hairline bg-surface-sunk px-4 py-2.5 text-[15px] text-ink placeholder:text-ink-muted focus:border-ink focus:outline-none"
+          className="w-full max-w-md rounded-lg border border-hairline bg-surface-sunk px-4 py-2.5 text-[15px] text-ink placeholder:text-ink-muted transition-all duration-200 focus:border-red/50 focus:outline-none focus:ring-4 focus:ring-red/10"
         />
       </form>
 
-      <div className="mt-6 overflow-x-auto rounded border border-hairline">
+      <div className="mt-6 overflow-x-auto rounded-xl border border-hairline">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-hairline bg-surface-sunk">

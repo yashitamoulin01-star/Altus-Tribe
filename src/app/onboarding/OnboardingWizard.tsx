@@ -790,7 +790,7 @@ function AttachmentFile({
         <button type="button" onClick={() => ref.current?.click()} disabled={busy} className="rounded-lg border border-hairline px-3.5 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted disabled:opacity-60">{busy ? "Uploading…" : filePath ? "Replace file" : "Upload file"}</button>
         {filePath && <button type="button" onClick={onClear} className="text-[13px] text-ink-muted transition-colors hover:text-red">Remove</button>}
       </div>
-      {filePath && <p className="truncate font-mono text-[11px] text-positive">✓ {filePath}</p>}
+      {filePath && <p className="truncate font-mono text-[11px] text-ink">✓ {filePath}</p>}
       {err && <p className="text-[13px] text-red">{err}</p>}
     </div>
   );
