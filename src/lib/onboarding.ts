@@ -47,6 +47,7 @@ export interface OnboardingState {
   completed: boolean;
   slug: string | null;
   status: string | null;
+  role: string | null;
 }
 
 // Loads the signed-in member's profile into the onboarding shape so the wizard
@@ -63,7 +64,7 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      `slug, full_name, role_title, industry, city, positioning, known_for, about,
+      `slug, full_name, role, role_title, industry, city, positioning, known_for, about,
        status, onboarding_step, onboarding_completed_at,
        businesses ( name, description, website, founded_year, team_size ),
        expertise ( label, sort_order )`,
@@ -72,7 +73,7 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
     .maybeSingle();
 
   if (!profile) {
-    return { data: { ...emptyOnboarding }, step: 0, completed: false, slug: null, status: null };
+    return { data: { ...emptyOnboarding }, step: 0, completed: false, slug: null, status: null, role: null };
   }
 
   const business = Array.isArray(profile.businesses)
@@ -109,6 +110,7 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
     completed: Boolean(profile.onboarding_completed_at),
     slug: profile.slug ?? null,
     status: (profile.status as string) ?? null,
+    role: (profile.role as string) ?? null,
   };
 }
 
@@ -130,6 +132,9 @@ export async function getPostAuthRedirect(): Promise<string> {
 
   const state = await loadOnboarding();
   if (!state) return "/home";
+  // Admins/consultants are never forced through member Portfolio Creation
+  // (spec §H). They go straight to the app.
+  if (state.role === "admin" || state.role === "consultant") return "/home";
   if (state.status === "pending") return "/pending";
   return state.completed ? "/home" : "/onboarding";
 }

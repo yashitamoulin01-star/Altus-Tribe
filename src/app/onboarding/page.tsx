@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { loadOnboardingFull } from "@/lib/onboarding";
 import { getTaxonomies } from "@/lib/profile-edit";
+import { getAdminContext } from "@/lib/admin";
 import { isAuthConfigured } from "@/lib/auth";
 import { emptyEditable } from "@/lib/profile-fields";
 import OnboardingWizard from "./OnboardingWizard";
@@ -9,11 +10,14 @@ export const metadata = { title: "Build your identity — Altus Tribe" };
 
 export default async function OnboardingPage() {
   const configured = isAuthConfigured();
-  const [state, taxonomies] = await Promise.all([
+  const [state, taxonomies, admin] = await Promise.all([
     loadOnboardingFull(),
     getTaxonomies(),
+    getAdminContext(),
   ]);
 
+  // Admins/consultants are never forced through member Portfolio Creation (§H).
+  if (admin.canAccess) redirect("/home");
   // Already finished? Send them into the app.
   if (state?.completed) redirect("/home");
 
