@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { saveCrm, saveCrmAssets, assignConsultant } from "../../actions";
 import { CRM_ASSET_FIELDS } from "@/lib/crm-fields";
 import type { CrmAsset, CrmImpact, CrmRecord, RatingTier } from "@/lib/crm";
@@ -58,37 +58,63 @@ export default function CrmEditor({
     initSlots(assets),
   );
   const [pending, startTransition] = useTransition();
-  const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const set = <K extends keyof CrmRecord>(key: K, value: CrmRecord[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
-    setSaved(false);
+    setStatus("idle");
   };
   const setImpact = (key: keyof CrmImpact, value: string) => {
     setForm((f) => ({ ...f, impact: { ...f.impact, [key]: value } }));
-    setSaved(false);
+    setStatus("idle");
   };
   const setSlot = (kind: string, patch: Partial<AssetSlot>) => {
     setSlots((s) => ({ ...s, [kind]: { ...s[kind], ...patch } }));
-    setSaved(false);
+    setStatus("idle");
+  };
+
+  const persist = async () => {
+    await saveCrm({
+      profileId: form.profileId,
+      referredBy: form.referredBy,
+      breakthrough: form.breakthrough,
+      upsellPossible: form.upsellPossible,
+      rating: form.rating,
+      impact: form.impact,
+    });
+    await saveCrmAssets(
+      form.profileId,
+      CRM_ASSET_FIELDS.map((f) => ({ kind: f.kind, ...slots[f.kind] })),
+    );
   };
 
   const save = () =>
     startTransition(async () => {
-      await saveCrm({
-        profileId: form.profileId,
-        referredBy: form.referredBy,
-        breakthrough: form.breakthrough,
-        upsellPossible: form.upsellPossible,
-        rating: form.rating,
-        impact: form.impact,
-      });
-      await saveCrmAssets(
-        form.profileId,
-        CRM_ASSET_FIELDS.map((f) => ({ kind: f.kind, ...slots[f.kind] })),
-      );
-      setSaved(true);
+      setStatus("saving");
+      await persist();
+      setStatus("saved");
     });
+
+  // Debounced autosave: CRM edits persist on their own after 1.2s of quiet, so
+  // admin/consultant notes are never lost. Consultant reassignment (A11) already
+  // saves immediately via reassign(). Manual "Save CRM" stays as a fallback.
+  const firstRender = useRef(true);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    setStatus("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      persist()
+        .then(() => setStatus("saved"))
+        .catch(() => setStatus("idle"));
+    }, 1200);
+    return () => clearTimeout(timer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.referredBy, form.breakthrough, form.upsellPossible, form.rating, form.impact, slots]);
 
   const reassign = (consultantId: string) =>
     startTransition(async () => {
@@ -221,12 +247,18 @@ export default function CrmEditor({
         <button
           type="button"
           onClick={save}
-          disabled={pending}
+          disabled={pending || status === "saving"}
           className="rounded bg-red px-5 py-2.5 text-[15px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-50"
         >
-          {pending ? "Saving…" : "Save CRM"}
+          {pending || status === "saving" ? "Saving…" : "Save now"}
         </button>
-        {saved && <span className="text-[13px] text-ink">Saved ✓</span>}
+        <span className="text-[13px] text-ink-muted">
+          {status === "saving"
+            ? "Saving…"
+            : status === "saved"
+              ? "✓ All changes saved"
+              : "Changes save automatically"}
+        </span>
       </div>
     </div>
   );
