@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect as goTo } from "next/navigation";
+import { getUser } from "@/lib/auth";
 import AuthShell from "../AuthShell";
 import SignupForm from "./SignupForm";
 import ConclaveCountdown from "../ConclaveCountdown";
@@ -6,7 +8,9 @@ import OAuthButtons from "../OAuthButtons";
 
 export const metadata = { title: "Request Access — Altus Tribe" };
 
-export default function SignupPage() {
+export default async function SignupPage() {
+  // Already signed in? Don't show signup — go into the app.
+  if (await getUser()) goTo("/home");
   return (
     <AuthShell
       kicker="Request access"

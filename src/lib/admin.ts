@@ -123,3 +123,39 @@ export async function getRosterMember(id: string): Promise<RosterMember | null> 
   const roster = await getRoster();
   return roster.find((r) => r.id === id) ?? null;
 }
+
+// Newest members for the dashboard "Recent signups" card. Uses only operational
+// profile fields — NEVER CRM/A1–A22.
+export interface RecentSignup {
+  id: string;
+  slug: string;
+  fullName: string;
+  role: Role;
+  status: MemberStatus;
+  joinedAt: string | null;
+  completed: boolean;
+}
+export async function getRecentSignups(limit = 8): Promise<RecentSignup[]> {
+  const supabase = await createClient();
+  if (!supabase) {
+    return SAMPLE_ROSTER.slice(0, limit).map((m) => ({
+      id: m.id, slug: m.slug, fullName: m.fullName, role: m.role,
+      status: m.status, joinedAt: null, completed: m.status === "active",
+    }));
+  }
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, slug, full_name, role, status, created_at, onboarding_completed_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error || !data) return [];
+  return data.map((r) => ({
+    id: r.id as string,
+    slug: r.slug as string,
+    fullName: (r.full_name as string) ?? "Member",
+    role: (r.role as Role) ?? "member",
+    status: (r.status as MemberStatus) ?? "active",
+    joinedAt: (r.created_at as string) ?? null,
+    completed: Boolean(r.onboarding_completed_at),
+  }));
+}

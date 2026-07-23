@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { redirect as goTo } from 'next/navigation';
+import { getUser } from '@/lib/auth';
 import AuthShell from '../AuthShell';
 import LoginForm from './LoginForm';
 import ResendConfirmation from '../ResendConfirmation';
@@ -15,6 +17,12 @@ export default async function LoginPage({
   searchParams: Promise<{ redirect?: string; check_email?: string; email?: string; error?: string; reset_success?: string }>;
 }) {
   const { redirect, check_email, email, error, reset_success } = await searchParams;
+
+  // Already signed in (e.g. reached /login via the browser back button)? Send
+  // them into the app instead of showing the login form. Login UI unchanged.
+  if (await getUser()) {
+    goTo(redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/home');
+  }
 
   return (
     <AuthShell
