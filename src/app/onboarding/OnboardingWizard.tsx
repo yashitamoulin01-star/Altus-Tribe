@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { saveProfile } from "@/app/(app)/account/edit/actions";
 import { finishOnboarding } from "./actions";
 import { uploadFile } from "@/lib/storage-client";
+import { lookupPincode } from "@/lib/pincode";
 import LegalModal, { type LegalDocType } from "@/components/LegalModal";
 import {
   ATTACHMENT_KIND_LABELS,
@@ -696,19 +697,47 @@ function AddressFields({
   value: EditableAddress;
   onChange: (k: keyof EditableAddress, v: string) => void;
 }) {
+  const [looking, setLooking] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+
+  // Spec §11/§K: PIN first → suggest city/state/country (only fills empty fields,
+  // stays editable). Never blocks; failure just leaves manual entry.
+  const onPincode = async (raw: string) => {
+    const pin = raw.replace(/[^0-9]/g, "").slice(0, 6);
+    onChange("pincode", pin);
+    setHint(null);
+    if (pin.length !== 6) return;
+    setLooking(true);
+    const r = await lookupPincode(pin);
+    setLooking(false);
+    if (!r) {
+      setHint("Couldn't look that up — please fill city/state/country manually.");
+      return;
+    }
+    if (!value.city.trim()) onChange("city", r.city);
+    if (!value.state.trim()) onChange("state", r.state);
+    if (!value.country.trim()) onChange("country", r.country);
+    setHint("Suggested from your pincode — edit if needed.");
+  };
+
   return (
     <div className="space-y-3">
       <input className={input} placeholder="Line 1 — Unit / Floor / Plot" value={value.line1} onChange={(e) => onChange("line1", e.target.value)} />
       <input className={input} placeholder="Line 2 — Building / Unit name" value={value.line2} onChange={(e) => onChange("line2", e.target.value)} />
       <input className={input} placeholder="Line 3 — Street / Road" value={value.line3} onChange={(e) => onChange("line3", e.target.value)} />
       <input className={input} placeholder="Line 4 — Area / Sector" value={value.line4} onChange={(e) => onChange("line4", e.target.value)} />
+      <input className={input} placeholder="Nearby landmark (optional)" value={value.landmark} onChange={(e) => onChange("landmark", e.target.value)} />
+      <div>
+        <input className={input} inputMode="numeric" placeholder="PIN / Postal code" value={value.pincode} onChange={(e) => onPincode(e.target.value)} />
+        {(looking || hint) && (
+          <p className="mt-1 text-[12px] text-ink-muted">{looking ? "Looking up…" : hint}</p>
+        )}
+      </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <input className={input} placeholder="Landmark" value={value.landmark} onChange={(e) => onChange("landmark", e.target.value)} />
         <input className={input} placeholder="City" value={value.city} onChange={(e) => onChange("city", e.target.value)} />
         <input className={input} placeholder="State" value={value.state} onChange={(e) => onChange("state", e.target.value)} />
         <input className={input} placeholder="Country" value={value.country} onChange={(e) => onChange("country", e.target.value)} />
-        <input className={input} inputMode="numeric" placeholder="Pincode" value={value.pincode} onChange={(e) => onChange("pincode", e.target.value.replace(/[^0-9]/g, ""))} />
-        <input className={input} placeholder="Google Maps link" value={value.mapLink} onChange={(e) => onChange("mapLink", e.target.value)} />
+        <input className={input} placeholder="Google Maps link (optional)" value={value.mapLink} onChange={(e) => onChange("mapLink", e.target.value)} />
       </div>
     </div>
   );
