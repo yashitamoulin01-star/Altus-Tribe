@@ -89,7 +89,7 @@ function Field({
       <span className={lbl}>{label}</span>
       {children}
       {hint && !error && <span className="mt-1 block text-[12px] text-ink-muted">{hint}</span>}
-      {error && <span className="mt-1 block text-[13px] text-red">{error}</span>}
+      {error && <span role="alert" className="mt-1 block text-[13px] text-red">⚠ {error}</span>}
     </label>
   );
 }
@@ -267,7 +267,9 @@ export default function OnboardingWizard({
     <button
       type="button"
       onClick={() => toggleVis(key)}
-      className={`font-mono text-[10px] uppercase tracking-[0.1em] transition-colors ${
+      aria-pressed={isFieldVisible(vis, key)}
+      aria-label={isFieldVisible(vis, key) ? "Field is shown on your profile — click to hide" : "Field is hidden — click to show"}
+      className={`rounded font-mono text-[10px] uppercase tracking-[0.1em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red/40 ${
         isFieldVisible(vis, key) ? "text-ink" : "text-ink-muted"
       }`}
       title={isFieldVisible(vis, key) ? "Shown — click to hide" : "Hidden — click to show"}
