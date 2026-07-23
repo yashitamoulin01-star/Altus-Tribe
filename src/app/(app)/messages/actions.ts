@@ -141,10 +141,27 @@ export async function getOrCreateDirectConversation(
     return { id: null, error: "create-failed" };
   }
 
-  await supabase.from("conversation_members").insert([
-    { conversation_id: conv.id, profile_id: user.id, role: "owner" },
-    { conversation_id: conv.id, profile_id: otherProfileId },
-  ]);
+  // Add members in TWO steps, not one. The conversation_members INSERT policy
+  // ("join conversations") allows a row when profile_id = auth.uid() OR the
+  // caller is already a member. In a single multi-row insert the caller's own
+  // membership isn't visible yet, so the OTHER member's row fails the RLS check
+  // and the whole insert is rejected — leaving an orphaned, memberless
+  // conversation (getConversation → null, sendMessage → "send-failed").
+  // Inserting self first makes is_conversation_member() true for the second row.
+  const { error: selfErr } = await supabase
+    .from("conversation_members")
+    .insert({ conversation_id: conv.id, profile_id: user.id, role: "owner" });
+  if (selfErr) {
+    logError("getOrCreateDirectConversation.self", selfErr, { userId: user.id });
+    return { id: null, error: "create-failed" };
+  }
+  const { error: otherErr } = await supabase
+    .from("conversation_members")
+    .insert({ conversation_id: conv.id, profile_id: otherProfileId });
+  if (otherErr) {
+    logError("getOrCreateDirectConversation.other", otherErr, { userId: user.id });
+    return { id: null, error: "create-failed" };
+  }
 
   return { id: conv.id as string };
 }

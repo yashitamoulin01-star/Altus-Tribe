@@ -19,6 +19,7 @@ export default function SignupForm() {
     null,
   );
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [legalDoc, setLegalDoc] = useState<LegalDocType>(null);
   const strength = passwordStrength(password);
 
@@ -59,18 +60,28 @@ export default function SignupForm() {
           <label htmlFor="password" className={labelClass}>
             Password
           </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            minLength={8}
-            autoComplete="new-password"
-            placeholder="At least 8 characters"
-            className={fieldClass}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              required
+              minLength={8}
+              autoComplete="new-password"
+              placeholder="At least 8 characters"
+              className={`${fieldClass} pr-16`}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex items-center px-3 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted transition-colors hover:text-ink"
+            >
+              {showPassword ? "Hide" : "Show"}
+            </button>
+          </div>
           {password && (
             <div className="mt-2 flex items-center gap-2">
               <div className="flex h-1 flex-1 gap-1">

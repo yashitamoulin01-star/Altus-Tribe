@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { saveProfile } from "./actions";
 import { uploadFile } from "@/lib/storage-client";
@@ -386,9 +386,37 @@ export default function EditFeature({
 }) {
   const [d, setD] = useState<EditableProfile>(initial);
   const [vis, setVis] = useState<FieldVisibility>(initialVisibility);
-  const [status, setStatus] = useState<"idle" | "saved" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [pending, start] = useTransition();
+
+  // Debounced autosave: every edit persists on its own after 900ms of quiet, so
+  // nothing is ever lost if the member navigates away. The manual "Save" button
+  // stays as an explicit fallback. Mirrors the onboarding wizard's autosave.
+  const firstRender = useRef(true);
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    if (!configured) return;
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    setStatus("saving");
+    clearTimeout(autosaveTimer.current);
+    autosaveTimer.current = setTimeout(() => {
+      saveProfile(d, vis, adminTargetId ?? undefined)
+        .then((r) => {
+          if (r.ok) setStatus("saved");
+          else {
+            setStatus("error");
+            setErrorMsg(r.error);
+          }
+        })
+        .catch(() => setStatus("error"));
+    }, 900);
+    return () => clearTimeout(autosaveTimer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [d, vis]);
 
   const set = <K extends keyof EditableProfile>(k: K, v: EditableProfile[K]) => {
     setD((p) => ({ ...p, [k]: v }));
@@ -825,18 +853,23 @@ export default function EditFeature({
       {/* Sticky save bar */}
       <div className="sticky bottom-0 mt-10 flex items-center justify-between border-t border-hairline bg-paper/95 py-4 backdrop-blur">
         <span className="text-[14px] text-ink-muted">
-          {status === "saved" && "✓ Saved"}
-          {status === "error" && (
-            <span className="text-red">Couldn&apos;t save: {errorMsg}</span>
-          )}
+          {!configured
+            ? "Preview mode — connect Supabase to save."
+            : status === "saving"
+              ? "Saving…"
+              : status === "saved"
+                ? "✓ All changes saved"
+                : status === "error"
+                  ? <span className="text-red">Couldn&apos;t save: {errorMsg}</span>
+                  : "Changes save automatically"}
         </span>
         <button
           type="button"
           onClick={save}
-          disabled={pending}
+          disabled={pending || status === "saving"}
           className="rounded bg-red px-7 py-3 text-[16px] font-medium text-paper transition-colors duration-150 hover:bg-red-hover disabled:opacity-60"
         >
-          {pending ? "Saving…" : "Save feature"}
+          {pending || status === "saving" ? "Saving…" : "Save now"}
         </button>
       </div>
     </main>
