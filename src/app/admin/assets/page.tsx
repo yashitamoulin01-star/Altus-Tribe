@@ -26,11 +26,11 @@ export default async function AdminAssetsPage() {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2">
         <section>
-          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-red">Announcements</h2>
+          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">Announcements</h2>
           <AnnouncementManager items={announcements} />
         </section>
         <section>
-          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-red">Campus resources</h2>
+          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">Campus resources</h2>
           <ResourceManager items={resources} userId={ctx.userId} />
         </section>
       </div>

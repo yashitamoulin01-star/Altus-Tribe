@@ -41,7 +41,7 @@ export default function TaxonomyManager({
 
   return (
     <section className="rounded-xl border border-hairline bg-surface p-5">
-      <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-red">{label}</h2>
+      <h2 className="mb-3 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">{label}</h2>
 
       <div className="flex items-center gap-2">
         <input

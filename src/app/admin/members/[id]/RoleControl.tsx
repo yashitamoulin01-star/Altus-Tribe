@@ -41,7 +41,7 @@ export default function RoleControl({ id, role }: { id: string; role: Role }) {
             type="button"
             disabled={pending}
             onClick={change}
-            className="rounded bg-red px-3 py-1.5 text-[12px] font-medium text-white transition-colors hover:bg-red-hover disabled:opacity-50"
+            className="rounded bg-red px-3 py-1.5 text-[12px] font-medium text-paper transition-colors hover:bg-red-hover disabled:opacity-50"
           >
             {pending ? "…" : "Confirm"}
           </button>
@@ -67,7 +67,7 @@ export default function RoleControl({ id, role }: { id: string; role: Role }) {
         className={
           isAdmin
             ? "rounded border border-hairline px-4 py-2 text-[13px] text-ink-secondary transition-colors hover:border-hairline-bright"
-            : "rounded bg-red px-4 py-2 text-[13px] font-medium text-white transition-colors hover:bg-red-hover"
+            : "rounded bg-red px-4 py-2 text-[13px] font-medium text-paper transition-colors hover:bg-red-hover"
         }
       >
         {isAdmin ? "Revoke administrator access" : "Grant administrator access"}
