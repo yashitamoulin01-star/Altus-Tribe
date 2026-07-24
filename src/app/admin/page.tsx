@@ -20,9 +20,13 @@ export default async function AdminOverviewPage() {
   const active = roster.filter((m) => m.status === "active").length;
   const hidden = roster.filter((m) => m.status === "hidden").length;
   const inactive = roster.filter((m) => m.status === "inactive").length;
+  const pending = roster.filter((m) => m.status === "pending").length;
   const consultants = roster.filter((m) => m.role === "consultant" || m.role === "admin").length;
 
   const stats = [
+    // Pending approvals leads the row so it's the first thing an admin triages;
+    // accented red while anyone is waiting, muted when the queue is clear.
+    { label: "Pending approvals", value: pending, href: "/admin/approvals", accent: pending > 0 },
     { label: "Members", value: roster.length, href: "/admin/members" },
     { label: "Active", value: active, href: "/admin/members?status=active" },
     { label: "Hidden / inactive", value: hidden + inactive, href: "/admin/members?status=hidden" },
@@ -48,17 +52,23 @@ export default async function AdminOverviewPage() {
         Quietly well-run.
       </h1>
 
-      <div className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         {stats.map((s) => (
           <Link
             key={s.label}
             href={s.href}
-            className="group rounded-xl border border-hairline bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-hairline-bright"
+            className={`group rounded-xl border bg-surface p-5 transition-all duration-200 hover:-translate-y-0.5 ${
+              s.accent ? "border-red/40 hover:border-red/70" : "border-hairline hover:border-hairline-bright"
+            }`}
           >
             <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-ink-muted">
               {s.label}
             </p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums text-ink transition-colors group-hover:text-red">
+            <p
+              className={`mt-2 text-3xl font-semibold tabular-nums transition-colors ${
+                s.accent ? "text-red" : "text-ink group-hover:text-red"
+              }`}
+            >
               {s.value}
             </p>
           </Link>
