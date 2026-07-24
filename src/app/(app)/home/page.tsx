@@ -1,93 +1,61 @@
 import { Suspense } from "react";
-import { WidgetSkeleton } from "./widgets/_shared";
-import DashboardHeader from "./widgets/DashboardHeader";
-import QuickActions from "./widgets/QuickActions";
-import ProfileSummaryCard from "./widgets/ProfileSummaryCard";
-import AnnouncementsWidget from "./widgets/AnnouncementsWidget";
-import SuggestedMembers from "./widgets/SuggestedMembers";
-import RecentMessages from "./widgets/RecentMessages";
-import CampusWidget from "./widgets/CampusWidget";
-import ReferralWidget from "./widgets/ReferralWidget";
-import EventsWidget from "./widgets/EventsWidget";
-import InspirationWidget from "./widgets/InspirationWidget";
-import NotificationsWidget from "./widgets/NotificationsWidget";
-import { MagicBentoGrid, MagicBentoCard } from "@/components/MagicBento";
+import ReferralRoundCard from "./ReferralRoundCard";
+import {
+  IdentityHero,
+  NetworkingActions,
+  ConclaveCard,
+  TodaysNetwork,
+  HomeAnnouncements,
+  EcosystemShortcuts,
+  ElevatorPitches,
+  InspirationHighlights,
+} from "./sections";
 
 export const metadata = { title: "Home — Altus Tribe" };
 
+const CardSkeleton = ({ h = "h-40" }: { h?: string }) => (
+  <div className={`${h} animate-pulse rounded-[20px] border border-hairline bg-surface-sunk/50`} />
+);
+
+// UI-3 Home — a networking command center (not a SaaS dashboard). Hierarchy:
+// identity → networking actions → referral/event opportunity → today's network →
+// announcements → ecosystem. Deferred surfaces (pitches, inspiration) self-hide
+// until real data exists.
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-[1120px] px-5 pt-6 pb-28 sm:px-8 lg:pb-12 space-y-6">
-      {/* Header Bar */}
-      <Suspense fallback={<div className="h-16 animate-pulse rounded-xl bg-surface-sunk/60" />}>
-        <DashboardHeader />
+    <main className="mx-auto w-full max-w-[1120px] space-y-8 px-5 pt-6 pb-28 sm:px-8 lg:pb-12">
+      <Suspense fallback={<CardSkeleton h="h-56" />}>
+        <IdentityHero />
       </Suspense>
 
-      {/* Quick Actions Dock */}
-      <QuickActions />
+      <NetworkingActions />
 
-      {/* Bento Grid Command Center */}
-      <MagicBentoGrid className="grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {/* Profile Summary Feature Card */}
-        <MagicBentoCard span="col-span-1 md:col-span-2" accentBorder>
-          <Suspense fallback={<WidgetSkeleton lines={4} />}>
-            <ProfileSummaryCard />
-          </Suspense>
-        </MagicBentoCard>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ReferralRoundCard />
+        <Suspense fallback={<CardSkeleton />}>
+          <ConclaveCard />
+        </Suspense>
+      </div>
 
-        {/* Announcements Bento Tile */}
-        <MagicBentoCard span="col-span-1">
-          <Suspense fallback={<WidgetSkeleton />}>
-            <AnnouncementsWidget />
-          </Suspense>
-        </MagicBentoCard>
+      <Suspense fallback={<CardSkeleton h="h-48" />}>
+        <TodaysNetwork />
+      </Suspense>
 
-        {/* Suggested Members Bento Tile */}
-        <MagicBentoCard span="col-span-1 md:col-span-2">
-          <Suspense fallback={<WidgetSkeleton lines={4} />}>
-            <SuggestedMembers />
-          </Suspense>
-        </MagicBentoCard>
+      <Suspense fallback={<CardSkeleton />}>
+        <HomeAnnouncements />
+      </Suspense>
 
-        {/* Events Bento Tile */}
-        <MagicBentoCard span="col-span-1">
-          <Suspense fallback={<WidgetSkeleton />}>
-            <EventsWidget />
-          </Suspense>
-        </MagicBentoCard>
+      <Suspense fallback={<CardSkeleton />}>
+        <EcosystemShortcuts />
+      </Suspense>
 
-        {/* Recent Messages Bento Tile */}
-        <MagicBentoCard span="col-span-1">
-          <Suspense fallback={<WidgetSkeleton />}>
-            <RecentMessages />
-          </Suspense>
-        </MagicBentoCard>
-
-        {/* Campus Widget Bento Tile */}
-        <MagicBentoCard span="col-span-1">
-          <Suspense fallback={<WidgetSkeleton />}>
-            <CampusWidget />
-          </Suspense>
-        </MagicBentoCard>
-
-        {/* Notifications Bento Tile */}
-        <MagicBentoCard span="col-span-1">
-          <Suspense fallback={<WidgetSkeleton />}>
-            <NotificationsWidget />
-          </Suspense>
-        </MagicBentoCard>
-
-        {/* Referral & Inspiration Row */}
-        <MagicBentoCard span="col-span-1 md:col-span-2">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ReferralWidget />
-            <Suspense fallback={<WidgetSkeleton />}>
-              <InspirationWidget />
-            </Suspense>
-          </div>
-        </MagicBentoCard>
-      </MagicBentoGrid>
+      {/* Self-hide until real data exists (no fake content). */}
+      <Suspense fallback={null}>
+        <ElevatorPitches />
+      </Suspense>
+      <Suspense fallback={null}>
+        <InspirationHighlights />
+      </Suspense>
     </main>
   );
 }
-
