@@ -391,6 +391,34 @@ export async function saveCrmAssets(
   return { ok: true };
 }
 
+// A1–A22 sharing (docs/17 §C). Delivery is HONEST: Altus opens wa.me / mailto in
+// the admin's own client — there is no automated WhatsApp/email provider, so this
+// action does NOT send anything. Its job is to record the audit trail of what
+// private intelligence was shared, with whom, and over which channel, BEFORE the
+// admin's client opens the compose link. Admin-only (sharing outbound private CRM
+// is more sensitive than viewing it).
+export async function recordCrmShare(input: {
+  participantId: string;
+  channel: "whatsapp" | "email";
+  recipient: string;
+  fields: string[];
+}) {
+  if (badId(input.participantId)) return { ok: false };
+  if (input.channel !== "whatsapp" && input.channel !== "email") return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  await logAudit("crm.share", {
+    entityType: "profile",
+    entityId: input.participantId,
+    metadata: {
+      channel: input.channel,
+      recipient: input.recipient.slice(0, 120),
+      fields: input.fields.slice(0, 40),
+    },
+  });
+  return { ok: true };
+}
+
 // Moderation (#174): soft-delete a message. Comments don't exist yet; this covers
 // the content that does, and extends to comments when that feature ships.
 export async function deleteMessage(messageId: string) {

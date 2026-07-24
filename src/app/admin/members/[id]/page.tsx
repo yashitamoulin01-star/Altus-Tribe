@@ -4,6 +4,7 @@ import { getRosterMember, getConsultants, getAdminContext } from "@/lib/admin";
 import { getCrm } from "@/lib/crm";
 import CrmEditor from "./CrmEditor";
 import RoleControl from "./RoleControl";
+import ShareComposer from "./ShareComposer";
 
 export default async function AdminMemberDetailPage({
   params,
@@ -86,6 +87,24 @@ export default async function AdminMemberDetailPage({
           isAdmin={ctx.isAdmin}
         />
       </section>
+
+      {/* A1–A22 sharing (admins only) */}
+      {ctx.isAdmin && (
+        <section className="mt-10 border-t border-hairline pt-8">
+          <div className="mb-4 flex items-center gap-3">
+            <p className="kicker">Share intelligence</p>
+            <span className="rounded bg-surface-sunk px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+              Audited
+            </span>
+          </div>
+          <ShareComposer
+            participantId={member.id}
+            memberName={member.fullName}
+            record={crm.record}
+            assets={crm.assets}
+          />
+        </section>
+      )}
     </main>
   );
 }
