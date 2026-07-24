@@ -65,7 +65,11 @@ export default async function AdminApprovalsPage() {
                     {[m.industry, m.city].filter(Boolean).join(" · ") || "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <ApprovalActions id={m.id} />
+                    <ApprovalActions
+                      id={m.id}
+                      reviewState={m.reviewState}
+                      reviewNote={m.reviewNote}
+                    />
                   </td>
                 </tr>
               ))}

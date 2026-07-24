@@ -2,17 +2,19 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { setMemberStatus, deleteMember } from "../actions";
+import { setMemberStatus, deleteMember, setFeatured } from "../actions";
 import type { MemberStatus } from "@/lib/admin";
 
-// Per-row roster actions (#169–173). Hide/Show/Inactivate/Delete via server
-// actions with an optimistic-ish refresh. Delete asks once.
+// Per-row roster actions (#169–173). Feature/Hide/Show/Inactivate/Delete via
+// server actions with an optimistic-ish refresh. Delete asks once.
 export default function RowActions({
   id,
   status,
+  featured,
 }: {
   id: string;
   status: MemberStatus;
+  featured: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -21,6 +23,12 @@ export default function RowActions({
   const change = (next: MemberStatus) =>
     startTransition(async () => {
       await setMemberStatus(id, next);
+      router.refresh();
+    });
+
+  const toggleFeatured = () =>
+    startTransition(async () => {
+      await setFeatured(id, !featured);
       router.refresh();
     });
 
@@ -35,6 +43,18 @@ export default function RowActions({
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">
+      <button
+        className={
+          featured
+            ? "rounded border border-red bg-red-muted px-2.5 py-1 text-[12px] text-red transition-colors hover:border-red-hover disabled:opacity-40"
+            : btn
+        }
+        disabled={pending}
+        onClick={toggleFeatured}
+        title={featured ? "Remove from the Explore Featured strip" : "Spotlight on Explore / Home"}
+      >
+        {featured ? "★ Featured" : "Feature"}
+      </button>
       {status !== "active" && (
         <button className={btn} disabled={pending} onClick={() => change("active")}>
           Show

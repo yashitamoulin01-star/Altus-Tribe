@@ -123,7 +123,11 @@ export async function approveMember(id: string) {
   if (badId(id)) return { ok: false };
   const { supabase, ctx } = await ensureAdmin();
   if (!supabase || !ctx.isAdmin) return { ok: false };
-  const { error } = await supabase.from("profiles").update({ status: "active" }).eq("id", id);
+  // Approving resolves any outstanding change request.
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status: "active", review_state: null, review_note: null })
+    .eq("id", id);
   if (error) {
     logError("approveMember", error, { userId: ctx.userId });
     return { ok: false };
@@ -138,7 +142,10 @@ export async function rejectMember(id: string) {
   if (badId(id)) return { ok: false };
   const { supabase, ctx } = await ensureAdmin();
   if (!supabase || !ctx.isAdmin) return { ok: false };
-  const { error } = await supabase.from("profiles").update({ status: "inactive" }).eq("id", id);
+  const { error } = await supabase
+    .from("profiles")
+    .update({ status: "inactive", review_state: null, review_note: null })
+    .eq("id", id);
   if (error) {
     logError("rejectMember", error, { userId: ctx.userId });
     return { ok: false };
@@ -146,6 +153,54 @@ export async function rejectMember(id: string) {
   await logAudit("member.reject", { entityType: "profile", entityId: id });
   revalidatePath("/admin/approvals");
   revalidatePath("/admin/members");
+  return { ok: true };
+}
+
+// Request changes: keep the applicant pending but flag them with an admin note
+// describing what to fix, instead of a flat reject (docs/17 §1). Passing an empty
+// note clears the flag (undo). Members never read these columns.
+export async function requestChanges(id: string, note: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const trimmed = note.trim().slice(0, 2000);
+  const clearing = trimmed.length === 0;
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      status: "pending",
+      review_state: clearing ? null : "changes_requested",
+      review_note: clearing ? null : trimmed,
+    })
+    .eq("id", id);
+  if (error) {
+    logError("requestChanges", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit(clearing ? "member.review_clear" : "member.request_changes", {
+    entityType: "profile",
+    entityId: id,
+  });
+  revalidatePath("/admin/approvals");
+  revalidatePath("/admin/members");
+  return { ok: true };
+}
+
+// Spotlight a member (docs/17 §6): surfaces a "Featured" strip on Explore and
+// floats them up in Home suggestions. Public-facing but admin-controlled.
+export async function setFeatured(id: string, featured: boolean) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase.from("profiles").update({ is_featured: featured }).eq("id", id);
+  if (error) {
+    logError("setFeatured", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("member.featured", { entityType: "profile", entityId: id, metadata: { featured } });
+  revalidatePath("/admin/members");
+  revalidatePath("/explore");
+  revalidatePath("/home");
   return { ok: true };
 }
 
@@ -401,6 +456,52 @@ export async function deleteResource(id: string) {
   await logAudit("asset.resource.delete", { entityType: "resource", entityId: id });
   revalidatePath("/admin/assets");
   revalidatePath("/campus");
+  return { ok: true };
+}
+
+// --- Taxonomies / categories management (docs/17 §6) ------------------------
+// The dropdown values that feed the profile editor + Explore filters. Table +
+// admin-write RLS already exist (migration 0005); this is the CRUD surface.
+const TAXONOMY_KINDS = ["industry", "category", "city", "state", "country"];
+
+export async function addTaxonomy(kind: string, value: string) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  if (!TAXONOMY_KINDS.includes(kind)) return { ok: false, error: "Invalid type." };
+  const clean = value.trim();
+  if (!clean) return { ok: false, error: "Value is required." };
+  // Append to the end of its kind (highest sort_order + 1).
+  const { data: last } = await supabase
+    .from("taxonomies")
+    .select("sort_order")
+    .eq("kind", kind)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort_order = ((last?.sort_order as number) ?? -1) + 1;
+  const { error } = await supabase
+    .from("taxonomies")
+    .upsert({ kind, value: clean, sort_order }, { onConflict: "kind,value", ignoreDuplicates: true });
+  if (error) {
+    logError("addTaxonomy", error, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't add. Please try again." };
+  }
+  await logAudit("taxonomy.add", { entityType: "taxonomy", metadata: { kind, value: clean } });
+  revalidatePath("/admin/taxonomies");
+  return { ok: true };
+}
+
+export async function deleteTaxonomy(id: string) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase.from("taxonomies").delete().eq("id", id);
+  if (error) {
+    logError("deleteTaxonomy", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("taxonomy.delete", { entityType: "taxonomy", entityId: id });
+  revalidatePath("/admin/taxonomies");
   return { ok: true };
 }
 

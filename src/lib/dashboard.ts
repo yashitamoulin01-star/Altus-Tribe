@@ -65,12 +65,10 @@ export async function getSuggestedMembers(limit = 4): Promise<MemberCover[]> {
   ]);
   const others = members.filter((m) => m.slug !== me.slug);
   const myIndustry = me.industry.trim().toLowerCase();
-  if (myIndustry) {
-    others.sort((a, b) => {
-      const am = a.industry.trim().toLowerCase() === myIndustry ? 0 : 1;
-      const bm = b.industry.trim().toLowerCase() === myIndustry ? 0 : 1;
-      return am - bm;
-    });
-  }
+  // Admin-featured members float first, then same-industry matches (stable).
+  const score = (m: MemberCover) =>
+    (m.featured ? 0 : 2) +
+    (myIndustry && m.industry.trim().toLowerCase() === myIndustry ? 0 : 1);
+  others.sort((a, b) => score(a) - score(b));
   return others.slice(0, limit);
 }

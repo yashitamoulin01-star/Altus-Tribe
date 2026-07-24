@@ -131,7 +131,7 @@ export default async function AdminMembersPage({
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <RowActions id={m.id} status={m.status} />
+                  <RowActions id={m.id} status={m.status} featured={m.featured} />
                 </td>
               </tr>
             ))}

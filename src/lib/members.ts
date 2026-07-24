@@ -51,6 +51,7 @@ export interface Member {
   } | null;
   category?: string; // business category (directory filter)
   interests?: string; // areas of interest (directory search)
+  featured?: boolean; // admin-spotlighted (Explore "Featured" strip)
   offerings: { title: string; description?: string }[]; // What I Do
   work: { kind: WorkKind; title: string; href: string }[]; // Work
   openTo: OpenToOption[];
@@ -106,6 +107,7 @@ export const sampleMembers: Member[] = [
     slug: "yashita-mouli",
     fullName: "Yashita Mouli",
     photoUrl: null, // no photo yet — layout must hold without one
+    featured: true,
     roleTitle: "Founder",
     industry: "Manufacturing",
     city: "Mumbai",
@@ -296,6 +298,7 @@ export interface MemberCover {
   interests: string; // Search Interest (#161)
   createdAt: string; // profile created_at — for "Recently joined"
   openTo: OpenToOption[]; // referral/mentoring/etc. — for the "Open to" filter
+  featured: boolean; // admin-spotlighted — for the "Featured" strip
 }
 
 // Pure projection Member -> MemberCover. Used by both the DB and fallback paths.
@@ -314,5 +317,6 @@ export function toCover(m: Member): MemberCover {
     interests: m.interests ?? "",
     createdAt: "",
     openTo: m.openTo ?? [],
+    featured: m.featured ?? false,
   };
 }

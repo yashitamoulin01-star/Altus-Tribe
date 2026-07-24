@@ -24,8 +24,10 @@ function isSchemaMissing(
   error: { code?: string; message?: string } | null,
 ): boolean {
   if (!error) return false;
-  // PGRST205: table not in PostgREST schema cache · 42P01: undefined_table.
-  return error.code === "PGRST205" || error.code === "42P01";
+  // PGRST205: table not in PostgREST schema cache · 42P01: undefined_table ·
+  // 42703: undefined_column (a not-yet-applied additive migration). All degrade
+  // to sample data rather than white-screening.
+  return error.code === "PGRST205" || error.code === "42P01" || error.code === "42703";
 }
 
 type AddressRow = {
@@ -338,7 +340,7 @@ export async function getAllMembers(): Promise<MemberCover[]> {
     .from("profiles")
     .select(
       `id, slug, full_name, photo_url, role_title, industry, city, positioning,
-       category, areas_of_interest, created_at, businesses ( name ),
+       category, areas_of_interest, created_at, is_featured, businesses ( name ),
        member_open_to ( option )`,
     )
     .eq("status", "active")
@@ -371,6 +373,7 @@ export async function getAllMembers(): Promise<MemberCover[]> {
       interests: r.areas_of_interest ?? "",
       createdAt: (r.created_at as string) ?? "",
       openTo,
+      featured: Boolean(r.is_featured),
     };
   });
 }

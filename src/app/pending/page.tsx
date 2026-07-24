@@ -18,25 +18,45 @@ export default async function PendingPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("status, full_name")
+    .select("status, full_name, review_state, review_note")
     .eq("id", user.id)
     .maybeSingle();
 
   if (profile && profile.status !== "pending") redirect("/home");
 
   const firstName = (profile?.full_name ?? "").split(" ")[0];
+  const changesRequested =
+    profile?.review_state === "changes_requested" && Boolean(profile?.review_note);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col items-center justify-center px-6 text-center">
-      <p className="kicker mb-4">Awaiting approval</p>
+      <p className="kicker mb-4">{changesRequested ? "Action needed" : "Awaiting approval"}</p>
       <h1 className="text-3xl font-semibold leading-[1.1] tracking-[-0.02em] text-ink md:text-4xl">
-        {firstName ? `Thanks, ${firstName}.` : "Thanks."} You&apos;re in the queue.
+        {changesRequested
+          ? firstName
+            ? `${firstName}, a quick update needed.`
+            : "A quick update needed."
+          : `${firstName ? `Thanks, ${firstName}.` : "Thanks."} You're in the queue.`}
       </h1>
-      <p className="mt-5 text-[16px] leading-relaxed text-ink-secondary">
-        Altus Tribe is invitation-only. Our team is reviewing your request — you&apos;ll
-        get an email the moment you&apos;re approved, then you can build your feature and
-        enter the Tribe.
-      </p>
+      {changesRequested ? (
+        <>
+          <p className="mt-5 text-[16px] leading-relaxed text-ink-secondary">
+            Our team reviewed your request and asked for a few changes before approving:
+          </p>
+          <p className="mt-4 w-full rounded border border-hairline-bright bg-surface-sunk px-4 py-3 text-left text-[15px] leading-relaxed text-ink">
+            {profile?.review_note}
+          </p>
+          <p className="mt-4 text-[15px] leading-relaxed text-ink-secondary">
+            Update your profile, and we&apos;ll take another look.
+          </p>
+        </>
+      ) : (
+        <p className="mt-5 text-[16px] leading-relaxed text-ink-secondary">
+          Altus Tribe is invitation-only. Our team is reviewing your request — you&apos;ll
+          get an email the moment you&apos;re approved, then you can build your feature and
+          enter the Tribe.
+        </p>
+      )}
       <form action={signOut} className="mt-8">
         <button
           type="submit"

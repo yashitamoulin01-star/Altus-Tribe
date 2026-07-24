@@ -185,6 +185,10 @@ export default function ExploreGallery({
   };
 
   // Discovery strips — only when browsing (no active search/filter).
+  const featured = useMemo(
+    () => (hasFilters ? [] : members.filter((m) => m.featured).slice(0, 8)),
+    [members, hasFilters],
+  );
   const recommended = useMemo(
     () => (hasFilters ? [] : members.filter((m) => recommendedSlugs.includes(m.slug)).slice(0, 8)),
     [members, recommendedSlugs, hasFilters],
@@ -260,6 +264,7 @@ export default function ExploreGallery({
       </div>
 
       {/* Discovery strips (browsing only) */}
+      <Strip title="Featured" items={featured} stateFor={stateFor} isOnline={isOnline} />
       <Strip title="Online now" items={onlineNow} stateFor={stateFor} isOnline={isOnline} />
       <Strip title="Recommended for you" items={recommended} stateFor={stateFor} isOnline={isOnline} />
       <Strip title="Recently joined" items={recentlyJoined} stateFor={stateFor} isOnline={isOnline} />

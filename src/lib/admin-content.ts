@@ -47,8 +47,49 @@ export interface Analytics {
   resources: number;
 }
 
+export interface AdminTaxonomy {
+  id: string;
+  kind: string;
+  value: string;
+  sortOrder: number;
+}
+
+// The dropdown kinds an admin curates (docs/17 §6). Order = display order.
+export const TAXONOMY_KINDS = ["industry", "category", "city", "state", "country"] as const;
+export type TaxonomyKind = (typeof TAXONOMY_KINDS)[number];
+
 const schemaMissing = (e: { code?: string } | null) =>
   e?.code === "PGRST205" || e?.code === "42P01";
+
+const SAMPLE_TAXONOMIES: AdminTaxonomy[] = [
+  { id: "t-1", kind: "industry", value: "Manufacturing", sortOrder: 0 },
+  { id: "t-2", kind: "industry", value: "Fintech", sortOrder: 1 },
+  { id: "t-3", kind: "industry", value: "Design", sortOrder: 2 },
+  { id: "t-4", kind: "category", value: "Products", sortOrder: 0 },
+  { id: "t-5", kind: "category", value: "Services", sortOrder: 1 },
+  { id: "t-6", kind: "category", value: "Solutions", sortOrder: 2 },
+];
+
+// All curated dropdown values, grouped by kind, for the admin Categories screen.
+export async function getAllTaxonomies(): Promise<AdminTaxonomy[]> {
+  const supabase = await createClient();
+  if (!supabase) return SAMPLE_TAXONOMIES;
+  const { data, error } = await supabase
+    .from("taxonomies")
+    .select("id, kind, value, sort_order")
+    .order("kind")
+    .order("sort_order");
+  if (error) {
+    if (schemaMissing(error)) return SAMPLE_TAXONOMIES;
+    return [];
+  }
+  return (data ?? []).map((t) => ({
+    id: t.id as string,
+    kind: t.kind as string,
+    value: t.value as string,
+    sortOrder: (t.sort_order as number) ?? 0,
+  }));
+}
 
 export async function getAdminAnnouncements(): Promise<AdminAnnouncement[]> {
   const supabase = await createClient();

@@ -28,17 +28,23 @@ export interface RosterMember {
   industry: string | null;
   cqBatch: string | null;
   psBatch: string | null;
+  reviewState: "changes_requested" | null;
+  reviewNote: string | null;
+  featured: boolean;
 }
 
+// Table missing (PGRST205/42P01) or a not-yet-applied column (42703) → fall back
+// to sample data instead of white-screening. Migrations are applied by the owner
+// in batches, so forward-schema reads must degrade gracefully.
 const schemaMissing = (e: { code?: string } | null) =>
-  e?.code === "PGRST205" || e?.code === "42P01";
+  e?.code === "PGRST205" || e?.code === "42P01" || e?.code === "42703";
 
 const SAMPLE_ROSTER: RosterMember[] = [
-  { id: "s-yashita", slug: "yashita-mouli", fullName: "Yashita Mouli", photoUrl: null, role: "member", status: "active", city: "Mumbai", industry: "Manufacturing", cqBatch: "CQ-07", psBatch: "PS-12" },
-  { id: "s-arjun", slug: "arjun-nair", fullName: "Arjun Nair", photoUrl: null, role: "consultant", status: "active", city: "Bengaluru", industry: "Fintech", cqBatch: "CQ-05", psBatch: "PS-09" },
-  { id: "s-priya", slug: "priya-deshmukh", fullName: "Priya Deshmukh", photoUrl: null, role: "member", status: "active", city: "Pune", industry: "Design", cqBatch: "CQ-06", psBatch: "PS-11" },
-  { id: "s-rohan", slug: "rohan-mehta", fullName: "Rohan Mehta", photoUrl: null, role: "member", status: "hidden", city: "Delhi", industry: "Logistics", cqBatch: "CQ-04", psBatch: "PS-08" },
-  { id: "s-nikhil", slug: "nikhil-rao", fullName: "Nikhil Rao", photoUrl: null, role: "member", status: "pending", city: "Hyderabad", industry: "SaaS", cqBatch: "CQ-08", psBatch: "PS-13" },
+  { id: "s-yashita", slug: "yashita-mouli", fullName: "Yashita Mouli", photoUrl: null, role: "member", status: "active", city: "Mumbai", industry: "Manufacturing", cqBatch: "CQ-07", psBatch: "PS-12", reviewState: null, reviewNote: null, featured: true },
+  { id: "s-arjun", slug: "arjun-nair", fullName: "Arjun Nair", photoUrl: null, role: "consultant", status: "active", city: "Bengaluru", industry: "Fintech", cqBatch: "CQ-05", psBatch: "PS-09", reviewState: null, reviewNote: null, featured: false },
+  { id: "s-priya", slug: "priya-deshmukh", fullName: "Priya Deshmukh", photoUrl: null, role: "member", status: "active", city: "Pune", industry: "Design", cqBatch: "CQ-06", psBatch: "PS-11", reviewState: null, reviewNote: null, featured: false },
+  { id: "s-rohan", slug: "rohan-mehta", fullName: "Rohan Mehta", photoUrl: null, role: "member", status: "hidden", city: "Delhi", industry: "Logistics", cqBatch: "CQ-04", psBatch: "PS-08", reviewState: null, reviewNote: null, featured: false },
+  { id: "s-nikhil", slug: "nikhil-rao", fullName: "Nikhil Rao", photoUrl: null, role: "member", status: "pending", city: "Hyderabad", industry: "SaaS", cqBatch: "CQ-08", psBatch: "PS-13", reviewState: "changes_requested", reviewNote: "Please add your company USP and a profile photo before we approve.", featured: false },
 ];
 
 // Resolve the caller's admin context (used by the /admin layout to gate access).
@@ -76,7 +82,7 @@ export async function getRoster(
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, slug, full_name, photo_url, role, status, city, industry, cq_batch, ps_batch")
+    .select("id, slug, full_name, photo_url, role, status, city, industry, cq_batch, ps_batch, review_state, review_note, is_featured")
     .order("full_name", { ascending: true });
 
   if (error) {
@@ -94,6 +100,9 @@ export async function getRoster(
     industry: (r.industry as string) ?? null,
     cqBatch: (r.cq_batch as string) ?? null,
     psBatch: (r.ps_batch as string) ?? null,
+    reviewState: (r.review_state as "changes_requested") ?? null,
+    reviewNote: (r.review_note as string) ?? null,
+    featured: Boolean(r.is_featured),
   }));
   return filterRoster(rows, query, status);
 }
