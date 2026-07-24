@@ -153,6 +153,19 @@ create policy "crm assets delete" on storage.objects for delete
   using ( bucket_id = 'crm-assets'
           and public.can_access_crm( ((storage.foldername(name))[1])::uuid ) );
 
+-- ---------------------------------------------------------------------------
+-- 0025 — Events draft/publish state (members see published; admins see drafts)
+-- ---------------------------------------------------------------------------
+alter table public.events
+  add column if not exists published boolean not null default true;
+
+create index if not exists events_published_idx on public.events (published);
+
+drop policy if exists "events tribe read" on public.events;
+create policy "events tribe read" on public.events for select
+  to authenticated
+  using ( published or public.is_admin() );
+
 commit;
 
 -- ============================================================================

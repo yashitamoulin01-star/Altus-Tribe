@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { saveEvent, deleteEvent, type EventInput } from "../actions";
+import { saveEvent, deleteEvent, setEventPublished, type EventInput } from "../actions";
 import type { EventItem } from "@/lib/events";
 
 const field =
@@ -25,7 +25,7 @@ function fromLocalInput(v: string): string {
 
 const EMPTY: EventInput = {
   title: "", description: "", location: "", link: "",
-  startsAt: "", endsAt: "", featured: false,
+  startsAt: "", endsAt: "", featured: false, published: true,
 };
 
 function fmt(iso: string | null) {
@@ -57,9 +57,15 @@ export default function EventManager({ initial }: { initial: EventItem[] }) {
       startsAt: e.startsAt,
       endsAt: e.endsAt ?? "",
       featured: e.featured,
+      published: e.published,
     });
     setError(null);
   };
+  const togglePublished = (e: EventItem) =>
+    start(async () => {
+      await setEventPublished(e.id, !e.published);
+      router.refresh();
+    });
   const reset = () => {
     setEditingId(null);
     setForm(EMPTY);
@@ -109,6 +115,11 @@ export default function EventManager({ initial }: { initial: EventItem[] }) {
                           Featured
                         </span>
                       )}
+                      {!e.published && (
+                        <span className="shrink-0 rounded bg-surface-sunk px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-ink-muted">
+                          Draft
+                        </span>
+                      )}
                     </p>
                     <p className="mt-0.5 text-[13px] text-ink-muted">
                       {fmt(e.startsAt)}
@@ -119,6 +130,7 @@ export default function EventManager({ initial }: { initial: EventItem[] }) {
                     )}
                   </div>
                   <div className="flex shrink-0 gap-2">
+                    <button type="button" onClick={() => togglePublished(e)} disabled={pending} className="text-[13px] text-ink-muted transition-colors hover:text-ink disabled:opacity-50">{e.published ? "Unpublish" : "Publish"}</button>
                     <button type="button" onClick={() => editExisting(e)} className="text-[13px] text-ink-muted transition-colors hover:text-ink">Edit</button>
                     <button type="button" onClick={() => remove(e.id)} disabled={pending} className="text-[13px] text-ink-muted transition-colors hover:text-red disabled:opacity-50">Delete</button>
                   </div>
@@ -164,6 +176,10 @@ export default function EventManager({ initial }: { initial: EventItem[] }) {
           <label className="flex items-center gap-2.5 pt-1">
             <input type="checkbox" checked={form.featured} onChange={(e) => set("featured", e.target.checked)} className="h-4 w-4 accent-[var(--color-red)]" />
             <span className="text-[14px] text-ink">Feature on members&apos; home</span>
+          </label>
+          <label className="flex items-center gap-2.5">
+            <input type="checkbox" checked={form.published} onChange={(e) => set("published", e.target.checked)} className="h-4 w-4 accent-[var(--color-red)]" />
+            <span className="text-[14px] text-ink">Published (visible to members)</span>
           </label>
 
           {error && <p className="text-[13px] text-red">{error}</p>}

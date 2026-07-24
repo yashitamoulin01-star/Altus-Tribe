@@ -13,10 +13,13 @@ export interface EventItem {
   startsAt: string;
   endsAt: string | null;
   featured: boolean;
+  published: boolean;
 }
 
+// Also treat 42703 (undefined_column) as "schema missing" so a not-yet-applied
+// migration (e.g. the published column) degrades to sample data instead of erroring.
 const schemaMissing = (e: { code?: string } | null) =>
-  e?.code === "PGRST205" || e?.code === "42P01";
+  e?.code === "PGRST205" || e?.code === "42P01" || e?.code === "42703";
 
 const SAMPLE_EVENTS: EventItem[] = [
   {
@@ -28,6 +31,7 @@ const SAMPLE_EVENTS: EventItem[] = [
     startsAt: "2026-09-12T09:00:00Z",
     endsAt: null,
     featured: true,
+    published: true,
   },
   {
     id: "sample-referral",
@@ -38,6 +42,7 @@ const SAMPLE_EVENTS: EventItem[] = [
     startsAt: "2026-07-29T04:30:00Z",
     endsAt: null,
     featured: false,
+    published: true,
   },
 ];
 
@@ -51,6 +56,7 @@ function mapRow(r: Record<string, unknown>): EventItem {
     startsAt: r.starts_at as string,
     endsAt: (r.ends_at as string) ?? null,
     featured: Boolean(r.featured),
+    published: r.published === undefined || r.published === null ? true : Boolean(r.published),
   };
 }
 
@@ -63,7 +69,7 @@ export async function getUpcomingEvents(limit = 5): Promise<EventItem[]> {
   const since = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, description, location, link, starts_at, ends_at, featured")
+    .select("id, title, description, location, link, starts_at, ends_at, featured, published")
     .gte("starts_at", since)
     .order("featured", { ascending: false })
     .order("starts_at", { ascending: true })
@@ -83,7 +89,7 @@ export async function getAllEvents(): Promise<EventItem[]> {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, title, description, location, link, starts_at, ends_at, featured")
+    .select("id, title, description, location, link, starts_at, ends_at, featured, published")
     .order("starts_at", { ascending: false });
 
   if (error) {

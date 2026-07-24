@@ -32,6 +32,25 @@ export default async function AdminMembersPage({
     : undefined) as MemberStatus | undefined;
   const roster = await getRoster(q, status);
 
+  // Click-to-sort (server-side, shareable URL). Name + Status are the useful keys.
+  const sort = sp.sort === "status" ? "status" : "name";
+  const dir = sp.dir === "desc" ? "desc" : "asc";
+  const sorted = [...roster].sort((a, b) => {
+    const av = sort === "status" ? a.status : a.fullName.toLowerCase();
+    const bv = sort === "status" ? b.status : b.fullName.toLowerCase();
+    const cmp = av < bv ? -1 : av > bv ? 1 : 0;
+    return dir === "asc" ? cmp : -cmp;
+  });
+  const sortHref = (col: "name" | "status") => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (status) params.set("status", status);
+    params.set("sort", col);
+    params.set("dir", sort === col && dir === "asc" ? "desc" : "asc");
+    return `/admin/members?${params.toString()}`;
+  };
+  const arrow = (col: "name" | "status") => (sort === col ? (dir === "asc" ? " ↑" : " ↓") : "");
+
   const tabHref = (value: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
@@ -88,19 +107,23 @@ export default async function AdminMembersPage({
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-hairline bg-surface-sunk">
-              {["Member", "Batch", "Industry / City", "Status", ""].map((h) => (
-                <th
-                  key={h}
-                  scope="col"
-                  className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted"
-                >
-                  {h}
-                </th>
-              ))}
+              <th scope="col" className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted">
+                <Link href={sortHref("name")} className="transition-colors hover:text-ink" aria-label="Sort by member name">
+                  Member{arrow("name")}
+                </Link>
+              </th>
+              <th scope="col" className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted">Batch</th>
+              <th scope="col" className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted">Industry / City</th>
+              <th scope="col" className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted">
+                <Link href={sortHref("status")} className="transition-colors hover:text-ink" aria-label="Sort by status">
+                  Status{arrow("status")}
+                </Link>
+              </th>
+              <th scope="col" className="px-4 py-3" />
             </tr>
           </thead>
           <tbody>
-            {roster.map((m) => (
+            {sorted.map((m) => (
               <tr key={m.id} className="border-b border-hairline last:border-0 hover:bg-surface-sunk/50">
                 <td className="px-4 py-3">
                   <Link href={`/admin/members/${m.id}`} className="flex items-center gap-3">

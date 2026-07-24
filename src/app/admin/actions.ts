@@ -47,6 +47,7 @@ export interface EventInput {
   startsAt: string; // ISO (from a datetime-local input, already normalized)
   endsAt: string;
   featured: boolean;
+  published: boolean;
 }
 
 function eventRow(e: EventInput, createdBy?: string | null) {
@@ -58,6 +59,7 @@ function eventRow(e: EventInput, createdBy?: string | null) {
     starts_at: e.startsAt,
     ends_at: e.endsAt || null,
     featured: e.featured,
+    published: e.published,
     ...(createdBy ? { created_by: createdBy } : {}),
   };
 }
@@ -78,6 +80,23 @@ export async function saveEvent(e: EventInput) {
     entityType: "event",
     entityId: e.id,
   });
+  revalidatePath("/admin/events");
+  revalidatePath("/home");
+  return { ok: true };
+}
+
+// Draft/publish toggle. Unpublished events are hidden from members by the events
+// RLS (published or is_admin()); admins still see them in the manager. Audited.
+export async function setEventPublished(id: string, published: boolean) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase.from("events").update({ published }).eq("id", id);
+  if (error) {
+    logError("setEventPublished", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit(published ? "event.publish" : "event.unpublish", { entityType: "event", entityId: id });
   revalidatePath("/admin/events");
   revalidatePath("/home");
   return { ok: true };
@@ -348,6 +367,9 @@ export async function saveCrm(input: {
   if (clsError && clsError.code !== "42703") {
     logError("saveCrm.classifications", clsError, { userId: ctx.userId });
   }
+  // Audit A1–A22 edits (item I). Autosave is debounced to ~once per editing pause,
+  // so this is a per-save-batch trail, not per-keystroke noise.
+  await logAudit("crm.update", { entityType: "profile", entityId: input.profileId });
   revalidatePath(`/admin/members/${input.profileId}`);
   return { ok: true };
 }
