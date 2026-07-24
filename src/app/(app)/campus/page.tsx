@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCampusResources } from "@/lib/campus";
 import { getPublicSettings } from "@/lib/settings";
+import { PS_APP_URL } from "@/lib/settings-meta";
 import { youtubeEmbed } from "@/lib/media";
 import CampusBrowser from "./CampusBrowser";
 import CircularGallery from "@/components/CircularGallery";
@@ -28,6 +29,7 @@ export default async function CampusPage() {
     (s): s is { label: string; url: string } => Boolean(s.url),
   );
   const orientationUrl = settings.ps_orientation_url || "";
+  const psAppUrl = settings.ps_app_url || PS_APP_URL;
   const featuredVideo = youtubeEmbed(settings.featured_video_url);
   const featuredTitle = settings.featured_video_title;
 
@@ -81,8 +83,30 @@ export default async function CampusPage() {
         </div>
       </section>
 
+      {/* Productivity Shastra ecosystem entry — Altus Tribe is part of PS. */}
+      <section className="mt-12 border-t border-hairline pt-10">
+        <a
+          href={psAppUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex flex-col gap-4 rounded-2xl border border-hairline bg-surface p-6 transition-colors hover:border-red/40 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div className="min-w-0">
+            <p className="kicker mb-1">Ecosystem</p>
+            <h2 className="text-lg font-semibold text-ink">Productivity Shastra App</h2>
+            <p className="mt-1 max-w-[52ch] text-[14px] leading-relaxed text-ink-secondary">
+              Altus Tribe is part of the Productivity Shastra ecosystem. Open your PS
+              dashboard — programmes, tools and your productivity system.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-lg bg-red px-5 py-2.5 text-[14px] font-medium text-paper transition-colors group-hover:bg-red-hover">
+            Open PS App ↗
+          </span>
+        </a>
+      </section>
+
       {/* PS Orientation + channels (static entry points) */}
-      <section className="mt-12 grid gap-5 border-t border-hairline pt-10 md:grid-cols-2">
+      <section className="mt-8 grid gap-5 md:grid-cols-2">
         <div className="rounded-xl border border-hairline bg-surface p-6">
           <p className="kicker mb-2">Invite to PS Orientation</p>
           <p className="text-[15px] leading-relaxed text-ink-secondary">

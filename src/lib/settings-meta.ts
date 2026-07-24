@@ -25,7 +25,12 @@ export const SETTINGS: SettingDef[] = [
   { key: "social_linkedin", label: "LinkedIn", group: "Social Channels", kind: "url", public: true, placeholder: "https://linkedin.com/company/…" },
   { key: "social_x", label: "X / Twitter", group: "Social Channels", kind: "url", public: true, placeholder: "https://x.com/…" },
   { key: "ps_orientation_url", label: "PS Orientation invite link", group: "Campus & Community", kind: "url", public: true, placeholder: "https://…" },
+  { key: "ps_app_url", label: "Productivity Shastra app link", group: "Campus & Community", kind: "url", public: true, placeholder: "https://app.productivityshastra.com/dashboard" },
 ];
+
+// Altus Tribe is part of the Productivity Shastra ecosystem. Stable default so the
+// ecosystem entry point works out of the box; admins can override via settings.
+export const PS_APP_URL = "https://app.productivityshastra.com/dashboard";
 
 export const SETTING_KEYS = SETTINGS.map((s) => s.key);
 export const SETTING_MAP: Record<string, SettingDef> = Object.fromEntries(
