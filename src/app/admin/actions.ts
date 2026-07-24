@@ -132,6 +132,19 @@ export async function approveMember(id: string) {
     logError("approveMember", error, { userId: ctx.userId });
     return { ok: false };
   }
+  // In-app "you're approved" notification (docs/17 §2 — the in-app half; the
+  // email remains an infra item). The notifications INSERT policy allows
+  // is_admin() to insert for any recipient (migration 0013), so this admin-side
+  // insert is RLS-permitted. Best-effort: a notify failure must not fail the
+  // approval itself.
+  const { error: notifyError } = await supabase.from("notifications").insert({
+    recipient_id: id,
+    kind: "system",
+    title: "You're approved — welcome to the Tribe",
+    body: "Your membership is active. Complete your profile to appear in the member directory.",
+    link: "/home",
+  });
+  if (notifyError) logError("approveMember.notify", notifyError, { userId: ctx.userId });
   await logAudit("member.approve", { entityType: "profile", entityId: id });
   revalidatePath("/admin/approvals");
   revalidatePath("/admin/members");
@@ -176,6 +189,20 @@ export async function requestChanges(id: string, note: string) {
   if (error) {
     logError("requestChanges", error, { userId: ctx.userId });
     return { ok: false };
+  }
+  // Nudge the applicant to act (docs/17 §1/§2). Only when a note is set —
+  // clearing the flag is a silent admin undo. Same RLS-permitted admin insert;
+  // best-effort so it never fails the review write. The note is the applicant's
+  // own guidance, already surfaced to them on /pending.
+  if (!clearing) {
+    const { error: notifyError } = await supabase.from("notifications").insert({
+      recipient_id: id,
+      kind: "system",
+      title: "Action needed on your membership",
+      body: trimmed,
+      link: "/pending",
+    });
+    if (notifyError) logError("requestChanges.notify", notifyError, { userId: ctx.userId });
   }
   await logAudit(clearing ? "member.review_clear" : "member.request_changes", {
     entityType: "profile",
