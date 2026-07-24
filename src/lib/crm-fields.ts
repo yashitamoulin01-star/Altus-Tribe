@@ -2,6 +2,20 @@
 // data layer (lib/crm.ts) and the client editor (admin CrmEditor) can use it.
 // The A3–A9 + A21 asset slots; `text`/`link`/`image` flag which inputs to render.
 
+// A22 Participant Classification — the single source of truth for the canonical
+// multi-select values. Mirrors the DB CHECK constraint in migration 0023; keep
+// the two in sync. Used by the editor UI and server-side write validation.
+export const CLASSIFICATIONS: { value: string; label: string }[] = [
+  { value: "ambassador", label: "Ambassador" },
+  { value: "mentor", label: "Mentor" },
+  { value: "coach", label: "Coach" },
+  { value: "expert", label: "Expert" },
+  { value: "practitioner", label: "Practitioner" },
+  { value: "observer", label: "Observer" },
+];
+
+export const CLASSIFICATION_VALUES = CLASSIFICATIONS.map((c) => c.value);
+
 export const CRM_ASSET_FIELDS: {
   kind: string;
   label: string;

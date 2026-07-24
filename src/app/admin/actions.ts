@@ -8,6 +8,7 @@ import { logAudit } from "@/lib/audit";
 import { badId } from "@/lib/validation/actions";
 import type { MemberStatus, Role } from "@/lib/admin";
 import type { CrmImpact, RatingTier } from "@/lib/crm";
+import { CLASSIFICATION_VALUES } from "@/lib/crm-fields";
 
 // Admin server actions (docs/12). Every mutation re-checks role server-side in
 // addition to RLS. No-ops safely in offline/preview mode.
@@ -313,6 +314,7 @@ export async function saveCrm(input: {
   breakthrough: string;
   upsellPossible: boolean;
   rating: RatingTier | null;
+  classifications: string[];
   impact: CrmImpact;
 }) {
   if (badId(input.profileId)) return { ok: false };
@@ -330,6 +332,20 @@ export async function saveCrm(input: {
   if (error) {
     logError("saveCrm", error, { userId: ctx.userId });
     return { ok: false, error: "Couldn't save. Please try again." };
+  }
+  // A22 multi-select — server is the authority: drop anything not canonical
+  // before writing. Separate additive update so the core save above still works
+  // if the classifications migration (0023) hasn't been applied live yet; an
+  // undefined_column (42703) is swallowed as a graceful no-op.
+  const classifications = Array.from(
+    new Set(input.classifications.filter((c) => CLASSIFICATION_VALUES.includes(c))),
+  );
+  const { error: clsError } = await supabase
+    .from("participant_admin")
+    .update({ classifications })
+    .eq("profile_id", input.profileId);
+  if (clsError && clsError.code !== "42703") {
+    logError("saveCrm.classifications", clsError, { userId: ctx.userId });
   }
   revalidatePath(`/admin/members/${input.profileId}`);
   return { ok: true };

@@ -10,6 +10,11 @@ export { CRM_ASSET_FIELDS } from "@/lib/crm-fields";
 export type RatingTier =
   | "ambassador" | "mentor" | "coach" | "expert" | "practitioner" | "observer";
 
+// Evidence images live in the PRIVATE crm-assets bucket, so reads need a
+// short-lived signed URL — never a public URL and never persisted back to
+// Postgres. Kept intentionally short (10 min) so evidence links can't leak long.
+export const CRM_SIGNED_URL_TTL_SECONDS = 600;
+
 export interface CrmImpact {
   testimonial?: string; // A10
   turnover?: string; // A13
@@ -28,7 +33,8 @@ export interface CrmRecord {
   breakthrough: string; // A2
   designatedConsultant: string | null; // A11
   upsellPossible: boolean; // A12
-  rating: RatingTier | null; // A22
+  rating: RatingTier | null; // A22 (legacy single value — preserved, superseded by classifications)
+  classifications: string[]; // A22 — multi-select (ambassador/mentor/coach/expert/practitioner/observer)
   impact: CrmImpact; // A10, A13–A20
 }
 
@@ -37,7 +43,8 @@ export interface CrmAsset {
   kind: string; // A3–A9, A21 — one of CRM_ASSET_FIELDS[].kind
   body: string | null;
   url: string | null;
-  image: string | null; // storage path or image URL (A3/A4)
+  image: string | null; // canonical: storage PATH in crm-assets (or a pasted http URL)
+  imageUrl: string | null; // read-time only: short-lived signed URL (never persisted)
 }
 
 
@@ -51,6 +58,7 @@ const SAMPLE_CRM: CrmRecord = {
   designatedConsultant: null,
   upsellPossible: true,
   rating: "mentor",
+  classifications: ["mentor", "expert"],
   impact: {
     testimonial: "The Tribe changed how I run my company.",
     turnover: "+38% YoY",
@@ -77,6 +85,11 @@ export async function getCrm(profileId: string): Promise<{
     return { record: { ...SAMPLE_CRM, profileId }, assets: [] };
   }
 
+  // A22 classifications live on the same row but in a column added by a later
+  // migration. Read it separately + best-effort so the CRM still loads fully if
+  // the migration hasn't been applied live yet (undefined_column → []).
+  const classifications = await getClassifications(supabase, profileId);
+
   const record: CrmRecord = data
     ? {
         profileId,
@@ -85,6 +98,7 @@ export async function getCrm(profileId: string): Promise<{
         designatedConsultant: (data.designated_consultant as string) ?? null,
         upsellPossible: Boolean(data.upsell_possible),
         rating: (data.rating as RatingTier) ?? null,
+        classifications,
         impact: (data.impact as CrmImpact) ?? {},
       }
     : {
@@ -94,6 +108,7 @@ export async function getCrm(profileId: string): Promise<{
         designatedConsultant: null,
         upsellPossible: false,
         rating: null,
+        classifications,
         impact: {},
       };
 
@@ -108,7 +123,59 @@ export async function getCrm(profileId: string): Promise<{
     body: (a.body as string) ?? null,
     url: (a.url as string) ?? null,
     image: (a.image_path as string) ?? null,
+    imageUrl: null,
   }));
 
+  await signAssetImages(supabase, assets);
+
   return { record, assets };
+}
+
+// Best-effort read of the A22 multi-select column. Isolated so a not-yet-applied
+// migration (Postgres 42703 undefined_column) degrades to [] instead of failing
+// the whole CRM load.
+async function getClassifications(
+  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
+  profileId: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("participant_admin")
+    .select("classifications")
+    .eq("profile_id", profileId)
+    .maybeSingle();
+  if (error || !data) return [];
+  const raw = (data as { classifications?: unknown }).classifications;
+  return Array.isArray(raw) ? (raw as string[]) : [];
+}
+
+// Resolve read-time signed URLs for private evidence images. Storage paths get a
+// short-lived signed URL via the AUTHENTICATED server client, so the existing
+// crm-assets RLS (admin OR the participant's designated consultant) is what
+// authorizes each object — no service role, no scope widening. Pasted http(s)
+// URLs pass through as-is. Any signing failure leaves imageUrl null (the UI shows
+// an unavailable state) rather than throwing. Never persisted back to Postgres.
+async function signAssetImages(
+  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
+  assets: CrmAsset[],
+): Promise<void> {
+  const isHttp = (s: string) => /^https?:\/\//i.test(s);
+  for (const a of assets) {
+    if (a.image && isHttp(a.image)) a.imageUrl = a.image;
+  }
+  const toSign = assets.filter((a) => a.image && !isHttp(a.image));
+  if (!toSign.length) return;
+
+  try {
+    const { data, error } = await supabase.storage
+      .from("crm-assets")
+      .createSignedUrls(toSign.map((a) => a.image as string), CRM_SIGNED_URL_TTL_SECONDS);
+    if (error || !data) return;
+    const byPath = new Map<string, string>();
+    for (const d of data) {
+      if (d.path && d.signedUrl) byPath.set(d.path, d.signedUrl);
+    }
+    for (const a of toSign) a.imageUrl = byPath.get(a.image as string) ?? null;
+  } catch {
+    // Storage unreachable / bucket missing → leave imageUrl null (graceful).
+  }
 }

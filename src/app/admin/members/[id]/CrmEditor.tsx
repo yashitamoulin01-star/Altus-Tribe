@@ -2,13 +2,15 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { saveCrm, saveCrmAssets, assignConsultant } from "../../actions";
-import { CRM_ASSET_FIELDS } from "@/lib/crm-fields";
+import { CRM_ASSET_FIELDS, CLASSIFICATIONS } from "@/lib/crm-fields";
 import { uploadFile } from "@/lib/storage-client";
-import type { CrmAsset, CrmImpact, CrmRecord, RatingTier } from "@/lib/crm";
+import type { CrmAsset, CrmImpact, CrmRecord } from "@/lib/crm";
 import type { RosterMember } from "@/lib/admin";
 
-// Editor-local asset slot: the three possible inputs for one A-code.
-type AssetSlot = { body: string; url: string; image: string };
+// Editor-local asset slot: the possible inputs for one A-code. `image` is the
+// canonical storage path (or pasted URL); `imageUrl` is the read-only signed URL
+// used only to preview an already-saved private image.
+type AssetSlot = { body: string; url: string; image: string; imageUrl: string | null };
 
 function initSlots(assets: CrmAsset[]): Record<string, AssetSlot> {
   const out: Record<string, AssetSlot> = {};
@@ -18,14 +20,11 @@ function initSlots(assets: CrmAsset[]): Record<string, AssetSlot> {
       body: hit?.body ?? "",
       url: hit?.url ?? "",
       image: hit?.image ?? "",
+      imageUrl: hit?.imageUrl ?? null,
     };
   }
   return out;
 }
-
-const RATINGS: RatingTier[] = [
-  "ambassador", "mentor", "coach", "expert", "practitioner", "observer",
-];
 
 const IMPACT_FIELDS: { key: keyof CrmImpact; label: string }[] = [
   { key: "testimonial", label: "One-line testimonial (A10)" },
@@ -73,6 +72,15 @@ export default function CrmEditor({
     setSlots((s) => ({ ...s, [kind]: { ...s[kind], ...patch } }));
     setStatus("idle");
   };
+  const toggleClassification = (value: string) => {
+    setForm((f) => ({
+      ...f,
+      classifications: f.classifications.includes(value)
+        ? f.classifications.filter((c) => c !== value)
+        : [...f.classifications, value],
+    }));
+    setStatus("idle");
+  };
 
   const persist = async () => {
     await saveCrm({
@@ -81,6 +89,7 @@ export default function CrmEditor({
       breakthrough: form.breakthrough,
       upsellPossible: form.upsellPossible,
       rating: form.rating,
+      classifications: form.classifications,
       impact: form.impact,
     });
     await saveCrmAssets(
@@ -115,7 +124,7 @@ export default function CrmEditor({
     }, 1200);
     return () => clearTimeout(timer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form.referredBy, form.breakthrough, form.upsellPossible, form.rating, form.impact, slots]);
+  }, [form.referredBy, form.breakthrough, form.upsellPossible, form.rating, form.classifications, form.impact, slots]);
 
   const reassign = (consultantId: string) =>
     startTransition(async () => {
@@ -159,23 +168,39 @@ export default function CrmEditor({
         />
       </div>
 
-      {/* Rating + upsell */}
-      <section className="grid gap-4 md:grid-cols-2">
+      {/* Classification (multi-select) + upsell */}
+      <section className="space-y-4">
         <div>
-          <label className={labelCls}>Participant rating (A22)</label>
-          <select
-            className={field}
-            value={form.rating ?? ""}
-            onChange={(e) => set("rating", (e.target.value || null) as RatingTier | null)}
-            disabled={!isAdmin}
-          >
-            <option value="">— Unrated —</option>
-            {RATINGS.map((r) => (
-              <option key={r} value={r}>{r[0].toUpperCase() + r.slice(1)}</option>
-            ))}
-          </select>
+          <label className={labelCls}>Participant classification (A22)</label>
+          <div role="group" aria-label="Participant classification" className="mt-1 flex flex-wrap gap-2">
+            {CLASSIFICATIONS.map((c) => {
+              const on = form.classifications.includes(c.value);
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  role="checkbox"
+                  aria-checked={on}
+                  disabled={!isAdmin}
+                  onClick={() => toggleClassification(c.value)}
+                  className={`rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red/40 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    on
+                      ? "border-red bg-red text-paper"
+                      : "border-hairline bg-surface-sunk text-ink-muted hover:border-ink-muted hover:text-ink"
+                  }`}
+                >
+                  {c.label}
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-1.5 text-[12px] text-ink-muted">
+            {form.classifications.length
+              ? "Select all that apply — a participant can hold several."
+              : "None selected. A participant can hold several classifications."}
+          </p>
         </div>
-        <label className="flex items-center gap-3 self-end pb-2">
+        <label className="flex items-center gap-3">
           <input
             type="checkbox"
             checked={form.upsellPossible}
@@ -233,7 +258,9 @@ export default function CrmEditor({
                     <CrmImageInput
                       participantId={form.profileId}
                       value={slot.image}
+                      previewUrl={slot.imageUrl}
                       onChange={(v) => setSlot(f.kind, { image: v })}
+                      onPreview={(u) => setSlot(f.kind, { imageUrl: u })}
                     />
                   )}
                 </div>
@@ -271,28 +298,51 @@ export default function CrmEditor({
 }
 
 // Asset proof image: upload to the private crm-assets bucket under the
-// participant's folder, or paste a URL/path. Stores the storage path (or URL).
+// participant's folder, or paste a URL/path. Stores the canonical storage path
+// (or a pasted URL); previews via the read-only signed URL. `previewUrl` comes
+// from the server (signed) for an already-saved image; a fresh upload previews
+// instantly from a local object URL until the next reload re-signs it.
 function CrmImageInput({
   participantId,
   value,
+  previewUrl,
   onChange,
+  onPreview,
 }: {
   participantId: string;
   value: string;
+  previewUrl: string | null;
   onChange: (v: string) => void;
+  onPreview: (url: string | null) => void;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [broken, setBroken] = useState(false);
+
+  const isHttp = (s: string) => /^https?:\/\//i.test(s);
 
   const pick = async (file: File | undefined) => {
     if (!file) return;
     setErr(null);
+    setBroken(false);
     setBusy(true);
     const r = await uploadFile("crm-assets", participantId, file, { allow: "image" });
     setBusy(false);
-    if (r.ok) onChange(r.path);
-    else setErr(r.error);
+    if (r.ok) {
+      onChange(r.path);
+      onPreview(URL.createObjectURL(file)); // instant local preview (private bucket → no public URL)
+    } else {
+      setErr(r.error);
+    }
+  };
+
+  const editPath = (v: string) => {
+    onChange(v);
+    setBroken(false);
+    // A pasted http(s) URL previews directly; a bare storage path can only be
+    // signed server-side, so it previews after the next save/reload.
+    onPreview(isHttp(v) ? v : null);
   };
 
   return (
@@ -302,7 +352,7 @@ function CrmImageInput({
           className={field}
           placeholder="Image URL or storage path"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => editPath(e.target.value)}
         />
         <input
           ref={ref}
@@ -320,6 +370,19 @@ function CrmImageInput({
           {busy ? "Uploading…" : "Upload"}
         </button>
       </div>
+      {previewUrl && !broken ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={previewUrl}
+          alt="Evidence preview"
+          onError={() => setBroken(true)}
+          className="h-20 w-auto rounded border border-hairline object-cover"
+        />
+      ) : value && !previewUrl ? (
+        <p className="text-[12px] text-ink-muted">Saved image — preview appears after reload.</p>
+      ) : broken ? (
+        <p className="text-[12px] text-ink-muted">Image unavailable (the link may have expired — reload to refresh).</p>
+      ) : null}
       {err && <p className="text-[12px] text-red">{err}</p>}
     </div>
   );
