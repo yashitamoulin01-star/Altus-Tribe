@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { saveProfile } from "./actions";
 import { uploadFile } from "@/lib/storage-client";
+import { SocialLinksManager } from "@/app/onboarding/OnboardingWizard";
 import {
   ATTACHMENT_KIND_LABELS,
   composeFullName,
@@ -714,31 +715,9 @@ export default function EditFeature({
             />
           </Section>
 
-          <Section title="Presence & Social Channels" note="Choose how members find you — connect automatically or manually enter link URLs.">
-            <div className="mb-4 flex rounded-xl border border-hairline bg-surface-sunk p-1 max-w-md">
-              <button
-                type="button"
-                className="flex-1 rounded-lg py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all bg-red text-white shadow-sm"
-              >
-                Manual Link Input
-              </button>
-              <button
-                type="button"
-                className="flex-1 rounded-lg py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all text-ink-muted hover:text-ink"
-              >
-                Auto-Connect (OAuth)
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <TextField label="LinkedIn URL / Handle" value={d.linkedin} onChange={(v) => set("linkedin", v)} placeholder="https://linkedin.com/in/username" {...visProps("linkedin")} />
-              <TextField label="GitHub URL / Handle" value={d.github} onChange={(v) => set("github", v)} placeholder="https://github.com/username" />
-              <TextField label="Business Instagram" value={d.businessInstagram} onChange={(v) => set("businessInstagram", v)} placeholder="https://instagram.com/brand" {...visProps("business_instagram")} />
-              <TextField label="Personal Instagram" value={d.personalInstagram} onChange={(v) => set("personalInstagram", v)} placeholder="https://instagram.com/username" {...visProps("personal_instagram")} />
-              <TextField label="YouTube Channel / Video" value={d.youtube} onChange={(v) => set("youtube", v)} placeholder="https://youtube.com/@channel" />
-              <TextField label="Telegram handle / link" value={d.telegram} onChange={(v) => set("telegram", v)} placeholder="https://t.me/username" />
-              <TextField label="WhatsApp number or link" value={d.whatsappLink} onChange={(v) => set("whatsappLink", v)} placeholder="+91 XXXXXXXXXX or https://wa.me/..." {...visProps("whatsapp")} />
-              <TextField label="Portfolio / Website Link" value={d.customLink} onChange={(v) => set("customLink", v)} placeholder="https://yourportfolio.com" />
+          <Section title="Presence & Social Channels" note="Choose how members find you — connect automatically or manually enter link URLs (LinkedIn, GitHub, Email, WhatsApp, Telegram, Other).">
+            <SocialLinksManager d={d} set={set} />
+            <div className="mt-4">
               <TextField label="Best time to connect" value={d.bestTime} onChange={(v) => set("bestTime", v)} placeholder="10am–7pm Mon–Fri" />
             </div>
 

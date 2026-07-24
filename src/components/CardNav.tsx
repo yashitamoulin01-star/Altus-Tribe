@@ -1,70 +1,259 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
-import { motion } from "motion/react";
+import { useLayoutEffect, useRef, useState } from "react";
+import { gsap } from "gsap";
+import { GoArrowUpRight } from "react-icons/go";
+import "./CardNav.css";
+
+export interface CardNavLink {
+  label: string;
+  ariaLabel?: string;
+  href?: string;
+}
 
 export interface CardNavItem {
-  href: string;
   label: string;
-  icon: (active: boolean) => React.ReactNode;
-  active: boolean;
+  bgColor: string;
+  textColor: string;
+  links?: CardNavLink[];
 }
 
-interface CardNavProps {
-  items: CardNavItem[];
+export interface CardNavProps {
+  logo?: string;
+  logoAlt?: string;
+  items?: CardNavItem[];
   className?: string;
+  ease?: string;
+  baseColor?: string;
+  menuColor?: string;
+  buttonBgColor?: string;
+  buttonTextColor?: string;
+  ctaText?: string;
+  onCtaClick?: () => void;
 }
 
-export default function CardNav({ items, className = "" }: CardNavProps) {
+const CardNav = ({
+  logo = "/favicon.ico",
+  logoAlt = "Logo",
+  items = [
+    {
+      label: "Explore",
+      bgColor: "#1F1B29",
+      textColor: "#fff",
+      links: [
+        { label: "Members Directory", href: "/explore", ariaLabel: "Explore Members" },
+        { label: "Sacred Space", href: "/sacred-space", ariaLabel: "Sacred Space" },
+      ],
+    },
+    {
+      label: "Campus",
+      bgColor: "#2F293A",
+      textColor: "#fff",
+      links: [
+        { label: "Programs & Courses", href: "/campus", ariaLabel: "Campus Programs" },
+        { label: "Conclaves & Events", href: "/home", ariaLabel: "Events" },
+      ],
+    },
+    {
+      label: "Account",
+      bgColor: "#991b1b",
+      textColor: "#fff",
+      links: [
+        { label: "Edit Feature", href: "/account/edit", ariaLabel: "Edit Feature Profile" },
+        { label: "Connections", href: "/connections", ariaLabel: "Connections" },
+      ],
+    },
+  ],
+  className = "",
+  ease = "power3.out",
+  baseColor = "#17141f",
+  menuColor = "#ffffff",
+  buttonBgColor = "#ef4444",
+  buttonTextColor = "#ffffff",
+  ctaText = "Dashboard",
+  onCtaClick,
+}: CardNavProps) => {
+  const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const navRef = useRef<HTMLElement | null>(null);
+  const cardsRef = useRef<HTMLDivElement[]>([]);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+
+  const calculateHeight = () => {
+    const navEl = navRef.current;
+    if (!navEl) return 260;
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    if (isMobile) {
+      const contentEl = navEl.querySelector(".card-nav-content") as HTMLElement;
+      if (contentEl) {
+        const wasVisible = contentEl.style.visibility;
+        const wasPointerEvents = contentEl.style.pointerEvents;
+        const wasPosition = contentEl.style.position;
+        const wasHeight = contentEl.style.height;
+
+        contentEl.style.visibility = "visible";
+        contentEl.style.pointerEvents = "auto";
+        contentEl.style.position = "static";
+        contentEl.style.height = "auto";
+
+        contentEl.offsetHeight;
+
+        const topBar = 60;
+        const padding = 16;
+        const contentHeight = contentEl.scrollHeight;
+
+        contentEl.style.visibility = wasVisible;
+        contentEl.style.pointerEvents = wasPointerEvents;
+        contentEl.style.position = wasPosition;
+        contentEl.style.height = wasHeight;
+
+        return topBar + contentHeight + padding;
+      }
+    }
+    return 260;
+  };
+
+  const createTimeline = () => {
+    const navEl = navRef.current;
+    if (!navEl) return null;
+
+    gsap.set(navEl, { height: 60, overflow: "hidden" });
+    gsap.set(cardsRef.current, { y: 50, opacity: 0 });
+
+    const tl = gsap.timeline({ paused: true });
+
+    tl.to(navEl, {
+      height: calculateHeight,
+      duration: 0.4,
+      ease,
+    });
+
+    tl.to(cardsRef.current, { y: 0, opacity: 1, duration: 0.4, ease, stagger: 0.08 }, "-=0.1");
+
+    return tl;
+  };
+
+  useLayoutEffect(() => {
+    const tl = createTimeline();
+    tlRef.current = tl;
+
+    return () => {
+      tl?.kill();
+      tlRef.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ease, items]);
+
+  useLayoutEffect(() => {
+    const handleResize = () => {
+      if (!tlRef.current) return;
+
+      if (isExpanded) {
+        const newHeight = calculateHeight();
+        gsap.set(navRef.current, { height: newHeight });
+
+        tlRef.current.kill();
+        const newTl = createTimeline();
+        if (newTl) {
+          newTl.progress(1);
+          tlRef.current = newTl;
+        }
+      } else {
+        tlRef.current.kill();
+        const newTl = createTimeline();
+        if (newTl) {
+          tlRef.current = newTl;
+        }
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isExpanded]);
+
+  const toggleMenu = () => {
+    const tl = tlRef.current;
+    if (!tl) return;
+    if (!isExpanded) {
+      setIsHamburgerOpen(true);
+      setIsExpanded(true);
+      tl.play(0);
+    } else {
+      setIsHamburgerOpen(false);
+      tl.eventCallback("onReverseComplete", () => setIsExpanded(false));
+      tl.reverse();
+    }
+  };
+
+  const setCardRef = (i: number) => (el: HTMLDivElement | null) => {
+    if (el) cardsRef.current[i] = el;
+  };
+
   return (
-    <nav
-      className={`fixed inset-x-4 bottom-4 z-50 mx-auto max-w-lg rounded-2xl border border-hairline/80 bg-surface/90 p-1.5 shadow-2xl backdrop-blur-xl transition-all duration-300 ${className}`}
-      style={{ paddingBottom: "calc(0.375rem + env(safe-area-inset-bottom, 0px))" }}
-      aria-label="Navigation Dock"
-    >
-      <ul className="flex items-center justify-around gap-1">
-        {items.map((item) => {
-          return (
-            <li key={item.href} className="relative flex-1">
-              <Link
-                href={item.href}
-                className="relative flex flex-col items-center justify-center rounded-xl py-2 px-1 transition-colors group"
-                aria-current={item.active ? "page" : undefined}
-              >
-                {/* Active Pill Motion Background */}
-                {item.active && (
-                  <motion.div
-                    layoutId="cardnav-active-bg"
-                    className="absolute inset-0 rounded-xl bg-surface-hover/80 border border-hairline"
-                    transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                  />
-                )}
+    <div className={`card-nav-container ${className}`}>
+      <nav ref={navRef} className={`card-nav ${isExpanded ? "open" : ""}`} style={{ backgroundColor: baseColor }}>
+        <div className="card-nav-top">
+          <div
+            className={`hamburger-menu ${isHamburgerOpen ? "open" : ""}`}
+            onClick={toggleMenu}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggleMenu();
+              }
+            }}
+            role="button"
+            aria-label={isExpanded ? "Close menu" : "Open menu"}
+            aria-expanded={isExpanded}
+            tabIndex={0}
+            style={{ color: menuColor || "#fff" }}
+          >
+            <div className="hamburger-line" />
+            <div className="hamburger-line" />
+          </div>
 
-                {/* Top Red Active Line */}
-                {item.active && (
-                  <motion.span
-                    layoutId="cardnav-active-indicator"
-                    className="absolute top-0.5 h-[2px] w-6 rounded-full bg-red shadow-[0_0_8px_rgba(239,68,68,0.8)]"
-                    transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                  />
-                )}
+          <div className="logo-container">
+            <a href="/home" className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-widest text-white">
+              <span className="h-2 w-2 rounded-full bg-red animate-pulse" />
+              ALTUS TRIBE
+            </a>
+          </div>
 
-                <span className="relative z-10 transition-transform duration-200 group-hover:scale-110">
-                  {item.icon(item.active)}
-                </span>
-                <span
-                  className={`relative z-10 mt-1 font-mono text-[10px] uppercase tracking-wider transition-colors ${
-                    item.active ? "font-semibold text-ink" : "text-ink-muted group-hover:text-ink-secondary"
-                  }`}
-                >
-                  {item.label}
-                </span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+          <button
+            type="button"
+            className="card-nav-cta-button"
+            style={{ backgroundColor: buttonBgColor, color: buttonTextColor }}
+            onClick={onCtaClick || (() => (window.location.href = "/home"))}
+          >
+            {ctaText}
+          </button>
+        </div>
+
+        <div className="card-nav-content" aria-hidden={!isExpanded}>
+          {(items || []).slice(0, 3).map((item, idx) => (
+            <div
+              key={`${item.label}-${idx}`}
+              className="nav-card"
+              ref={setCardRef(idx)}
+              style={{ backgroundColor: item.bgColor, color: item.textColor }}
+            >
+              <div className="nav-card-label">{item.label}</div>
+              <div className="nav-card-links">
+                {item.links?.map((lnk, i) => (
+                  <a key={`${lnk.label}-${i}`} className="nav-card-link" href={lnk.href || "#"} aria-label={lnk.ariaLabel}>
+                    <GoArrowUpRight className="nav-card-link-icon" aria-hidden="true" />
+                    {lnk.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </nav>
+    </div>
   );
-}
+};
+
+export default CardNav;

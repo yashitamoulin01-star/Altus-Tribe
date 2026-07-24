@@ -1,10 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { logError } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { messageBodySchema, uuidSchema } from "@/lib/validation/actions";
+
+const groupTitleSchema = z.string().trim().min(2, "Name too short").max(80, "Name too long");
+const memberIdsSchema = z.array(uuidSchema).min(1, "Pick at least one member").max(100);
 
 // Messaging server actions (docs/11). No-ops gracefully when Supabase is
 // unconfigured/unmigrated so the sample UI stays interactive-safe.
@@ -164,4 +168,121 @@ export async function getOrCreateDirectConversation(
   }
 
   return { id: conv.id as string };
+}
+
+// Create a group conversation: the caller becomes owner, then the picked members
+// are added. Mirrors the two-step add from getOrCreateDirectConversation — the
+// conversation_members INSERT policy only lets us add OTHERS once the caller's own
+// membership row exists (is_conversation_member becomes true).
+export async function createGroup(
+  title: string,
+  memberIds: string[],
+): Promise<{ id: string | null; error?: string }> {
+  const t = groupTitleSchema.safeParse(title);
+  if (!t.success) return { id: null, error: t.error.issues[0].message };
+  const ids = memberIdsSchema.safeParse(memberIds);
+  if (!ids.success) return { id: null, error: ids.error.issues[0].message };
+
+  const supabase = await createClient();
+  if (!supabase) return { id: null, error: "offline" };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { id: null, error: "unauthenticated" };
+
+  // Dedupe + drop the caller from the invitee list (they're added as owner below).
+  const invitees = [...new Set(ids.data)].filter((id) => id !== user.id);
+
+  const { data: conv, error } = await supabase
+    .from("conversations")
+    .insert({ kind: "group", title: t.data, created_by: user.id })
+    .select("id")
+    .single();
+  if (error || !conv) {
+    if (error) logError("createGroup", error, { userId: user.id });
+    return { id: null, error: "create-failed" };
+  }
+  const convId = conv.id as string;
+
+  const { error: selfErr } = await supabase
+    .from("conversation_members")
+    .insert({ conversation_id: convId, profile_id: user.id, role: "owner" });
+  if (selfErr) {
+    logError("createGroup.self", selfErr, { userId: user.id });
+    return { id: null, error: "create-failed" };
+  }
+
+  if (invitees.length) {
+    const { error: addErr } = await supabase
+      .from("conversation_members")
+      .insert(invitees.map((profile_id) => ({ conversation_id: convId, profile_id })));
+    if (addErr) {
+      // Group is still usable (owner is in it); surface a soft warning.
+      logError("createGroup.members", addErr, { userId: user.id });
+    }
+  }
+
+  revalidatePath("/messages");
+  return { id: convId };
+}
+
+// Add more members to an existing group. Allowed for any current member by the
+// 0006 conversation_members INSERT policy (is_conversation_member check).
+export async function addGroupMembers(
+  conversationId: string,
+  memberIds: string[],
+): Promise<SendResult> {
+  if (!uuidSchema.safeParse(conversationId).success) return { ok: false, error: "invalid" };
+  const ids = memberIdsSchema.safeParse(memberIds);
+  if (!ids.success) return { ok: false, error: ids.error.issues[0].message };
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "offline" };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+
+  const rows = [...new Set(ids.data)].map((profile_id) => ({
+    conversation_id: conversationId,
+    profile_id,
+  }));
+  // Ignore duplicates so re-adding an existing member is a harmless no-op.
+  const { error } = await supabase
+    .from("conversation_members")
+    .upsert(rows, { onConflict: "conversation_id,profile_id", ignoreDuplicates: true });
+  if (error) {
+    logError("addGroupMembers", error, { userId: user.id });
+    return { ok: false, error: "add-failed" };
+  }
+
+  revalidatePath(`/messages/${conversationId}`);
+  return { ok: true };
+}
+
+// Leave a group: remove the caller's own membership row. Requires the DELETE
+// policy from migration 0022; until that's applied this returns a safe failure.
+export async function leaveGroup(conversationId: string): Promise<SendResult> {
+  if (!uuidSchema.safeParse(conversationId).success) return { ok: false, error: "invalid" };
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, error: "offline" };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { ok: false, error: "unauthenticated" };
+
+  const { error } = await supabase
+    .from("conversation_members")
+    .delete()
+    .eq("conversation_id", conversationId)
+    .eq("profile_id", user.id);
+  if (error) {
+    logError("leaveGroup", error, { userId: user.id });
+    return { ok: false, error: "leave-failed" };
+  }
+
+  revalidatePath("/messages");
+  return { ok: true };
 }

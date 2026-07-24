@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCampusResources } from "@/lib/campus";
 import CampusBrowser from "./CampusBrowser";
+import CircularGallery from "@/components/CircularGallery";
 
 export const metadata = { title: "Campus — Altus Tribe" };
 export const dynamic = "force-dynamic";
@@ -24,6 +25,21 @@ export default async function CampusPage() {
       </header>
 
       <CampusBrowser resources={resources} />
+
+      {/* React Bits 3D Circular Showcase Gallery */}
+      <section className="mt-12 rounded-2xl border border-hairline/80 bg-surface/60 p-6 backdrop-blur-md">
+        <p className="kicker mb-2">Interactive Showcase</p>
+        <h2 className="text-xl font-semibold text-ink mb-4">Program & Event Highlights</h2>
+        <div className="h-[360px] w-full rounded-xl overflow-hidden bg-black/40">
+          <CircularGallery
+            bend={3}
+            textColor="#ffffff"
+            borderRadius={0.08}
+            scrollSpeed={2.5}
+            scrollEase={0.05}
+          />
+        </div>
+      </section>
 
       {/* PS Orientation + channels (static entry points) */}
       <section className="mt-12 grid gap-5 border-t border-hairline pt-10 md:grid-cols-2">

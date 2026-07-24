@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { getNotifications } from "@/lib/notifications";
 import { Card, WidgetHeader, EmptyNote } from "./_shared";
+import NotificationListWrapper from "./NotificationListWrapper";
 
 function fmt(iso: string) {
   const d = new Date(iso);
@@ -9,9 +9,18 @@ function fmt(iso: string) {
     : d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
-// Latest activity feed.
+// Latest activity feed using React Bits AnimatedList.
 export default async function NotificationsWidget() {
-  const items = (await getNotifications()).slice(0, 4);
+  const items = (await getNotifications()).slice(0, 5);
+
+  const formattedItems = items.map((n) => ({
+    id: n.id,
+    title: n.title,
+    body: n.body,
+    link: n.link,
+    read: n.read,
+    time: fmt(n.createdAt),
+  }));
 
   return (
     <Card>
@@ -19,28 +28,7 @@ export default async function NotificationsWidget() {
       {items.length === 0 ? (
         <EmptyNote>You&apos;re all caught up.</EmptyNote>
       ) : (
-        <ul className="divide-y divide-hairline">
-          {items.map((n) => {
-            const row = (
-              <div className="flex items-start gap-3 py-3">
-                <span
-                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read ? "bg-hairline" : "bg-red"}`}
-                  aria-hidden
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[14px] font-medium text-ink">{n.title}</p>
-                  {n.body && <p className="truncate text-[13px] text-ink-muted">{n.body}</p>}
-                </div>
-                <span className="shrink-0 font-mono text-[11px] text-ink-muted">{fmt(n.createdAt)}</span>
-              </div>
-            );
-            return (
-              <li key={n.id} className="first:[&>*]:pt-0 last:[&>*]:pb-0">
-                {n.link ? <Link href={n.link}>{row}</Link> : row}
-              </li>
-            );
-          })}
-        </ul>
+        <NotificationListWrapper items={formattedItems} />
       )}
     </Card>
   );

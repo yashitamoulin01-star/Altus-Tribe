@@ -31,13 +31,23 @@ export default async function MessagesPage() {
   return (
     <main className="mx-auto w-full max-w-[800px] px-6 pt-8 pb-28 sm:px-10 space-y-8">
       <header className="border-b border-hairline/80 pb-6">
-        <p className="kicker mb-2 text-red font-semibold">Tribe Messaging</p>
-        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
-          Direct Conversations
-        </h1>
-        <p className="mt-2 text-[14px] text-ink-secondary">
-          Private 1:1 and group communications with fellow Tribe members.
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="kicker mb-2 text-red font-semibold">Tribe Messaging</p>
+            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+              Conversations
+            </h1>
+            <p className="mt-2 text-[14px] text-ink-secondary">
+              Private 1:1 and group communications with fellow Tribe members.
+            </p>
+          </div>
+          <Link
+            href="/messages/new"
+            className="shrink-0 rounded-xl bg-red px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover active:scale-95"
+          >
+            ＋ New group
+          </Link>
+        </div>
       </header>
 
       {conversations.length === 0 ? (

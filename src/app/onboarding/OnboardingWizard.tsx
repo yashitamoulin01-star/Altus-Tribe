@@ -505,10 +505,11 @@ export default function OnboardingWizard({
         </Screen>
       )}
 
-      {/* ---- Step 7: Portfolio ---- */}
+      {/* ---- Step 7: Portfolio & Social Channels ---- */}
       {step === 7 && (
-        <Screen title="Your showcase." intro="Brochures, videos and your channels. Up to 5 attachments.">
+        <Screen title="Your showcase & socials." intro="Brochures, videos, and your connect channels. Type links manually or connect your platforms.">
           <div className="space-y-3">
+            <span className={lbl}>Brochures & Media Attachments</span>
             {d.attachments.map((a, i) => (
               <div key={i} className="rounded-lg border border-hairline p-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
@@ -531,11 +532,14 @@ export default function OnboardingWizard({
           {d.attachments.length < MAX_ATTACHMENTS && (
             <button type="button" onClick={addAttachment} className="rounded-lg border border-dashed border-hairline px-4 py-2.5 text-[14px] text-ink-muted transition-colors hover:border-ink-muted hover:text-ink">+ Add brochure or video</button>
           )}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="LinkedIn"><div className="flex items-center gap-2"><input className={input} value={d.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="linkedin.com/in/you" />{eye("linkedin")}</div></Field>
-            <Field label="YouTube"><input className={input} value={d.youtube} onChange={(e) => set("youtube", e.target.value)} /></Field>
-            <Field label="Business Instagram"><div className="flex items-center gap-2"><input className={input} value={d.businessInstagram} onChange={(e) => set("businessInstagram", e.target.value)} />{eye("business_instagram")}</div></Field>
-            <Field label="Personal Instagram"><div className="flex items-center gap-2"><input className={input} value={d.personalInstagram} onChange={(e) => set("personalInstagram", e.target.value)} />{eye("personal_instagram")}</div></Field>
+
+          <div className="border-t border-hairline pt-6 mt-6">
+            <div className="mb-4">
+              <span className={lbl}>Social & Connect Links</span>
+              <p className="text-[13px] text-ink-muted mt-1">Connect your existing accounts or manually type in direct link URLs below (LinkedIn, GitHub, Email, WhatsApp, Telegram, Other).</p>
+            </div>
+
+            <SocialLinksManager d={d} set={set} eye={eye} />
           </div>
         </Screen>
       )}
@@ -948,21 +952,9 @@ function CompletionStep({
   onEnter: () => void;
   finishing: boolean;
 }) {
-  const [countdown, setCountdown] = useState(3);
-
+  // Auto-redirect to dashboard immediately on finish
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          onEnter();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
+    onEnter();
   }, [onEnter]);
 
   return (
@@ -976,23 +968,17 @@ function CompletionStep({
           Welcome to Altus Tribe
         </h1>
         <p className="mt-2 text-[16px] leading-relaxed text-ink-secondary">
-          {fullName || "Your"} professional identity is ready.
+          {fullName || "Your"} professional identity is ready. Redirecting to your Dashboard…
         </p>
       </div>
 
       <div className="rounded-2xl border border-hairline/80 bg-surface/80 p-6 backdrop-blur-md max-w-sm mx-auto shadow-xl">
         <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-red font-semibold mb-2">
-          Redirecting to Dashboard
+          Entering Main Dashboard
         </p>
         <div className="h-1.5 w-full bg-surface-sunk rounded-full overflow-hidden mb-3">
-          <div
-            className="h-full bg-red transition-all duration-1000 ease-linear rounded-full"
-            style={{ width: `${((3 - countdown) / 3) * 100}%` }}
-          />
+          <div className="h-full bg-red animate-pulse rounded-full w-full" />
         </div>
-        <p className="text-[13px] text-ink-muted">
-          Entering in {countdown} second{countdown === 1 ? "" : "s"}…
-        </p>
       </div>
 
       <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -1002,19 +988,223 @@ function CompletionStep({
           disabled={finishing}
           className="rounded-xl bg-red px-8 py-3 text-[15px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover active:scale-95 disabled:opacity-60"
         >
-          {finishing ? "Entering…" : "Go to Dashboard now →"}
+          {finishing ? "Redirecting…" : "Go to Dashboard now →"}
         </button>
 
         {slug && configured && (
           <a
-            href={`/m/${slug}`}
+            href={`/home`}
             className="rounded-xl border border-hairline px-6 py-3 text-[14px] font-medium text-ink transition-colors hover:border-hairline-bright"
           >
-            Preview Feature Page
+            Go to Main Page
           </a>
         )}
       </div>
     </div>
   );
 }
+
+export function SocialLinksManager({
+  d,
+  set,
+  eye,
+}: {
+  d: EditableProfile;
+  set: <K extends keyof EditableProfile>(k: K, v: EditableProfile[K]) => void;
+  eye?: (k: string) => React.ReactNode;
+}) {
+  const [activeMode, setActiveMode] = useState<"manual" | "connect">("manual");
+
+  return (
+    <div className="space-y-4">
+      {/* Mode Selector */}
+      <div className="flex rounded-xl border border-hairline bg-surface-sunk p-1">
+        <button
+          type="button"
+          onClick={() => setActiveMode("manual")}
+          className={`flex-1 rounded-lg py-2 font-mono text-[11px] uppercase tracking-wider transition-all ${
+            activeMode === "manual"
+              ? "bg-red text-white font-semibold shadow-sm"
+              : "text-ink-muted hover:text-ink"
+          }`}
+        >
+          ✍ Manual Link Input
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveMode("connect")}
+          className={`flex-1 rounded-lg py-2 font-mono text-[11px] uppercase tracking-wider transition-all ${
+            activeMode === "connect"
+              ? "bg-red text-white font-semibold shadow-sm"
+              : "text-ink-muted hover:text-ink"
+          }`}
+        >
+          🔗 Platform Connections
+        </button>
+      </div>
+
+      {activeMode === "manual" ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
+          <Field label="LinkedIn Link">
+            <div className="flex items-center gap-2">
+              <input className={input} value={d.linkedin} onChange={(e) => set("linkedin", e.target.value)} placeholder="https://linkedin.com/in/username" />
+              {eye && eye("linkedin")}
+            </div>
+          </Field>
+
+          <Field label="GitHub Link">
+            <input className={input} value={d.github} onChange={(e) => set("github", e.target.value)} placeholder="https://github.com/username" />
+          </Field>
+
+          <Field label="Work Email Link / Address">
+            <div className="flex items-center gap-2">
+              <input className={input} value={d.workEmail} onChange={(e) => set("workEmail", e.target.value)} placeholder="name@company.com" />
+              {eye && eye("work_email")}
+            </div>
+          </Field>
+
+          <Field label="WhatsApp Link / Number">
+            <div className="flex items-center gap-2">
+              <input className={input} value={d.whatsappLink} onChange={(e) => set("whatsappLink", e.target.value)} placeholder="https://wa.me/919999999999 or +91..." />
+              {eye && eye("whatsapp")}
+            </div>
+          </Field>
+
+          <Field label="Telegram Link / Handle">
+            <input className={input} value={d.telegram} onChange={(e) => set("telegram", e.target.value)} placeholder="https://t.me/username" />
+          </Field>
+
+          <Field label="Other / Custom Link">
+            <input className={input} value={d.customLink} onChange={(e) => set("customLink", e.target.value)} placeholder="https://yourportfolio.com" />
+          </Field>
+
+          <Field label="Business Instagram">
+            <div className="flex items-center gap-2">
+              <input className={input} value={d.businessInstagram} onChange={(e) => set("businessInstagram", e.target.value)} placeholder="https://instagram.com/brand" />
+              {eye && eye("business_instagram")}
+            </div>
+          </Field>
+
+          <Field label="YouTube Channel / Video">
+            <input className={input} value={d.youtube} onChange={(e) => set("youtube", e.target.value)} placeholder="https://youtube.com/@channel" />
+          </Field>
+        </div>
+      ) : (
+        <div className="space-y-3 pt-2">
+          <p className="text-[13px] text-ink-muted">Quick-connect existing accounts directly to your profile:</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => {
+                const url = prompt("Enter your LinkedIn URL or Username:", d.linkedin || "");
+                if (url !== null) set("linkedin", url.startsWith("http") ? url : `https://linkedin.com/in/${url}`);
+              }}
+              className="flex items-center justify-between rounded-xl border border-hairline bg-surface p-3.5 transition-all hover:border-red/40 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">💼</span>
+                <div className="text-left">
+                  <p className="text-[14px] font-medium text-ink">LinkedIn</p>
+                  <p className="text-[12px] text-ink-muted">{d.linkedin ? "Connected ✓" : "Click to connect"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-red font-mono font-medium">{d.linkedin ? "Edit" : "+ Add"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const url = prompt("Enter your GitHub URL or Username:", d.github || "");
+                if (url !== null) set("github", url.startsWith("http") ? url : `https://github.com/${url}`);
+              }}
+              className="flex items-center justify-between rounded-xl border border-hairline bg-surface p-3.5 transition-all hover:border-red/40 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">💻</span>
+                <div className="text-left">
+                  <p className="text-[14px] font-medium text-ink">GitHub</p>
+                  <p className="text-[12px] text-ink-muted">{d.github ? "Connected ✓" : "Click to connect"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-red font-mono font-medium">{d.github ? "Edit" : "+ Add"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const mail = prompt("Enter your Work Email:", d.workEmail || "");
+                if (mail !== null) set("workEmail", mail);
+              }}
+              className="flex items-center justify-between rounded-xl border border-hairline bg-surface p-3.5 transition-all hover:border-red/40 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">✉️</span>
+                <div className="text-left">
+                  <p className="text-[14px] font-medium text-ink">Email</p>
+                  <p className="text-[12px] text-ink-muted">{d.workEmail ? "Connected ✓" : "Click to connect"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-red font-mono font-medium">{d.workEmail ? "Edit" : "+ Add"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const wa = prompt("Enter your WhatsApp Mobile Number or Link:", d.whatsappLink || "");
+                if (wa !== null) set("whatsappLink", wa);
+              }}
+              className="flex items-center justify-between rounded-xl border border-hairline bg-surface p-3.5 transition-all hover:border-red/40 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">💬</span>
+                <div className="text-left">
+                  <p className="text-[14px] font-medium text-ink">WhatsApp</p>
+                  <p className="text-[12px] text-ink-muted">{d.whatsappLink ? "Connected ✓" : "Click to connect"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-red font-mono font-medium">{d.whatsappLink ? "Edit" : "+ Add"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const tg = prompt("Enter your Telegram Handle or Link:", d.telegram || "");
+                if (tg !== null) set("telegram", tg.startsWith("http") ? tg : `https://t.me/${tg.replace("@", "")}`);
+              }}
+              className="flex items-center justify-between rounded-xl border border-hairline bg-surface p-3.5 transition-all hover:border-red/40 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">✈️</span>
+                <div className="text-left">
+                  <p className="text-[14px] font-medium text-ink">Telegram</p>
+                  <p className="text-[12px] text-ink-muted">{d.telegram ? "Connected ✓" : "Click to connect"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-red font-mono font-medium">{d.telegram ? "Edit" : "+ Add"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const link = prompt("Enter custom portfolio / website URL:", d.customLink || "");
+                if (link !== null) set("customLink", link);
+              }}
+              className="flex items-center justify-between rounded-xl border border-hairline bg-surface p-3.5 transition-all hover:border-red/40 hover:bg-surface-hover"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">🌐</span>
+                <div className="text-left">
+                  <p className="text-[14px] font-medium text-ink">Other / Custom Link</p>
+                  <p className="text-[12px] text-ink-muted">{d.customLink ? "Connected ✓" : "Click to connect"}</p>
+                </div>
+              </div>
+              <span className="text-xs text-red font-mono font-medium">{d.customLink ? "Edit" : "+ Add"}</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 

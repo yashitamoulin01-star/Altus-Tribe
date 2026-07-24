@@ -34,6 +34,21 @@ export interface ConversationDetail {
   messages: MessageView[];
 }
 
+export interface GroupMember {
+  id: string;
+  name: string;
+  photoUrl: string | null;
+  isOwner: boolean;
+}
+
+export interface GroupInfo {
+  id: string;
+  title: string;
+  members: GroupMember[];
+  isOwner: boolean; // is the caller the group's owner/creator
+  meId: string;
+}
+
 const schemaMissing = (e: { code?: string } | null) =>
   e?.code === "PGRST205" || e?.code === "42P01";
 
@@ -273,5 +288,48 @@ export async function getConversation(id: string): Promise<ConversationDetail | 
     title,
     memberNames: [...nameById.values()],
     messages,
+  };
+}
+
+// Group roster + roles for the group-info panel (members list, add/leave controls).
+// Returns null when the conversation isn't a readable group for the caller.
+export async function getGroupInfo(id: string): Promise<GroupInfo | null> {
+  const supabase = await createClient();
+  if (!supabase) return null;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: conv, error } = await supabase
+    .from("conversations")
+    .select("id, kind, title")
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !conv || conv.kind !== "group") return null;
+
+  const { data: rows } = await supabase
+    .from("conversation_members")
+    .select("profile_id, role, profiles ( full_name, photo_url )")
+    .eq("conversation_id", id);
+
+  const members: GroupMember[] = (rows ?? []).map((m) => {
+    const p = m.profiles as { full_name?: string; photo_url?: string } | undefined;
+    return {
+      id: m.profile_id as string,
+      name: p?.full_name ?? "Member",
+      photoUrl: p?.photo_url ?? null,
+      isOwner: (m.role as string) === "owner",
+    };
+  });
+
+  const me = members.find((m) => m.id === user.id);
+  return {
+    id: conv.id as string,
+    title: (conv.title as string) ?? "Group",
+    members,
+    isOwner: me?.isOwner ?? false,
+    meId: user.id,
   };
 }
