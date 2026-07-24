@@ -32,6 +32,25 @@ export default function ResetForm() {
         )}
       </div>
 
+      <div>
+        <label htmlFor="confirmPassword" className={labelClass}>
+          Confirm new password
+        </label>
+        <input
+          id="confirmPassword"
+          name="confirmPassword"
+          type="password"
+          required
+          minLength={8}
+          autoComplete="new-password"
+          placeholder="Re-enter your password"
+          className={fieldClass}
+        />
+        {state?.fieldErrors?.confirmPassword && (
+          <p className="mt-1 text-[12px] text-red">{state.fieldErrors.confirmPassword}</p>
+        )}
+      </div>
+
       {state?.error && <p className="text-[14px] text-red">{state.error}</p>}
 
       <SubmitButton pending={pending}>Update password</SubmitButton>

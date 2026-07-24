@@ -232,10 +232,14 @@ export async function updatePassword(
   const supabase = await createClient();
   if (!supabase) return notConfigured();
 
-  const parsed = newPasswordSchema.safeParse({
-    password: String(formData.get("password") ?? ""),
-  });
+  const password = String(formData.get("password") ?? "");
+  const confirmPassword = String(formData.get("confirmPassword") ?? "");
+  const parsed = newPasswordSchema.safeParse({ password });
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
+  // Server is the authority on the match (client validation is UX only).
+  if (password !== confirmPassword) {
+    return { fieldErrors: { confirmPassword: "Passwords don't match." } };
+  }
 
   const { error } = await supabase.auth.updateUser({
     password: parsed.data.password,
