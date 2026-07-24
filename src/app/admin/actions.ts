@@ -419,6 +419,64 @@ export async function recordCrmShare(input: {
   return { ok: true };
 }
 
+// Targeted broadcast (docs/17 §4 / master §F). Sends an IN-APP notification to a
+// chosen audience — all active members, only members, only consultants/admins, or
+// a single member. HONEST: there is no push/email provider, so this is in-app
+// only (the notification center + bell). RLS lets an admin insert a notification
+// for any recipient (migration 0013). Audited.
+export async function sendBroadcast(input: {
+  title: string;
+  body: string;
+  link: string;
+  audience: { type: "all" | "members" | "consultants" | "one"; memberId?: string };
+}) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false, error: "Not authorized." };
+
+  const title = input.title.trim().slice(0, 200);
+  if (!title) return { ok: false, error: "A title is required." };
+  const body = input.body.trim().slice(0, 2000) || null;
+  const link = input.link.trim().slice(0, 500) || null;
+
+  let recipientIds: string[] = [];
+  if (input.audience.type === "one") {
+    if (!input.audience.memberId || badId(input.audience.memberId)) {
+      return { ok: false, error: "Pick a member to notify." };
+    }
+    recipientIds = [input.audience.memberId];
+  } else {
+    let q = supabase.from("profiles").select("id").eq("status", "active");
+    if (input.audience.type === "members") q = q.eq("role", "member");
+    if (input.audience.type === "consultants") q = q.in("role", ["consultant", "admin"]);
+    const { data, error } = await q;
+    if (error) {
+      logError("sendBroadcast.recipients", error, { userId: ctx.userId });
+      return { ok: false, error: "Couldn't load recipients. Please try again." };
+    }
+    recipientIds = (data ?? []).map((r) => r.id as string);
+  }
+  if (!recipientIds.length) return { ok: false, error: "No recipients matched that audience." };
+
+  const rows = recipientIds.map((id) => ({
+    recipient_id: id,
+    kind: "system" as const,
+    title,
+    body,
+    link,
+  }));
+  const { error: insErr } = await supabase.from("notifications").insert(rows);
+  if (insErr) {
+    logError("sendBroadcast", insErr, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't send the broadcast. Please try again." };
+  }
+
+  await logAudit("broadcast.send", {
+    entityType: "notification",
+    metadata: { audience: input.audience.type, count: recipientIds.length, title },
+  });
+  return { ok: true, count: recipientIds.length };
+}
+
 // Moderation (#174): soft-delete a message. Comments don't exist yet; this covers
 // the content that does, and extends to comments when that feature ships.
 export async function deleteMessage(messageId: string) {
