@@ -91,6 +91,7 @@ export default async function AdminMembersPage({
               {["Member", "Batch", "Industry / City", "Status", ""].map((h) => (
                 <th
                   key={h}
+                  scope="col"
                   className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted"
                 >
                   {h}

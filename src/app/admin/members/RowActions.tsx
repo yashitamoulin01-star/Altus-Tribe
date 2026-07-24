@@ -39,7 +39,7 @@ export default function RowActions({
     });
 
   const btn =
-    "rounded border border-hairline px-2.5 py-1 text-[12px] text-ink transition-colors hover:border-ink-muted disabled:opacity-40";
+    "rounded border border-hairline px-2.5 py-1 text-[12px] text-ink transition-colors hover:border-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red/40 disabled:opacity-40";
 
   return (
     <div className="flex flex-wrap items-center justify-end gap-1.5">

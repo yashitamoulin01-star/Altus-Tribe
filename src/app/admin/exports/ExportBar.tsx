@@ -37,7 +37,7 @@ export default function ExportBar({ roster }: { roster: RosterMember[] }) {
   };
 
   const btn =
-    "rounded border border-hairline px-5 py-3 text-[15px] text-ink transition-colors hover:border-ink-muted";
+    "rounded border border-hairline px-5 py-3 text-[15px] text-ink transition-colors hover:border-ink-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red/40";
 
   return (
     <div className="flex flex-wrap gap-3">

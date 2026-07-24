@@ -35,6 +35,7 @@ export default async function AdminApprovalsPage() {
                 {["Applicant", "Batch", "Industry / City", ""].map((h) => (
                   <th
                     key={h}
+                    scope="col"
                     className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-muted"
                   >
                     {h}

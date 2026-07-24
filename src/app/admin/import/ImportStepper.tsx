@@ -193,7 +193,7 @@ export default function ImportStepper() {
             <table className="w-full text-left text-[13px]">
               <thead className="sticky top-0 bg-surface-sunk">
                 <tr>{["Name", "Slug", "City", "Industry", "Batch"].map((h) => (
-                  <th key={h} className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">{h}</th>
+                  <th key={h} scope="col" className="px-3 py-2 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">{h}</th>
                 ))}</tr>
               </thead>
               <tbody>
