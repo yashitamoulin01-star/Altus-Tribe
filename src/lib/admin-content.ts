@@ -10,6 +10,7 @@ export interface AdminAnnouncement {
   body: string | null;
   published: boolean;
   publishedAt: string | null;
+  pinned: boolean;
   createdAt: string;
 }
 
@@ -96,7 +97,8 @@ export async function getAdminAnnouncements(): Promise<AdminAnnouncement[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("announcements")
-    .select("id, title, body, published_at, created_at")
+    .select("id, title, body, published_at, pinned_at, created_at")
+    .order("pinned_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
   if (error) {
     if (schemaMissing(error)) return [];
@@ -108,6 +110,7 @@ export async function getAdminAnnouncements(): Promise<AdminAnnouncement[]> {
     body: (a.body as string) ?? null,
     published: Boolean(a.published_at),
     publishedAt: (a.published_at as string) ?? null,
+    pinned: Boolean(a.pinned_at),
     createdAt: a.created_at as string,
   }));
 }

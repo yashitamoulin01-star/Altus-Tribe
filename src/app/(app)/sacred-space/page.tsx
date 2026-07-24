@@ -68,6 +68,9 @@ export default async function SacredSpacePage() {
               <div className="flex items-baseline gap-3">
                 <span className="font-mono text-xs tabular-nums text-red">{String(i + 1).padStart(2, "0")}</span>
                 {a.publishedAt && <span className="kicker">{fmtDate(a.publishedAt)}</span>}
+                {a.pinnedAt && (
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-red">★ Pinned</span>
+                )}
               </div>
               <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.015em] text-ink">{a.title}</h2>
               {a.body && <p className="mt-3 text-[17px] leading-[1.7] text-ink-secondary">{a.body}</p>}

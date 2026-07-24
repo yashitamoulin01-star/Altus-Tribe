@@ -411,6 +411,26 @@ export async function deleteAnnouncement(id: string) {
   return { ok: true };
 }
 
+// Pin/unpin an announcement (docs/17 §5): a pinned note floats to the top of
+// Sacred Space regardless of publish date.
+export async function setAnnouncementPinned(id: string, pinned: boolean) {
+  if (badId(id)) return { ok: false };
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const { error } = await supabase
+    .from("announcements")
+    .update({ pinned_at: pinned ? new Date().toISOString() : null })
+    .eq("id", id);
+  if (error) {
+    logError("setAnnouncementPinned", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("asset.announcement.pin", { entityType: "announcement", entityId: id, metadata: { pinned } });
+  revalidatePath("/admin/assets");
+  revalidatePath("/sacred-space");
+  return { ok: true };
+}
+
 export async function createResource(input: {
   kind: string;
   title: string;

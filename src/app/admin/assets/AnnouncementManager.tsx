@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createAnnouncement, deleteAnnouncement } from "../actions";
+import { createAnnouncement, deleteAnnouncement, setAnnouncementPinned } from "../actions";
 import type { AdminAnnouncement } from "@/lib/admin-content";
 
 const field =
@@ -38,6 +38,12 @@ export default function AnnouncementManager({
       router.refresh();
     });
 
+  const togglePin = (id: string, pinned: boolean) =>
+    start(async () => {
+      await setAnnouncementPinned(id, !pinned);
+      router.refresh();
+    });
+
   return (
     <div>
       <div className="rounded-xl border border-hairline bg-surface p-5">
@@ -65,12 +71,28 @@ export default function AnnouncementManager({
                 <span className={`rounded px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] ${a.published ? "bg-ink/10 text-ink" : "bg-surface-sunk text-ink-muted"}`}>
                   {a.published ? "Published" : "Draft"}
                 </span>
+                {a.pinned && (
+                  <span className="rounded bg-red-muted px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] text-red">
+                    ★ Pinned
+                  </span>
+                )}
               </p>
               {a.body && <p className="mt-0.5 line-clamp-1 text-[13px] text-ink-muted">{a.body}</p>}
             </div>
-            <button type="button" disabled={pending} onClick={() => remove(a.id)} className="shrink-0 text-[13px] text-ink-muted transition-colors hover:text-red disabled:opacity-50">
-              Delete
-            </button>
+            <div className="flex shrink-0 items-center gap-3">
+              <button
+                type="button"
+                disabled={pending || !a.published}
+                onClick={() => togglePin(a.id, a.pinned)}
+                title={a.published ? undefined : "Publish before pinning"}
+                className="text-[13px] text-ink-muted transition-colors hover:text-ink disabled:opacity-40"
+              >
+                {a.pinned ? "Unpin" : "Pin"}
+              </button>
+              <button type="button" disabled={pending} onClick={() => remove(a.id)} className="text-[13px] text-ink-muted transition-colors hover:text-red disabled:opacity-50">
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

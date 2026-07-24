@@ -10,6 +10,7 @@ export interface Announcement {
   title: string;
   body: string;
   publishedAt: string | null;
+  pinnedAt: string | null;
 }
 
 export interface Resource {
@@ -21,7 +22,7 @@ export interface Resource {
 }
 
 const schemaMissing = (e: { code?: string } | null) =>
-  e?.code === "PGRST205" || e?.code === "42P01";
+  e?.code === "PGRST205" || e?.code === "42P01" || e?.code === "42703";
 
 // --- Sample fallbacks ------------------------------------------------------
 
@@ -31,12 +32,14 @@ const SAMPLE_ANNOUNCEMENTS: Announcement[] = [
     title: "The next Conclave is open for registration",
     body: "Doors open for the winter Conclave. Members get priority seating — reply in your cohort group to claim a seat.",
     publishedAt: "2026-07-14",
+    pinnedAt: "2026-07-14",
   },
   {
     id: "s2",
     title: "A note on how we show up here",
     body: "This is an invited room. Be generous, be specific, and make introductions freely. The Tribe compounds when we do.",
     publishedAt: "2026-07-02",
+    pinnedAt: null,
   },
 ];
 
@@ -62,8 +65,9 @@ export async function getAnnouncements(): Promise<Announcement[]> {
 
   const { data, error } = await supabase
     .from("announcements")
-    .select("id, title, body, published_at")
+    .select("id, title, body, published_at, pinned_at")
     .not("published_at", "is", null)
+    .order("pinned_at", { ascending: false, nullsFirst: false })
     .order("published_at", { ascending: false });
 
   if (error) {
@@ -76,6 +80,7 @@ export async function getAnnouncements(): Promise<Announcement[]> {
     title: r.title as string,
     body: (r.body as string) ?? "",
     publishedAt: (r.published_at as string) ?? null,
+    pinnedAt: (r.pinned_at as string) ?? null,
   }));
 }
 
