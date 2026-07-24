@@ -261,18 +261,7 @@ export default function OnboardingWizard({
       if (configured) await saveProfile(d, vis, undefined, COMPLETION);
       setStep(COMPLETION);
     });
-  const enter = () =>
-    startFinish(async () => {
-      try {
-        if (configured) {
-          await finishOnboarding();
-        } else {
-          window.location.href = "/home";
-        }
-      } catch {
-        window.location.href = "/home";
-      }
-    });
+  const enter = () => startFinish(async () => finishOnboarding());
 
   const eye = (key: string) => (
     <button
