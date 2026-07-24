@@ -8,29 +8,31 @@ type ThemeMode = "dark" | "light" | "system";
 export default function SettingsPage() {
   // Read the theme the pre-paint init script already applied (no effect/flash).
   const [theme, setTheme] = useState<ThemeMode>(() => {
-    if (typeof window === "undefined") return "dark";
-    return (localStorage.getItem("altus-theme") as ThemeMode) || "dark";
+    if (typeof window === "undefined") return "light";
+    return (localStorage.getItem("altus-theme") as ThemeMode) || "light";
   });
+
+  // Light is the default; dark applies `.dark` + data-theme="dark" (mirrors the
+  // pre-paint init in layout.tsx). Light removes both so :root (light) applies.
+  const setDark = (dark: boolean) => {
+    // color-scheme follows the `.dark` class via CSS (html.dark { color-scheme: dark }).
+    const r = document.documentElement;
+    if (dark) {
+      r.classList.add("dark");
+      r.setAttribute("data-theme", "dark");
+    } else {
+      r.classList.remove("dark");
+      r.removeAttribute("data-theme");
+    }
+  };
 
   const applyTheme = (mode: ThemeMode) => {
     setTheme(mode);
     localStorage.setItem("altus-theme", mode);
-    if (mode === "light") {
-      document.documentElement.setAttribute("data-theme", "light");
-      document.documentElement.classList.remove("dark");
-    } else if (mode === "dark") {
-      document.documentElement.removeAttribute("data-theme");
-      document.documentElement.classList.add("dark");
+    if (mode === "system") {
+      setDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
     } else {
-      // System mode
-      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      if (isDark) {
-        document.documentElement.removeAttribute("data-theme");
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.setAttribute("data-theme", "light");
-        document.documentElement.classList.remove("dark");
-      }
+      setDark(mode === "dark");
     }
   };
 
@@ -55,8 +57,8 @@ export default function SettingsPage() {
 
         <div className="grid grid-cols-3 gap-3 pt-2">
           {[
-            { mode: "dark" as ThemeMode, label: "Dark (Default)", desc: "Obsidian & Red" },
-            { mode: "light" as ThemeMode, label: "Light", desc: "Clean Monochrome" },
+            { mode: "light" as ThemeMode, label: "Light (Default)", desc: "Clean Monochrome" },
+            { mode: "dark" as ThemeMode, label: "Dark", desc: "Obsidian & Red" },
             { mode: "system" as ThemeMode, label: "System", desc: "Sync Device" },
           ].map((item) => {
             const active = theme === item.mode;

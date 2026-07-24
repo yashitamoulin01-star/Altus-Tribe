@@ -11,18 +11,18 @@ export default function AppNav() {
         logoAlt="Altus Tribe Logo"
         items={[
           {
-            label: "Explore",
-            bgColor: "#1F1B29",
-            textColor: "#fff",
+            label: "Tribe",
+            bgColor: "var(--color-surface-sunk)",
+            textColor: "var(--color-ink)",
             links: [
-              { label: "Members Directory", href: "/explore", ariaLabel: "Members Directory" },
+              { label: "Connect with Participants", href: "/explore", ariaLabel: "Connect with Participants" },
               { label: "Sacred Space", href: "/sacred-space", ariaLabel: "Sacred Space" },
             ],
           },
           {
             label: "Campus",
-            bgColor: "#2F293A",
-            textColor: "#fff",
+            bgColor: "var(--color-surface-sunk)",
+            textColor: "var(--color-ink)",
             links: [
               { label: "Programs & Courses", href: "/campus", ariaLabel: "Campus Programs" },
               { label: "Messages & Chat", href: "/messages", ariaLabel: "Messages" },
@@ -30,17 +30,17 @@ export default function AppNav() {
           },
           {
             label: "Account",
-            bgColor: "#991b1b",
-            textColor: "#fff",
+            bgColor: "var(--color-red)",
+            textColor: "#ffffff",
             links: [
               { label: "Edit Feature", href: "/account/edit", ariaLabel: "Edit Feature" },
               { label: "Connections", href: "/connections", ariaLabel: "Connections" },
             ],
           },
         ]}
-        baseColor="#120F17"
-        menuColor="#ffffff"
-        buttonBgColor="#ef4444"
+        baseColor="var(--color-paper)"
+        menuColor="var(--color-ink)"
+        buttonBgColor="var(--color-red)"
         buttonTextColor="#ffffff"
         ctaText="Dashboard"
       />

@@ -215,7 +215,7 @@ const CardNav = ({
           </div>
 
           <div className="logo-container">
-            <a href="/home" className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-widest text-white">
+            <a href="/home" className="flex items-center gap-2 font-mono text-sm font-bold uppercase tracking-widest text-ink">
               <span className="h-2 w-2 rounded-full bg-red animate-pulse" />
               ALTUS TRIBE
             </a>

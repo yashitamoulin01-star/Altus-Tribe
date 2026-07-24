@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 // Runs before first paint to set the saved/system theme, preventing a
 // flash of the wrong theme (FOUC). Mirrors the logic in /settings.
-const THEME_INIT = `(function(){try{var m=localStorage.getItem('altus-theme')||'dark';var d=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;if(d){r.classList.add('dark');r.removeAttribute('data-theme');r.style.colorScheme='dark';}else{r.classList.remove('dark');r.setAttribute('data-theme','light');r.style.colorScheme='light';}}catch(e){}})();`;
+const THEME_INIT = `(function(){try{var m=localStorage.getItem('altus-theme')||'light';var d=m==='dark'||(m==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);var r=document.documentElement;if(d){r.classList.add('dark');r.setAttribute('data-theme','dark');r.style.colorScheme='dark';}else{r.classList.remove('dark');r.removeAttribute('data-theme');r.style.colorScheme='light';}}catch(e){}})();`;
 
 export default function RootLayout({
   children,
@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
