@@ -40,6 +40,7 @@ export default async function AdminOverviewPage() {
     { href: "/admin/consultants", title: "Consultants", hint: "Add consultants and assign designated consultants." },
     { href: "/admin/assets", title: "Asset Manager", hint: "Publish announcements and curate Campus resources." },
     { href: "/admin/taxonomies", title: "Categories", hint: "Curate the industry / category dropdowns and filters." },
+    { href: "/admin/settings", title: "Settings", hint: "Featured video, social channels and orientation links — no deploy." },
     { href: "/admin/events", title: "Events", hint: "Schedule conclaves, referral rounds and orientations." },
     { href: "/admin/analytics", title: "Analytics", hint: "Members, engagement, and content at a glance." },
     { href: "/admin/import", title: "Bulk import", hint: "Upload a CSV/Excel, map columns, confirm." },

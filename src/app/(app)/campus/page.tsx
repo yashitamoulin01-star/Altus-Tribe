@@ -1,15 +1,35 @@
 import Link from "next/link";
 import { getCampusResources } from "@/lib/campus";
+import { getPublicSettings } from "@/lib/settings";
+import { youtubeEmbed } from "@/lib/media";
 import CampusBrowser from "./CampusBrowser";
 import CircularGallery from "@/components/CircularGallery";
 
 export const metadata = { title: "Campus — Altus Tribe" };
 export const dynamic = "force-dynamic";
 
-const SOCIALS = ["YouTube", "Facebook", "Instagram", "LinkedIn", "X"];
+// Admin-managed community channels (app_settings). Only rendered when a link is
+// actually set — no dead "#" links.
+const SOCIAL_KEYS: { key: string; label: string }[] = [
+  { key: "social_youtube", label: "YouTube" },
+  { key: "social_facebook", label: "Facebook" },
+  { key: "social_instagram", label: "Instagram" },
+  { key: "social_linkedin", label: "LinkedIn" },
+  { key: "social_x", label: "X" },
+];
 
 export default async function CampusPage() {
-  const resources = await getCampusResources();
+  const [resources, settings] = await Promise.all([
+    getCampusResources(),
+    getPublicSettings(),
+  ]);
+
+  const socials = SOCIAL_KEYS.map((s) => ({ label: s.label, url: settings[s.key] })).filter(
+    (s): s is { label: string; url: string } => Boolean(s.url),
+  );
+  const orientationUrl = settings.ps_orientation_url || "";
+  const featuredVideo = youtubeEmbed(settings.featured_video_url);
+  const featuredTitle = settings.featured_video_title;
 
   return (
     <main className="mx-auto w-full max-w-[1080px] px-6 pt-8 pb-24 sm:px-10">
@@ -23,6 +43,26 @@ export default async function CampusPage() {
           productive. Save what matters and track what you&apos;ve finished.
         </p>
       </header>
+
+      {featuredVideo && (
+        <section className="mb-10 overflow-hidden rounded-2xl border border-hairline bg-surface">
+          <div className="aspect-video w-full bg-black/40">
+            <iframe
+              src={featuredVideo}
+              title={featuredTitle || "Featured video"}
+              className="h-full w-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+          {featuredTitle && (
+            <div className="p-5">
+              <p className="kicker mb-1">Featured</p>
+              <h2 className="text-lg font-semibold text-ink">{featuredTitle}</h2>
+            </div>
+          )}
+        </section>
+      )}
 
       <CampusBrowser resources={resources} />
 
@@ -49,19 +89,27 @@ export default async function CampusPage() {
             Know someone who belongs in the Productivity School? Invite them to the
             next orientation.
           </p>
-          <a href="#" className="mt-4 inline-block rounded-lg bg-red px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-red-hover">
-            Send an invite →
-          </a>
+          {orientationUrl ? (
+            <a href={orientationUrl} target="_blank" rel="noopener noreferrer" className="mt-4 inline-block rounded-lg bg-red px-5 py-2.5 text-[14px] font-medium text-paper transition-colors hover:bg-red-hover">
+              Send an invite →
+            </a>
+          ) : (
+            <p className="mt-4 text-[13px] text-ink-muted">Invite link coming soon.</p>
+          )}
         </div>
         <div className="rounded-xl border border-hairline bg-surface p-6">
           <p className="kicker mb-2">Community channels</p>
-          <div className="mt-1 flex flex-wrap gap-2">
-            {SOCIALS.map((s) => (
-              <a key={s} href="#" className="rounded-lg border border-hairline px-4 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted">
-                {s}
-              </a>
-            ))}
-          </div>
+          {socials.length ? (
+            <div className="mt-1 flex flex-wrap gap-2">
+              {socials.map((s) => (
+                <a key={s.label} href={s.url} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-hairline px-4 py-2 text-[14px] text-ink transition-colors hover:border-ink-muted">
+                  {s.label}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-1 text-[13px] text-ink-muted">Channels coming soon.</p>
+          )}
         </div>
       </section>
 

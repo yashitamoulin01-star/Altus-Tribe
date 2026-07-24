@@ -9,6 +9,7 @@ import { badId } from "@/lib/validation/actions";
 import type { MemberStatus, Role } from "@/lib/admin";
 import type { CrmImpact, RatingTier } from "@/lib/crm";
 import { CLASSIFICATION_VALUES } from "@/lib/crm-fields";
+import { SETTING_MAP } from "@/lib/settings-meta";
 
 // Admin server actions (docs/12). Every mutation re-checks role server-side in
 // addition to RLS. No-ops safely in offline/preview mode.
@@ -475,6 +476,45 @@ export async function sendBroadcast(input: {
     metadata: { audience: input.audience.type, count: recipientIds.length, title },
   });
   return { ok: true, count: recipientIds.length };
+}
+
+// Global app settings / content control (docs/17 §7). Admin writes one canonical
+// setting. The key MUST be a known canonical key (unknown keys never become
+// trusted config); URL/video settings are URL-validated; is_public comes from the
+// canonical definition (not the caller) so a member-facing key can't be flipped
+// private and a private key can't be exposed by the request. Audited.
+export async function saveSetting(key: string, value: string) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false, error: "Not authorized." };
+
+  const def = SETTING_MAP[key];
+  if (!def) return { ok: false, error: "Unknown setting." };
+
+  const trimmed = value.trim().slice(0, 1000);
+  if (trimmed && (def.kind === "url" || def.kind === "video")) {
+    try {
+      const u = new URL(trimmed);
+      if (u.protocol !== "http:" && u.protocol !== "https:") throw new Error("scheme");
+    } catch {
+      return { ok: false, error: "Please enter a valid http(s) URL." };
+    }
+  }
+
+  const { error } = await supabase.from("app_settings").upsert({
+    key,
+    value: trimmed || null,
+    is_public: def.public,
+    updated_at: new Date().toISOString(),
+    updated_by: ctx.userId,
+  });
+  if (error) {
+    logError("saveSetting", error, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't save. Please try again." };
+  }
+  await logAudit("settings.update", { entityType: "app_settings", entityId: key });
+  revalidatePath("/admin/settings");
+  revalidatePath("/campus");
+  return { ok: true };
 }
 
 // Moderation (#174): soft-delete a message. Comments don't exist yet; this covers
