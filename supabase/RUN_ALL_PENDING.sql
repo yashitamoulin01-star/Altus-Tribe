@@ -12,8 +12,12 @@
 -- (refreshed), functions use "create or replace", seeds use "on conflict do
 -- nothing". Run it as many times as you like — the end state is always the same.
 -- ============================================================================
-
-begin;
+-- NOTE: intentionally NOT wrapped in a single transaction. Each statement
+-- commits independently and idempotently, so if the crm-assets storage-policy
+-- section at the very end hits "must be owner of table objects" in the SQL
+-- Editor, everything above it (0019–0025) STILL applies. (A single BEGIN/COMMIT
+-- would roll the whole thing back on any one failure.)
+-- ============================================================================
 
 -- ---------------------------------------------------------------------------
 -- 0019 — Approvals: request-changes state + reviewer note (admin-only)
@@ -114,7 +118,22 @@ insert into public.app_settings (key, value, is_public) values
 on conflict (key) do nothing;
 
 -- ---------------------------------------------------------------------------
+-- 0025 — Events draft/publish state (members see published; admins see drafts)
+-- ---------------------------------------------------------------------------
+alter table public.events
+  add column if not exists published boolean not null default true;
+
+create index if not exists events_published_idx on public.events (published);
+
+drop policy if exists "events tribe read" on public.events;
+create policy "events tribe read" on public.events for select
+  to authenticated
+  using ( published or public.is_admin() );
+
+-- ---------------------------------------------------------------------------
 -- Private CRM assets bucket (A3–A9 / A21 evidence images) + access policies
+-- (kept LAST — the only section that can hit "must be owner of table objects";
+--  everything above has already committed by the time this runs.)
 -- ---------------------------------------------------------------------------
 insert into storage.buckets (id, name, public)
 values ('crm-assets', 'crm-assets', false)
@@ -152,21 +171,6 @@ create policy "crm assets delete" on storage.objects for delete
   to authenticated
   using ( bucket_id = 'crm-assets'
           and public.can_access_crm( ((storage.foldername(name))[1])::uuid ) );
-
--- ---------------------------------------------------------------------------
--- 0025 — Events draft/publish state (members see published; admins see drafts)
--- ---------------------------------------------------------------------------
-alter table public.events
-  add column if not exists published boolean not null default true;
-
-create index if not exists events_published_idx on public.events (published);
-
-drop policy if exists "events tribe read" on public.events;
-create policy "events tribe read" on public.events for select
-  to authenticated
-  using ( published or public.is_admin() );
-
-commit;
 
 -- ============================================================================
 -- Done. If you see "must be owner of table objects" on the crm-assets storage
