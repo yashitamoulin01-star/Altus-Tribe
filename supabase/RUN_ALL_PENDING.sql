@@ -118,17 +118,47 @@ insert into public.app_settings (key, value, is_public) values
 on conflict (key) do nothing;
 
 -- ---------------------------------------------------------------------------
--- 0025 — Events draft/publish state (members see published; admins see drafts)
+-- 0018 + 0025 — Events table (create if missing) + draft/publish state.
+-- The events table (0018) may never have been applied to this DB, so create it
+-- here idempotently, then add the published flag (0025).
 -- ---------------------------------------------------------------------------
+create table if not exists public.events (
+  id          uuid primary key default gen_random_uuid(),
+  title       text not null,
+  description text,
+  location    text,
+  link        text,
+  starts_at   timestamptz not null,
+  ends_at     timestamptz,
+  featured    boolean not null default false,
+  created_by  uuid references public.profiles(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+create index if not exists events_starts_at_idx on public.events (starts_at);
+create index if not exists events_featured_idx on public.events (featured, starts_at);
+
+drop trigger if exists events_set_updated_at on public.events;
+create trigger events_set_updated_at
+  before update on public.events
+  for each row execute function public.set_updated_at();
+
+alter table public.events enable row level security;
+
+-- 0025 published flag
 alter table public.events
   add column if not exists published boolean not null default true;
-
 create index if not exists events_published_idx on public.events (published);
 
 drop policy if exists "events tribe read" on public.events;
 create policy "events tribe read" on public.events for select
   to authenticated
   using ( published or public.is_admin() );
+
+drop policy if exists "events admin write" on public.events;
+create policy "events admin write" on public.events for all
+  to authenticated
+  using ( public.is_admin() ) with check ( public.is_admin() );
 
 -- ---------------------------------------------------------------------------
 -- Private CRM assets bucket (A3–A9 / A21 evidence images) + access policies
