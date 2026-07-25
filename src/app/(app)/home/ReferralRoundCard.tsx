@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // Referral Rounds — every Wednesday 10:00–11:00 AM (IST), currently FREE.
 // Renders the session date, time, FREE badge, countdown timer boxes, and View Details CTA.
 export default function ReferralRoundCard() {
-  const [timeLeft, setTimeLeft] = useState({ days: "04", hours: "18", mins: "32", secs: "45" });
+  const [timeLeft, setTimeLeft] = useState({ days: "--", hours: "--", mins: "--", secs: "--", date: "Every Wednesday" });
 
   useEffect(() => {
     const calc = () => {
@@ -17,10 +17,11 @@ export default function ReferralRoundCard() {
       const target = new Date(ist);
       target.setDate(ist.getDate() + diff);
       target.setHours(10, 0, 0, 0);
+      const date = target.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
 
       const ms = target.getTime() - ist.getTime();
       if (ms <= 0) {
-        setTimeLeft({ days: "00", hours: "00", mins: "00", secs: "00" });
+        setTimeLeft({ days: "00", hours: "00", mins: "00", secs: "00", date });
         return;
       }
       const d = Math.floor(ms / (1000 * 60 * 60 * 24));
@@ -32,6 +33,7 @@ export default function ReferralRoundCard() {
         hours: String(h).padStart(2, "0"),
         mins: String(m).padStart(2, "0"),
         secs: String(s).padStart(2, "0"),
+        date,
       });
     };
 
@@ -57,13 +59,13 @@ export default function ReferralRoundCard() {
             <h3 className="text-[16px] font-bold text-ink sm:text-[18px]">Next Session</h3>
           </div>
         </div>
-        <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-          FREE
+        <span className="rounded-full border border-hairline px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-ink-muted">
+          Free
         </span>
       </div>
 
       <div className="mt-4 rounded-2xl border border-hairline bg-surface-sunk/50 p-4">
-        <p className="text-[17px] font-bold text-ink sm:text-[19px]">Wed, Jul 30, 2026</p>
+        <p className="text-[17px] font-bold text-ink sm:text-[19px]">{timeLeft.date}</p>
         <p className="mt-0.5 text-[13px] font-semibold text-red">10:00 AM – 11:00 AM</p>
 
         {/* Countdown boxes */}

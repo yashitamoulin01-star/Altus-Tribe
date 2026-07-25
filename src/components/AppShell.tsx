@@ -106,8 +106,7 @@ const SIDEBAR_ITEMS = [
   {
     href: "/notifications",
     title: "Notifications",
-    sub: "9+",
-    badge: "9+",
+    sub: "",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
@@ -213,10 +212,18 @@ export default function AppShell({
   children,
   whatsappNumber,
   whatsappPrefill,
+  userName,
+  userInitials,
+  userPhoto,
+  unread,
 }: {
   children: React.ReactNode;
   whatsappNumber: string | null;
   whatsappPrefill?: string;
+  userName: string;
+  userInitials: string;
+  userPhoto: string | null;
+  unread: number;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -228,6 +235,8 @@ export default function AppShell({
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    // Sync client-only state after mount (theme, date, saved sidebar pref).
+    /* eslint-disable react-hooks/set-state-in-effect */
     setDark(document.documentElement.classList.contains("dark"));
     setTodayStr(
       new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -238,6 +247,7 @@ export default function AppShell({
     if (saved !== null) {
       setSidebarOpen(saved === "true");
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     const onScroll = () => {
       setScrolled(window.scrollY > 10);
@@ -274,10 +284,9 @@ export default function AppShell({
     }
   };
 
+  // Real Manan Vasa WhatsApp (config-driven, verified fallback passed by layout).
   const digits = (whatsappNumber ?? "").replace(/[^0-9]/g, "");
-  const waHref = digits.length >= 8
-    ? `https://wa.me/${digits}${whatsappPrefill ? `?text=${encodeURIComponent(whatsappPrefill)}` : ""}`
-    : "https://wa.me/919999999999?text=Hi%20Manan%20Vasa%2C%20I%20have%20a%20question%20regarding%20Altus%20Tribe.";
+  const waHref = `https://wa.me/${digits}${whatsappPrefill ? `?text=${encodeURIComponent(whatsappPrefill)}` : ""}`;
 
   return (
     <div className="min-h-screen bg-paper text-ink">
@@ -366,17 +375,24 @@ export default function AppShell({
 
             <Link href="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-hairline text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink sm:h-10 sm:w-10">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
-              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[10px] font-bold text-white shadow-sm">
-                9+
-              </span>
+              {unread > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red px-1 text-[10px] font-bold text-white shadow-sm">
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
             </Link>
 
             <Link href="/account" className="flex items-center gap-2 rounded-xl border border-hairline p-1 sm:pr-3 transition-colors hover:border-hairline-bright hover:bg-surface-sunk">
               <div className="h-7 w-7 sm:h-8 sm:w-8 overflow-hidden rounded-full bg-red text-white flex items-center justify-center text-[11px] sm:text-[12px] font-bold">
-                YM
+                {userPhoto ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={userPhoto} alt={userName} className="h-full w-full object-cover" />
+                ) : (
+                  userInitials
+                )}
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="text-[13px] font-semibold text-ink leading-tight">Yashita Mouli</span>
+                <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink leading-tight">{userName}</span>
                 <span className="text-[11px] font-medium text-ink-muted leading-tight">Member</span>
               </div>
             </Link>
@@ -407,16 +423,9 @@ export default function AppShell({
                   {item.icon}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className={`text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
-                      {item.title}
-                    </p>
-                    {item.badge && (
-                      <span className="rounded-full bg-red px-1.5 py-0.5 text-[10px] font-bold text-white">
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
+                  <p className={`text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
+                    {item.title}
+                  </p>
                   {item.sub && (
                     <p className="mt-0.5 truncate text-[11px] text-ink-muted leading-tight">
                       {item.sub}
