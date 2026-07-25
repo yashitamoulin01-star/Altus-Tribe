@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-// Top Nav Items (Desktop / Tablet)
+// Top Nav Items
 const TOP_NAV = [
   { href: "/home", label: "Home", match: ["/home"] },
   { href: "/explore", label: "Tribe", match: ["/explore", "/connections", "/messages", "/m/"] },
@@ -13,14 +13,14 @@ const TOP_NAV = [
   { href: "/account", label: "Profile", match: ["/account", "/settings"] },
 ];
 
-// Left Sidebar Items (Desktop >= 1024px)
+// Left Sidebar Items
 const SIDEBAR_ITEMS = [
   {
     href: "/home",
     title: "Home",
     sub: "",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" />
       </svg>
     ),
@@ -31,8 +31,8 @@ const SIDEBAR_ITEMS = [
     title: "Connect",
     sub: "Connect with Participants",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" />
       </svg>
     ),
     match: ["/explore"],
@@ -42,7 +42,7 @@ const SIDEBAR_ITEMS = [
     title: "Tribe",
     sub: "Groups, Chats & Community",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
       </svg>
     ),
@@ -53,7 +53,7 @@ const SIDEBAR_ITEMS = [
     title: "Sacred Space",
     sub: "Manan Vasa / Team",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       </svg>
     ),
@@ -64,7 +64,7 @@ const SIDEBAR_ITEMS = [
     title: "Referral Rounds",
     sub: "Wednesdays 10–11 AM",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" />
       </svg>
     ),
@@ -75,8 +75,8 @@ const SIDEBAR_ITEMS = [
     title: "Altus Conclave",
     sub: "Events & Registrations",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" />
       </svg>
     ),
     match: ["/conclave"],
@@ -86,8 +86,8 @@ const SIDEBAR_ITEMS = [
     title: "Campus",
     sub: "Learning & Ecosystem",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
       </svg>
     ),
     match: ["/campus"],
@@ -97,7 +97,7 @@ const SIDEBAR_ITEMS = [
     title: "My Profile",
     sub: "Profile & Preferences",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <circle cx="12" cy="8" r="4" /><path d="M5 20c0-4 3.5-7 7-7s7 3 7 7" />
       </svg>
     ),
@@ -109,7 +109,7 @@ const SIDEBAR_ITEMS = [
     sub: "9+",
     badge: "9+",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
       </svg>
     ),
@@ -120,7 +120,7 @@ const SIDEBAR_ITEMS = [
     title: "Settings",
     sub: "Account & Preferences",
     icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
         <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
       </svg>
     ),
@@ -128,7 +128,7 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-// Mobile Bottom Nav Items (Mobile <= 640px)
+// Mobile Bottom Nav Items
 const MOBILE_NAV = [
   {
     href: "/home",
@@ -191,32 +191,67 @@ function isActive(pathname: string, match: string[]) {
 export function AltusLogo() {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-red text-white shadow-sm shadow-red/30 sm:h-9 sm:w-9">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2L2 22h5l5-10 5 10h5L12 2z" />
-        </svg>
-      </div>
-      <div className="flex flex-col leading-none">
-        <span className="font-sans text-[14px] font-black tracking-wider text-ink uppercase sm:text-[15px]">ALTUS</span>
-        <span className="font-sans text-[10px] font-bold tracking-[0.24em] text-red uppercase sm:text-[11px]">TRIBE</span>
-      </div>
+      {/* Light theme logo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-dark.png"
+        alt="Altus Tribe"
+        className="h-7 sm:h-9 w-auto object-contain dark:hidden"
+      />
+      {/* Dark theme logo */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-light.png"
+        alt="Altus Tribe"
+        className="h-7 sm:h-9 w-auto object-contain hidden dark:block"
+      />
     </div>
   );
 }
 
-export default function AppNav() {
+export default function AppShell({
+  children,
+  whatsappNumber,
+  whatsappPrefill,
+}: {
+  children: React.ReactNode;
+  whatsappNumber: string | null;
+  whatsappPrefill?: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [q, setQ] = useState("");
   const [dark, setDark] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [todayStr, setTodayStr] = useState("");
+
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains("dark"));
     setTodayStr(
       new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     );
+
+    // Restore user preference for sidebar state
+    const saved = localStorage.getItem("altus-sidebar-open");
+    if (saved !== null) {
+      setSidebarOpen(saved === "true");
+    }
+
+    const onScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const toggleSidebar = () => {
+    const next = !sidebarOpen;
+    setSidebarOpen(next);
+    localStorage.setItem("altus-sidebar-open", String(next));
+  };
 
   const search = (e: React.FormEvent) => {
     e.preventDefault();
@@ -239,15 +274,38 @@ export default function AppNav() {
     }
   };
 
+  const digits = (whatsappNumber ?? "").replace(/[^0-9]/g, "");
+  const waHref = digits.length >= 8
+    ? `https://wa.me/${digits}${whatsappPrefill ? `?text=${encodeURIComponent(whatsappPrefill)}` : ""}`
+    : "https://wa.me/919999999999?text=Hi%20Manan%20Vasa%2C%20I%20have%20a%20question%20regarding%20Altus%20Tribe.";
+
   return (
-    <>
+    <div className="min-h-screen bg-paper text-ink">
       {/* ── Top Header ── */}
-      <header className="fixed inset-x-0 top-0 z-40 h-14 border-b border-hairline bg-white/95 backdrop-blur sm:h-16 dark:bg-surface/95">
-        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-4 sm:px-6 gap-3 sm:gap-6">
-          {/* Logo */}
-          <Link href="/home" className="shrink-0 no-underline">
-            <AltusLogo />
-          </Link>
+      <header className={`fixed inset-x-0 top-0 z-40 h-14 border-b border-hairline bg-white/95 backdrop-blur sm:h-16 header-scroll-blend dark:bg-surface/95 ${
+        scrolled ? "scrolled" : ""
+      }`}>
+        <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-3 sm:px-6 gap-3 sm:gap-6">
+          {/* Logo & Sidebar Toggle Button */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Sidebar Open/Close Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label={sidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink focus:outline-none"
+              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            </button>
+
+            <Link href="/home" className="no-underline">
+              <AltusLogo />
+            </Link>
+          </div>
 
           {/* Desktop/Tablet Top Navigation Links (>= 768px) */}
           <nav className="hidden items-center gap-1 md:flex lg:gap-1.5">
@@ -326,9 +384,13 @@ export default function AppNav() {
         </div>
       </header>
 
-      {/* ── Left Sidebar (Desktop Only >= 1024px) ── */}
-      <aside className="fixed left-0 top-16 bottom-0 z-30 hidden w-60 xl:w-64 border-r border-hairline bg-white p-3.5 overflow-y-auto lg:flex lg:flex-col justify-between dark:bg-surface">
-        <div className="space-y-1">
+      {/* ── Collapsible Left Sidebar (Desktop >= 1024px) ── */}
+      <aside
+        className={`fixed left-0 top-14 sm:top-16 bottom-0 z-30 hidden border-r border-hairline bg-white p-3.5 overflow-y-auto transition-all duration-300 ease-in-out lg:flex lg:flex-col justify-between dark:bg-surface ${
+          sidebarOpen ? "w-60 xl:w-64 translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0 p-0 border-none pointer-events-none"
+        }`}
+      >
+        <div className="space-y-1 scroll-mask-y">
           {SIDEBAR_ITEMS.map((item) => {
             const on = isActive(pathname, item.match);
             return (
@@ -369,7 +431,7 @@ export default function AppNav() {
         {/* Bottom Left WhatsApp CTA */}
         <div className="pt-3 border-t border-hairline">
           <a
-            href="https://wa.me/919999999999?text=Hi%20Manan%20Vasa%2C%20I%20have%20a%20question%20regarding%20Altus%20Tribe."
+            href={waHref}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-left transition-colors hover:bg-emerald-500/10"
@@ -386,6 +448,31 @@ export default function AppNav() {
           </a>
         </div>
       </aside>
+
+      {/* ── Main Content Area ── */}
+      <div
+        className={`flex flex-1 flex-col pt-14 sm:pt-16 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 transition-all duration-300 ease-in-out ${
+          sidebarOpen ? "lg:pl-60 xl:pl-64" : "lg:pl-0"
+        }`}
+      >
+        {children}
+      </div>
+
+      {/* ── Floating WhatsApp Button (shown when sidebar is closed or on mobile/tablet) ── */}
+      <a
+        href={waHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Chat with Manan Vasa on WhatsApp"
+        title="Chat with Manan Vasa"
+        className={`group fixed right-4 bottom-[calc(3.75rem+env(safe-area-inset-bottom)+0.75rem)] z-30 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition-all hover:scale-105 active:scale-95 sm:right-6 lg:bottom-6 ${
+          sidebarOpen ? "lg:hidden" : "lg:flex"
+        }`}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M12.04 2a9.9 9.9 0 0 0-8.4 15.16L2 22l4.95-1.3A9.9 9.9 0 1 0 12.04 2Zm0 18.05a8.15 8.15 0 0 1-4.15-1.14l-.3-.18-2.94.77.78-2.86-.2-.3a8.16 8.16 0 1 1 7.01 3.95Zm4.5-6.1c-.25-.12-1.46-.72-1.68-.8-.23-.08-.4-.12-.56.13-.16.25-.64.8-.78.97-.14.16-.29.18-.54.06a6.68 6.68 0 0 1-3.35-2.93c-.25-.43.25-.4.72-1.33.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.48c-.16 0-.42.06-.64.31-.22.25-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.69 2.58 4.1 3.62 1.53.66 2.13.72 2.9.6.46-.06 1.46-.6 1.67-1.18.2-.58.2-1.07.14-1.18-.06-.1-.22-.16-.47-.28Z" />
+        </svg>
+      </a>
 
       {/* ── Mobile Bottom Navigation (Mobile <= 640px) ── */}
       <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-hairline bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden dark:bg-surface/95">
@@ -405,6 +492,6 @@ export default function AppNav() {
           );
         })}
       </nav>
-    </>
+    </div>
   );
 }

@@ -16,9 +16,10 @@ function diff(target: number) {
 // signup screen to give the invitation a sense of occasion.
 export default function ConclaveCountdown() {
   const target = new Date(nextConclave.date).getTime();
-  const [t, setT] = useState(() => diff(target));
+  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 });
 
   useEffect(() => {
+    setT(diff(target));
     const id = setInterval(() => setT(diff(target)), 1000);
     return () => clearInterval(id);
   }, [target]);

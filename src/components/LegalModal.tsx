@@ -13,8 +13,8 @@ export const LEGAL_DOCS: Record<NonNullable<LegalDocType>, { title: string; cont
   terms: {
     title: 'Terms of Use',
     content: (
-      <div className="space-y-3 text-[13px] leading-relaxed text-[#444444]">
-        <p className="font-semibold text-[#111111]">
+      <div className="space-y-3 leading-relaxed text-ink-secondary">
+        <p className="font-semibold text-ink">
           By creating an account or signing in to ALTUS TRIBE, you agree to the following:
         </p>
         <ol className="list-decimal space-y-2 pl-4">
@@ -23,7 +23,7 @@ export const LEGAL_DOCS: Record<NonNullable<LegalDocType>, { title: string; cont
           <li>ALTUS TRIBE is a professional networking and business community. Members are expected to communicate respectfully and professionally at all times.</li>
           <li>
             You agree not to:
-            <ul className="mt-1 list-disc space-y-1 pl-4 text-[#555555]">
+            <ul className="mt-1 list-disc space-y-1 pl-4 text-ink-muted">
               <li>Upload false or misleading information.</li>
               <li>Impersonate another individual or organization.</li>
               <li>Share offensive, abusive, defamatory, discriminatory, or illegal content.</li>
@@ -42,8 +42,8 @@ export const LEGAL_DOCS: Record<NonNullable<LegalDocType>, { title: string; cont
   privacy: {
     title: 'Privacy Notice',
     content: (
-      <div className="space-y-3 text-[13px] leading-relaxed text-[#444444]">
-        <p className="font-semibold text-[#111111]">By using ALTUS TRIBE, you acknowledge that:</p>
+      <div className="space-y-3 leading-relaxed text-ink-secondary">
+        <p className="font-semibold text-ink">By using ALTUS TRIBE, you acknowledge that:</p>
         <ul className="list-disc space-y-2 pl-4">
           <li>Personal information is stored securely.</li>
           <li>Visibility of profile fields follows your selected privacy preferences.</li>
@@ -57,8 +57,8 @@ export const LEGAL_DOCS: Record<NonNullable<LegalDocType>, { title: string; cont
   guidelines: {
     title: 'Community Guidelines',
     content: (
-      <div className="space-y-3 text-[13px] leading-relaxed text-[#444444]">
-        <p className="font-semibold text-[#111111]">Every member agrees to:</p>
+      <div className="space-y-3 leading-relaxed text-ink-secondary">
+        <p className="font-semibold text-ink">Every member agrees to:</p>
         <ul className="list-disc space-y-2 pl-4">
           <li>Treat every member with professionalism and respect.</li>
           <li>Use the platform for genuine business networking and collaboration.</li>
@@ -73,8 +73,8 @@ export const LEGAL_DOCS: Record<NonNullable<LegalDocType>, { title: string; cont
   declaration: {
     title: 'Profile & Onboarding Declaration',
     content: (
-      <div className="space-y-3 text-[13px] leading-relaxed text-[#444444]">
-        <p className="font-semibold text-[#111111]">
+      <div className="space-y-3 leading-relaxed text-ink-secondary">
+        <p className="font-semibold text-ink">
           Before submitting your profile, you acknowledge and agree that:
         </p>
         <ol className="list-decimal space-y-2 pl-4">
@@ -102,30 +102,38 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
   if (!doc) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="legal-modal-title"
+      className="fixed inset-0 z-50 flex items-end items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
-        className="relative w-full max-w-lg rounded-xl border border-[#e1e3e4] bg-white p-6 shadow-2xl transition-all"
+        className="relative w-full max-w-lg rounded-2xl border border-hairline bg-white p-6 shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between border-b border-[#f0f0f0] pb-3">
-          <h2 className="text-lg font-bold text-[#111111]">{doc.title}</h2>
+        <div className="flex items-center justify-between border-b border-hairline pb-4 mb-1">
+          <h2 id="legal-modal-title" className="text-[17px] font-bold text-ink">{doc.title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-[#9a9a9a] transition-colors hover:bg-[#f5f5f5] hover:text-[#111111]"
             aria-label="Close"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-ink-muted transition-colors hover:bg-surface-sunk hover:text-ink"
           >
-            ✕
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         </div>
-        <div className="max-h-[65vh] overflow-y-auto py-4 pr-1">
+        <div className="max-h-[65vh] overflow-y-auto py-4 pr-1 text-[14px] leading-relaxed text-ink-secondary">
           {doc.content}
         </div>
-        <div className="mt-4 flex justify-end border-t border-[#f0f0f0] pt-3">
+        <div className="mt-4 flex justify-end border-t border-hairline pt-4">
           <button
             type="button"
             onClick={onClose}
-            className="rounded-[4px] bg-[#111111] px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#333333]"
+            className="inline-flex items-center gap-2 rounded-xl bg-red px-6 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-red-hover"
           >
             I Understand
           </button>

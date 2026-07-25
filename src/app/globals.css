@@ -118,7 +118,7 @@ html.dark {
 body {
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), var(--font-sans), 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -239,6 +239,30 @@ body {
 .red-glow-hover:hover {
   border-color: rgba(239, 68, 68, 0.4);
   box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+}
+
+/* ── Scroll Blend Features ─────────────────────────────────────────────── */
+.scroll-mask-y {
+  mask-image: linear-gradient(to bottom, transparent 0%, black 16px, black calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 16px, black calc(100% - 16px), transparent 100%);
+}
+
+.header-scroll-blend {
+  transition: background-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              backdrop-filter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.header-scroll-blend.scrolled {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  box-shadow: 0 4px 20px -2px rgba(9, 9, 11, 0.06) !important;
+  border-bottom-color: var(--color-hairline-bright) !important;
+}
+.dark .header-scroll-blend.scrolled {
+  background-color: rgba(18, 18, 21, 0.85) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4) !important;
 }
 
 /* Pulsing Red Indicator */
