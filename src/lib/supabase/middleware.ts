@@ -11,6 +11,7 @@ const PROTECTED_PREFIXES = [
   "/account",
   "/onboarding",
   "/messages",
+  "/groups",
   "/notifications",
   "/settings",
   "/referral-rounds",
