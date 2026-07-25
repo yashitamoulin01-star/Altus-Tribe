@@ -1,10 +1,22 @@
-import { getAnalytics } from "@/lib/admin-content";
+import { getAnalytics, getSignupTrend } from "@/lib/admin-content";
+import { DonutChart, BarChart, HBars } from "./Charts";
 
 export const metadata = { title: "Analytics — Altus Tribe Admin" };
 export const dynamic = "force-dynamic";
 
 export default async function AdminAnalyticsPage() {
-  const a = await getAnalytics();
+  const [a, trend] = await Promise.all([getAnalytics(), getSignupTrend()]);
+
+  const statusData = [
+    { label: "Active", value: a.active },
+    { label: "Pending", value: a.pending },
+    { label: "Hidden / inactive", value: a.hiddenInactive },
+  ];
+  const engagementData = [
+    { label: "Connections", value: a.connections },
+    { label: "Conversations", value: a.conversations },
+    { label: "Messages", value: a.messages },
+  ];
 
   const groups: { title: string; cards: { label: string; value: number }[] }[] = [
     {
@@ -39,6 +51,22 @@ export default async function AdminAnalyticsPage() {
     <main className="mx-auto w-full max-w-[1200px] px-6 py-8 sm:px-10">
       <p className="kicker mb-3">Analytics</p>
       <h1 className="text-3xl font-semibold tracking-[-0.02em] text-ink">The room at a glance.</h1>
+
+      {/* Charts */}
+      <div className="mt-8 grid gap-4 lg:grid-cols-3">
+        <section className="rounded-xl border border-hairline bg-surface p-5">
+          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">Participants joined</h2>
+          <BarChart data={trend} />
+        </section>
+        <section className="rounded-xl border border-hairline bg-surface p-5">
+          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">Member status</h2>
+          <DonutChart data={statusData} />
+        </section>
+        <section className="rounded-xl border border-hairline bg-surface p-5">
+          <h2 className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted">Engagement</h2>
+          <HBars data={engagementData} />
+        </section>
+      </div>
 
       <div className="mt-8 space-y-8">
         {groups.map((g) => (

@@ -207,3 +207,50 @@ export async function getAnalytics(): Promise<Analytics> {
     conversations, messages, connections, announcements, resources,
   };
 }
+
+export interface TrendPoint {
+  label: string; // "Feb"
+  value: number;
+}
+
+const SAMPLE_TREND: TrendPoint[] = [
+  { label: "Feb", value: 4 }, { label: "Mar", value: 9 }, { label: "Apr", value: 7 },
+  { label: "May", value: 12 }, { label: "Jun", value: 15 }, { label: "Jul", value: 18 },
+];
+
+// Participants who joined per month over the last 6 months (for the trend chart).
+export async function getSignupTrend(): Promise<TrendPoint[]> {
+  const supabase = await createClient();
+  if (!supabase) return SAMPLE_TREND;
+
+  const start = new Date();
+  start.setMonth(start.getMonth() - 5, 1);
+  start.setHours(0, 0, 0, 0);
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("created_at")
+    .gte("created_at", start.toISOString());
+  if (error || !data) return SAMPLE_TREND;
+
+  // Seed the last 6 month buckets so gaps show as 0.
+  const buckets = new Map<string, number>();
+  const order: string[] = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(start);
+    d.setMonth(start.getMonth() + i);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    buckets.set(key, 0);
+    order.push(key);
+  }
+  for (const r of data) {
+    const d = new Date(r.created_at as string);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
+  }
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return order.map((key) => {
+    const m = Number(key.split("-")[1]);
+    return { label: months[m], value: buckets.get(key) ?? 0 };
+  });
+}
