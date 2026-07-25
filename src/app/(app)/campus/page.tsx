@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCampusResources } from "@/lib/campus";
 import { getPublicSettings } from "@/lib/settings";
-import { PS_APP_URL } from "@/lib/settings-meta";
+import { PS_APP_URL, withHttp } from "@/lib/settings-meta";
 import { youtubeEmbed } from "@/lib/media";
 import CampusBrowser from "./CampusBrowser";
 import CircularGallery from "@/components/CircularGallery";
@@ -25,11 +25,11 @@ export default async function CampusPage() {
     getPublicSettings(),
   ]);
 
-  const socials = SOCIAL_KEYS.map((s) => ({ label: s.label, url: settings[s.key] })).filter(
+  const socials = SOCIAL_KEYS.map((s) => ({ label: s.label, url: withHttp(settings[s.key]) })).filter(
     (s): s is { label: string; url: string } => Boolean(s.url),
   );
-  const orientationUrl = settings.ps_orientation_url || "";
-  const psAppUrl = settings.ps_app_url || PS_APP_URL;
+  const orientationUrl = withHttp(settings.ps_orientation_url);
+  const psAppUrl = withHttp(settings.ps_app_url) || PS_APP_URL;
   const featuredVideo = youtubeEmbed(settings.featured_video_url);
   const featuredTitle = settings.featured_video_title;
 

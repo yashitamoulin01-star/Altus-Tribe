@@ -39,6 +39,15 @@ export const PS_APP_URL = "https://app.productivityshastra.com/dashboard";
 export const MANAN_WHATSAPP_NUMBER = "918097010410"; // +91 80970 10410 (E.164, no +)
 export const MANAN_WHATSAPP_PREFILL = "Hi Manan, this is regarding Altus Tribe.";
 
+// Ensure a configured URL has a scheme — a schemeless value (e.g.
+// "app.productivityshastra.com/dashboard") would otherwise be treated as a
+// RELATIVE link and open a broken in-app path. Empty → "" (caller hides it).
+export function withHttp(url: string | null | undefined): string {
+  const u = (url ?? "").trim();
+  if (!u) return "";
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`;
+}
+
 export const SETTING_KEYS = SETTINGS.map((s) => s.key);
 export const SETTING_MAP: Record<string, SettingDef> = Object.fromEntries(
   SETTINGS.map((s) => [s.key, s]),

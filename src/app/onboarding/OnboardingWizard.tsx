@@ -413,6 +413,7 @@ function ImagePicker({
   aspect,
   onUrl,
   onFile,
+  required,
 }: {
   label: string;
   value: string;
@@ -420,6 +421,7 @@ function ImagePicker({
   aspect: string;
   onUrl: (v: string) => void;
   onFile: (f: File) => Promise<void>;
+  required?: boolean;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -436,7 +438,10 @@ function ImagePicker({
 
   return (
     <div>
-      <span className={cls.label}>{label}</span>
+      <span className={cls.label}>
+        {label}
+        {required && <span className="ml-1 text-red" aria-hidden="true">*</span>}
+      </span>
       <div className="mt-1.5 flex items-start gap-4">
         <div className={`${aspect} w-20 shrink-0 overflow-hidden rounded-xl border border-hairline bg-surface-sunk`}>
           {value ? (
@@ -927,6 +932,7 @@ export default function OnboardingWizard({
 
             <ImagePicker
               label="Profile photo"
+              required
               value={d.photoUrl}
               configured={configured}
               aspect="aspect-[4/5]"
@@ -935,10 +941,10 @@ export default function OnboardingWizard({
             />
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field label="Birth date" eyeKey="birth_date" vis={vis} onToggleVis={toggleVis}>
+              <Field label="Birth date" required eyeKey="birth_date" vis={vis} onToggleVis={toggleVis}>
                 <input type="date" className={cls.input} value={d.birthDate} onChange={(e) => set("birthDate", e.target.value)} />
               </Field>
-              <Field label="Blood group" eyeKey="blood_group" vis={vis} onToggleVis={toggleVis}>
+              <Field label="Blood group" required eyeKey="blood_group" vis={vis} onToggleVis={toggleVis}>
                 <select className={cls.input} value={d.bloodGroup} onChange={(e) => set("bloodGroup", e.target.value)}>
                   <option value="">Select</option>
                   {BLOOD.map((b) => <option key={b} value={b}>{b}</option>)}
@@ -980,7 +986,7 @@ export default function OnboardingWizard({
                 <Field label="Business name" required>
                   <input className={cls.input} value={d.businessName} onChange={(e) => set("businessName", e.target.value)} placeholder="Greentech Solutions" />
                 </Field>
-                <Field label="Brand names" hint="Comma-separated if you operate more than one brand.">
+                <Field label="Brand names" required hint="Comma-separated if you operate more than one brand.">
                   <input className={cls.input} value={d.brandNames} onChange={(e) => set("brandNames", e.target.value)} placeholder="GreenWrap, EcoBox" />
                 </Field>
               </div>
@@ -1126,7 +1132,10 @@ export default function OnboardingWizard({
         {/* ── Steps 4 / 5 / 6: Addresses ────────────────────────────────── */}
         {step === 4 && (
           <ScreenShell step={4}>
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between">
+              <span className={cls.label}>
+                Work address<span className="ml-1 text-red" aria-hidden="true">*</span>
+              </span>
               <EyeBtn on={isFieldVisible(vis, "work_address")} onToggle={() => toggleVis("work_address")} label="Work address" />
             </div>
             <AddressFields value={d.workAddress} onChange={(k, v) => setAddr("workAddress", k, v)} />
