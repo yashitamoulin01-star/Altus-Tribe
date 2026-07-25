@@ -81,10 +81,12 @@ export async function updateSession(request: NextRequest) {
     try {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("status, onboarding_completed_at")
+        .select("role, status, onboarding_completed_at")
         .eq("id", user.id)
         .maybeSingle();
-      if (profile?.status === "pending") {
+      // Admins & consultants are trusted — never gate them, whatever their status.
+      const trusted = profile?.role === "admin" || profile?.role === "consultant";
+      if (!trusted && profile?.status === "pending") {
         const done = Boolean(profile.onboarding_completed_at);
         if (!done && !pathname.startsWith("/onboarding")) {
           const url = request.nextUrl.clone();
@@ -98,7 +100,7 @@ export async function updateSession(request: NextRequest) {
           url.search = "";
           return redirectWithCookies(response, url);
         }
-      } else if (profile?.status === "inactive") {
+      } else if (!trusted && profile?.status === "inactive") {
         // Rejected / deactivated — no member access. Held on /pending (which
         // shows the appropriate "access unavailable" state).
         if (pathname !== "/pending") {
