@@ -188,19 +188,17 @@ function isActive(pathname: string, match: string[]) {
 }
 
 export function AltusLogo() {
-  // Text + arrow wordmark — "ALTUS TRIBE" in near-black (high contrast on the
-  // light header), red arrow accent. Replaces the "ALTUS CORP" image.
   return (
-    <div className="flex items-center gap-2" aria-label="Altus Tribe">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red text-white shadow-sm shadow-red/30" aria-hidden>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2 2 22h5l5-10 5 10h5L12 2z" />
-        </svg>
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="font-serif text-[15px] font-bold uppercase tracking-[0.12em] text-ink">Altus</span>
-        <span className="font-serif text-[10px] font-bold uppercase tracking-[0.3em] text-red">Tribe</span>
-      </span>
+    <div className="flex items-center">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logo-dark.png"
+        alt="Altus Tribe"
+        className="h-8 sm:h-9 w-auto object-contain"
+        style={{
+          filter: 'drop-shadow(0 2px 4px rgba(183,16,42,0.15)) contrast(1.05)',
+        }}
+      />
     </div>
   );
 }
@@ -286,7 +284,7 @@ export default function AppShell({
   const waHref = `https://wa.me/${digits}${whatsappPrefill ? `?text=${encodeURIComponent(whatsappPrefill)}` : ""}`;
 
   return (
-    <div className="min-h-screen bg-paper text-ink">
+    <div className="min-h-screen bg-paper text-ink overflow-x-hidden">
       {/* ── Top Header ── */}
       <header className={`fixed inset-x-0 top-0 z-40 h-14 border-b border-hairline bg-white/95 backdrop-blur sm:h-16 header-scroll-blend dark:bg-surface/95 ${
         scrolled ? "scrolled" : ""
@@ -321,7 +319,7 @@ export default function AppShell({
                 <Link
                   key={d.href}
                   href={d.href}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-1.5 font-serif text-[13px] font-semibold transition-all lg:px-4 lg:py-2 lg:text-[14px] ${
+                  className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] font-semibold transition-all lg:px-4 lg:py-2 lg:text-[14px] ${
                     on
                       ? "bg-red text-white shadow-sm shadow-red/20"
                       : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
@@ -389,7 +387,7 @@ export default function AppShell({
                 )}
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="max-w-[120px] truncate font-serif text-[13px] font-semibold text-ink leading-tight">{userName}</span>
+                <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink leading-tight">{userName}</span>
                 <span className="text-[11px] font-medium text-ink-muted leading-tight">Participant</span>
               </div>
             </Link>
@@ -420,7 +418,7 @@ export default function AppShell({
                   {item.icon}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={`font-serif text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
+                  <p className={`text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
                     {item.title}
                   </p>
                   {item.sub && (
@@ -488,7 +486,7 @@ export default function AppShell({
             <Link
               key={d.label}
               href={d.href}
-              className={`flex h-14 flex-1 flex-col items-center justify-center gap-1 font-serif text-[11px] font-medium transition-colors ${
+              className={`flex h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors ${
                 on ? "font-bold text-red" : "text-ink-muted"
               }`}
             >
