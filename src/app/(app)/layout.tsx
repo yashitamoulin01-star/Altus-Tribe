@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const whatsappNumber = settings.manan_whatsapp_number || MANAN_WHATSAPP_NUMBER;
   const whatsappPrefill = settings.manan_whatsapp_prefill || MANAN_WHATSAPP_PREFILL;
-  const userName = me.fullName || me.businessName || "Member";
+  const userName = me.fullName || me.businessName || "Participant";
 
   return (
     <AppShell

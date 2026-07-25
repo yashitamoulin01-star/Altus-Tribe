@@ -40,7 +40,7 @@ function PersonRow({
         <div className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold text-ink transition-colors group-hover:text-red">{fullName}</span>
           <span className="block truncate font-mono text-[11px] uppercase tracking-[0.1em] text-ink-muted mt-0.5">
-            {[roleTitle, industry].filter(Boolean).join("  ·  ") || "Member"}
+            {[roleTitle, industry].filter(Boolean).join("  ·  ") || "Participant"}
           </span>
         </div>
       </Link>

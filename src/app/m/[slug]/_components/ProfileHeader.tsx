@@ -20,7 +20,7 @@ export default function ProfileHeader({ member }: { member: Member }) {
         )}
         <div className="absolute top-2 right-2 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md border border-white/10 px-2.5 py-1">
           <span className="h-2 w-2 rounded-full bg-red red-dot-pulse" />
-          <span className="font-mono text-[9px] text-white uppercase tracking-wider font-medium">Tribe Member</span>
+          <span className="font-mono text-[9px] text-white uppercase tracking-wider font-medium">Tribe Participant</span>
         </div>
       </div>
 

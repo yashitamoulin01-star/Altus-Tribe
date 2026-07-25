@@ -65,7 +65,7 @@ export async function IdentityHero() {
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-[18px] font-bold text-ink sm:text-[20px]">{displayName}</h2>
               <span className="rounded-full bg-red/10 px-2.5 py-0.5 text-[11px] font-bold text-red uppercase tracking-wider">
-                Member
+                Participant
               </span>
             </div>
             {me.businessName && <p className="mt-0.5 text-[14px] font-semibold text-ink-secondary">{me.businessName}</p>}

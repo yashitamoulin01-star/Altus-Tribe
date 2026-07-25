@@ -188,22 +188,19 @@ function isActive(pathname: string, match: string[]) {
 }
 
 export function AltusLogo() {
+  // Text + arrow wordmark — "ALTUS TRIBE" in near-black (high contrast on the
+  // light header), red arrow accent. Replaces the "ALTUS CORP" image.
   return (
-    <div className="flex items-center gap-2">
-      {/* Light theme logo */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/logo-dark.png"
-        alt="Altus Tribe"
-        className="h-7 sm:h-9 w-auto object-contain dark:hidden"
-      />
-      {/* Dark theme logo */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/logo-light.png"
-        alt="Altus Tribe"
-        className="h-7 sm:h-9 w-auto object-contain hidden dark:block"
-      />
+    <div className="flex items-center gap-2" aria-label="Altus Tribe">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red text-white shadow-sm shadow-red/30" aria-hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2 2 22h5l5-10 5 10h5L12 2z" />
+        </svg>
+      </span>
+      <span className="flex flex-col leading-none">
+        <span className="font-sans text-[14px] font-black uppercase tracking-[0.14em] text-ink">Altus</span>
+        <span className="font-sans text-[10px] font-bold uppercase tracking-[0.32em] text-red">Tribe</span>
+      </span>
     </div>
   );
 }
@@ -393,7 +390,7 @@ export default function AppShell({
               </div>
               <div className="hidden sm:flex flex-col text-left">
                 <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink leading-tight">{userName}</span>
-                <span className="text-[11px] font-medium text-ink-muted leading-tight">Member</span>
+                <span className="text-[11px] font-medium text-ink-muted leading-tight">Participant</span>
               </div>
             </Link>
           </div>
