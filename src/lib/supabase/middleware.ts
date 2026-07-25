@@ -98,6 +98,15 @@ export async function updateSession(request: NextRequest) {
           url.search = "";
           return redirectWithCookies(response, url);
         }
+      } else if (profile?.status === "inactive") {
+        // Rejected / deactivated — no member access. Held on /pending (which
+        // shows the appropriate "access unavailable" state).
+        if (pathname !== "/pending") {
+          const url = request.nextUrl.clone();
+          url.pathname = "/pending";
+          url.search = "";
+          return redirectWithCookies(response, url);
+        }
       }
     } catch {
       // ignore — never block navigation on a profile lookup failure

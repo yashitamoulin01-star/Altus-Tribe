@@ -22,23 +22,33 @@ export default async function PendingPage() {
     .eq("id", user.id)
     .maybeSingle();
 
-  if (profile && profile.status !== "pending") redirect("/home");
+  // Approved members (active/hidden) go home; only pending & inactive stay here.
+  const status = profile?.status;
+  if (profile && status !== "pending" && status !== "inactive") redirect("/home");
 
   const firstName = (profile?.full_name ?? "").split(" ")[0];
+  const rejected = status === "inactive";
   const changesRequested =
-    profile?.review_state === "changes_requested" && Boolean(profile?.review_note);
+    !rejected && profile?.review_state === "changes_requested" && Boolean(profile?.review_note);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col items-center justify-center px-6 text-center">
-      <p className="kicker mb-4">{changesRequested ? "Action needed" : "Awaiting approval"}</p>
+      <p className="kicker mb-4">{rejected ? "Access unavailable" : changesRequested ? "Action needed" : "Awaiting approval"}</p>
       <h1 className="text-3xl font-semibold leading-[1.1] tracking-[-0.02em] text-ink md:text-4xl">
-        {changesRequested
-          ? firstName
-            ? `${firstName}, a quick update needed.`
-            : "A quick update needed."
-          : `${firstName ? `Thanks, ${firstName}.` : "Thanks."} You're in the queue.`}
+        {rejected
+          ? "Your access isn't active."
+          : changesRequested
+            ? firstName
+              ? `${firstName}, a quick update needed.`
+              : "A quick update needed."
+            : `${firstName ? `Thanks, ${firstName}.` : "Thanks."} You're in the queue.`}
       </h1>
-      {changesRequested ? (
+      {rejected ? (
+        <p className="mt-5 text-[16px] leading-relaxed text-ink-secondary">
+          Your Altus Tribe membership isn&apos;t currently active. If you believe this is a
+          mistake, please reach out to the team.
+        </p>
+      ) : changesRequested ? (
         <>
           <p className="mt-5 text-[16px] leading-relaxed text-ink-secondary">
             Our team reviewed your request and asked for a few changes before approving:
@@ -52,9 +62,8 @@ export default async function PendingPage() {
         </>
       ) : (
         <p className="mt-5 text-[16px] leading-relaxed text-ink-secondary">
-          Altus Tribe is invitation-only. Our team is reviewing your request — you&apos;ll
-          get an email the moment you&apos;re approved, then you can build your feature and
-          enter the Tribe.
+          Altus Tribe is invitation-only. Our team is reviewing your request — we&apos;ll
+          notify you the moment you&apos;re approved, then you can enter the Tribe.
         </p>
       )}
       <form action={signOut} className="mt-8">
