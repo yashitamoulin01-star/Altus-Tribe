@@ -36,12 +36,30 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   if (!supabase) return NextResponse.redirect(`${origin}/login`);
 
+  // Invitation-only gate (ACCESS-1) for NEW OAuth users. Skipped for recovery /
+  // reset. Existing onboarded members are grandfathered. Fail-open if the gate
+  // isn't migrated yet (RPC error) so nothing is blocked before the SQL is run.
+  const inviteBlocked = async (): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) return false;
+    const { data: invited, error: rpcErr } = await supabase.rpc("is_email_invited", { check_email: user.email });
+    if (rpcErr || invited === true) return false; // gate inactive or invited → allow
+    const { data: profile } = await supabase.from("profiles").select("onboarding_completed_at").eq("id", user.id).maybeSingle();
+    if (profile?.onboarding_completed_at) return false; // grandfather existing member
+    await supabase.auth.signOut();
+    return true;
+  };
+  const isRecovery = type === "recovery" || next === "/reset-password";
+
   let authError: string | null = null;
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      const dest = type === "recovery" || next === "/reset-password" ? "/reset-password" : next;
+      if (!isRecovery && (await inviteBlocked())) {
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent("Altus Tribe is invitation-only. This account hasn't been invited yet.")}`);
+      }
+      const dest = isRecovery ? "/reset-password" : next;
       return NextResponse.redirect(`${origin}${dest}`);
     }
     authError = error.message;

@@ -539,6 +539,39 @@ export async function saveSetting(key: string, value: string) {
   return { ok: true };
 }
 
+// Invitation-only allowlist (ACCESS-1). Admins add/remove the emails eligible to
+// register. Emails are stored normalized (lower + trim). Audited.
+export async function addInvite(email: string, note: string) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false, error: "Not authorized." };
+  const clean = email.trim().toLowerCase();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(clean)) return { ok: false, error: "Enter a valid email address." };
+  const { error } = await supabase
+    .from("invited_emails")
+    .upsert({ email: clean, invited_by: ctx.userId, note: note.trim() || null }, { onConflict: "email", ignoreDuplicates: true });
+  if (error) {
+    logError("addInvite", error, { userId: ctx.userId });
+    return { ok: false, error: "Couldn't add that email. Please try again." };
+  }
+  await logAudit("invite.add", { entityType: "invited_email", metadata: { email: clean } });
+  revalidatePath("/admin/invites");
+  return { ok: true };
+}
+
+export async function removeInvite(email: string) {
+  const { supabase, ctx } = await ensureAdmin();
+  if (!supabase || !ctx.isAdmin) return { ok: false };
+  const clean = email.trim().toLowerCase();
+  const { error } = await supabase.from("invited_emails").delete().eq("email", clean);
+  if (error) {
+    logError("removeInvite", error, { userId: ctx.userId });
+    return { ok: false };
+  }
+  await logAudit("invite.remove", { entityType: "invited_email", metadata: { email: clean } });
+  revalidatePath("/admin/invites");
+  return { ok: true };
+}
+
 // Moderation (#174): soft-delete a message. Comments don't exist yet; this covers
 // the content that does, and extends to comments when that feature ships.
 export async function deleteMessage(messageId: string) {

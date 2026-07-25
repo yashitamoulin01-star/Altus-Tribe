@@ -104,6 +104,20 @@ export async function signup(
   if (!parsed.success) return { fieldErrors: fieldErrorsFrom(parsed.error) };
   const captchaToken = String(formData.get("captchaToken") ?? "") || undefined;
 
+  // Invitation-only gate (ACCESS-1): only emails an admin has invited may
+  // register. The RPC bypasses RLS and returns just a boolean (no list exposure).
+  // If the gate isn't migrated yet the RPC errors — we fall through (gate
+  // inactive) rather than lock out signups before the SQL is applied.
+  const { data: invited, error: inviteErr } = await supabase.rpc("is_email_invited", {
+    check_email: parsed.data.email,
+  });
+  if (!inviteErr && invited !== true) {
+    return {
+      error:
+        "Altus Tribe is invitation-only. This email hasn't been invited yet — please reach out to the team for access.",
+    };
+  }
+
   const origin = await siteOrigin();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
