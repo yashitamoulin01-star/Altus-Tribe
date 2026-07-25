@@ -34,7 +34,7 @@ export default async function AdminAuditPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1000px] px-6 py-8 sm:px-10">
-      <p className="kicker mb-3">Audit Log</p>
+      <p className="kicker mb-3">Activities</p>
       <h1 className="text-3xl font-semibold tracking-[-0.02em] text-ink">Who did what.</h1>
       <p className="mt-2 max-w-[52ch] text-[15px] text-ink-secondary">
         An immutable trail of security-sensitive admin actions. Newest first.

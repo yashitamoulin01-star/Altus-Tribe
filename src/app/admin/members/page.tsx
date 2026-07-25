@@ -63,7 +63,7 @@ export default async function AdminMembersPage({
     <main className="mx-auto w-full max-w-[1200px] px-6 py-8 sm:px-10">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="kicker mb-3">Roster</p>
+          <p className="kicker mb-3">Users</p>
           <h1 className="text-3xl font-semibold tracking-[-0.02em] text-ink">
             {roster.length} {roster.length === 1 ? "member" : "members"}
             {status ? ` · ${status}` : ""}

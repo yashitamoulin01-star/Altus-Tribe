@@ -34,7 +34,7 @@ export default async function AdminOverviewPage() {
   ];
 
   const links = [
-    { href: "/admin/members", title: "Roster", hint: "Search, edit, hide, inactivate or remove members." },
+    { href: "/admin/members", title: "Users", hint: "Search, edit, hide, inactivate or remove members." },
     { href: "/admin/inbox", title: "Sacred Space inbox", hint: "Read and reply to in-app support threads from members." },
     { href: "/admin/broadcasts", title: "Broadcasts", hint: "Send an in-app notification to everyone, a role, or one member." },
     { href: "/admin/consultants", title: "Consultants", hint: "Add consultants and assign designated consultants." },
