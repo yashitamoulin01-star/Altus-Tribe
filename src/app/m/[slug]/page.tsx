@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMember } from "@/lib/members-data";
+import { getMember, getProfileCard, type ProfileCard } from "@/lib/members-data";
 import { type Member } from "@/lib/members";
 import { getUser } from "@/lib/auth";
 import { getConnectionState, type ConnectionState } from "@/lib/connections";
+import ConnectButton from "@/components/ConnectButton";
 import ProfileHeader from "./_components/ProfileHeader";
 import ActionBar from "./_components/ActionBar";
 import ViewPing from "./_components/ViewPing";
@@ -264,10 +265,64 @@ function ProfileView({
   );
 }
 
+// Instagram-style locked landing for a private participant you're not connected
+// to: identity + a Connect request, but no private details.
+function LockedProfile({ card, connectionState }: { card: ProfileCard; connectionState: ConnectionState }) {
+  const meta = [card.category, card.city].filter(Boolean).join("  ·  ");
+  const initials = card.fullName.split(" ").map((n) => n[0]).filter(Boolean).slice(0, 2).join("");
+  return (
+    <main className="mx-auto w-full max-w-[640px] px-6 py-10 sm:px-10">
+      <nav className="mb-8">
+        <Link href="/explore" className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
+          ← The Tribe
+        </Link>
+      </nav>
+      <div className="flex flex-col items-center rounded-2xl border border-hairline bg-surface p-8 text-center">
+        <div className="h-24 w-24 overflow-hidden rounded-full border border-hairline bg-surface-sunk">
+          {card.photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={card.photoUrl} alt={card.fullName} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-mono text-xl text-ink-muted">{initials || "·"}</div>
+          )}
+        </div>
+        <h1 className="mt-4 text-2xl font-semibold tracking-[-0.02em] text-ink">{card.fullName}</h1>
+        {card.businessName && <p className="mt-1 text-[15px] text-ink-secondary">{card.businessName}</p>}
+        {meta && <p className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.1em] text-ink-muted">{meta}</p>}
+
+        <div className="mt-6 flex items-center gap-2 rounded-xl border border-hairline bg-surface-sunk/60 px-4 py-3 text-ink-muted">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
+            <rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+          </svg>
+          <span className="text-[13px] font-medium">This profile is private</span>
+        </div>
+        <p className="mt-3 max-w-[42ch] text-[13px] leading-relaxed text-ink-muted">
+          Connect with {card.fullName.split(" ")[0]} to view their full profile. They&apos;ll get a request to accept.
+        </p>
+        <div className="mt-5">
+          <ConnectButton profileId={card.id} initialState={connectionState} />
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default async function Page({ params }: PageProps<"/m/[slug]">) {
   const { slug } = await params;
   const [member, viewer] = await Promise.all([getMember(slug), getUser()]);
-  if (!member) notFound();
+
+  // Full profile hidden by RLS but the participant exists + is private → show the
+  // Instagram-style locked landing (name/photo/business + Connect) instead of 404.
+  if (!member) {
+    if (viewer) {
+      const card = await getProfileCard(slug);
+      if (card && card.visibility === "private" && card.id !== viewer.id) {
+        const connectionState = await getConnectionState(card.id);
+        return <LockedProfile card={card} connectionState={connectionState} />;
+      }
+    }
+    notFound();
+  }
   const isOwner = Boolean(viewer && member.id && viewer.id === member.id);
   const canMessage = Boolean(viewer && member.id && viewer.id !== member.id);
   const connectionState =

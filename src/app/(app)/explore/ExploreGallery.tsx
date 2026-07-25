@@ -43,7 +43,18 @@ function CoverCard({
               <span className="font-mono text-2xl text-ink-muted">{initials}</span>
             </div>
           )}
-          {online && (
+          {member.locked && (
+            <span
+              className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/55 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-white backdrop-blur-md"
+              title="Private profile — connect to view"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden>
+                <rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" />
+              </svg>
+              Private
+            </span>
+          )}
+          {online && !member.locked && (
             <span
               className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-black/55 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.1em] text-white backdrop-blur-md"
               title="Online now"

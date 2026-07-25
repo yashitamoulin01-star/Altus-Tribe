@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { getAllMembers } from "@/lib/members-data";
+import { getAllMembers, getDirectoryCards } from "@/lib/members-data";
+import type { MemberCover } from "@/lib/members";
 import { getConnectionMap, getIncomingRequestCount } from "@/lib/connections";
 import { getSuggestedMembers } from "@/lib/dashboard";
 import { getUser } from "@/lib/auth";
 import ExploreGallery from "./ExploreGallery";
 
-export const metadata = { title: "Explore People — Altus Tribe" };
+export const metadata = { title: "Connect with Participants — Altus Tribe" };
 export const dynamic = "force-dynamic";
 
 export default async function ExplorePage({
@@ -16,13 +17,39 @@ export default async function ExplorePage({
   const sp = await searchParams;
   const q = Array.isArray(sp.q) ? sp.q[0] ?? "" : sp.q ?? "";
 
-  const [members, connMap, recommended, viewer, requestCount] = await Promise.all([
+  const [visibleMembers, cards, connMap, recommended, viewer, requestCount] = await Promise.all([
     getAllMembers(),
+    getDirectoryCards(),
     getConnectionMap(),
     getSuggestedMembers(8),
     getUser(),
     getIncomingRequestCount(),
   ]);
+
+  // Instagram-style: append PRIVATE participants the viewer can't yet see as
+  // "locked" cards (name/photo/business only) so they're discoverable + can
+  // receive a connection request. Excludes ones already visible or self.
+  const visibleSlugs = new Set(visibleMembers.map((m) => m.slug));
+  const lockedCards: MemberCover[] = cards
+    .filter((c) => c.visibility === "private" && !visibleSlugs.has(c.slug) && c.id !== viewer?.id)
+    .map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      fullName: c.fullName,
+      photoUrl: c.photoUrl,
+      roleTitle: "",
+      industry: c.industry ?? "",
+      city: c.city ?? "",
+      positioning: c.positioning ?? "",
+      businessName: c.businessName ?? "",
+      category: c.category ?? "",
+      interests: "",
+      createdAt: "",
+      openTo: [],
+      featured: false,
+      locked: true,
+    }));
+  const members = [...visibleMembers, ...lockedCards];
 
   return (
     <main className="mx-auto w-full max-w-[1120px] px-6 sm:px-10">

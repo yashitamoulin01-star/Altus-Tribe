@@ -328,6 +328,52 @@ export const getMember = cache(async (slug: string): Promise<Member | undefined>
   return rowToMember(data, isOwner, supabase.storage);
 });
 
+// Minimal, safe "card" info for ANY active participant regardless of visibility
+// (via the directory_cards SECURITY DEFINER function). Used so PRIVATE profiles
+// are discoverable + connectable (Instagram-style) without exposing full details.
+export interface ProfileCard {
+  id: string;
+  slug: string;
+  fullName: string;
+  photoUrl: string | null;
+  businessName: string | null;
+  category: string | null;
+  industry: string | null;
+  city: string | null;
+  positioning: string | null;
+  visibility: "public" | "tribe" | "private";
+  isFeatured: boolean;
+}
+
+function toProfileCard(r: Record<string, unknown>): ProfileCard {
+  return {
+    id: r.id as string,
+    slug: r.slug as string,
+    fullName: (r.full_name as string) ?? "Participant",
+    photoUrl: (r.photo_url as string) ?? null,
+    businessName: (r.business_name as string) ?? null,
+    category: (r.category as string) ?? null,
+    industry: (r.industry as string) ?? null,
+    city: (r.city as string) ?? null,
+    positioning: (r.positioning as string) ?? null,
+    visibility: (r.visibility as ProfileCard["visibility"]) ?? "tribe",
+    isFeatured: Boolean(r.is_featured),
+  };
+}
+
+export const getDirectoryCards = cache(async (): Promise<ProfileCard[]> => {
+  const supabase = await createClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase.rpc("directory_cards");
+  if (error || !data) return []; // not migrated yet → no locked cards (graceful)
+  return (data as Record<string, unknown>[]).map(toProfileCard);
+});
+
+export async function getProfileCard(slug: string): Promise<ProfileCard | null> {
+  const cards = await getDirectoryCards();
+  return cards.find((c) => c.slug === slug) ?? null;
+}
+
 export async function getAllMembers(): Promise<MemberCover[]> {
   const supabase = await createClient();
   if (!supabase) {

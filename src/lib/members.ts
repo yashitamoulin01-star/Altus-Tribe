@@ -299,6 +299,7 @@ export interface MemberCover {
   createdAt: string; // profile created_at — for "Recently joined"
   openTo: OpenToOption[]; // referral/mentoring/etc. — for the "Open to" filter
   featured: boolean; // admin-spotlighted — for the "Featured" strip
+  locked?: boolean; // private profile the viewer can't yet view (Instagram-style)
 }
 
 // Pure projection Member -> MemberCover. Used by both the DB and fallback paths.
