@@ -548,6 +548,32 @@ export default function EditFeature({
             <TextField label="Brand names (comma separated)" value={d.brandNames} onChange={(v) => set("brandNames", v)} />
           </Section>
 
+          <Section title="Profile visibility" note="Control who can see your full profile. Private profiles are viewable only by participants you've accepted a connection with — like a private account.">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              {([
+                { v: "public", t: "Public", h: "Anyone with the link" },
+                { v: "tribe", t: "Members only", h: "Signed-in Tribe participants" },
+                { v: "private", t: "Private", h: "Only you, admins & accepted connections" },
+              ] as const).map((o) => {
+                const on = d.visibility === o.v;
+                return (
+                  <button
+                    key={o.v}
+                    type="button"
+                    onClick={() => set("visibility", o.v as EditableProfile["visibility"])}
+                    aria-pressed={on}
+                    className={`rounded-xl border p-4 text-left transition-colors ${
+                      on ? "border-red bg-red/5" : "border-hairline hover:border-hairline-bright"
+                    }`}
+                  >
+                    <p className={`text-[14px] font-semibold ${on ? "text-red" : "text-ink"}`}>{o.t}</p>
+                    <p className="mt-0.5 text-[12px] text-ink-muted">{o.h}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </Section>
+
           <Section title="Photo & logo" note={configured ? "JPG or PNG. Stored securely." : "Paste image URLs — connect Supabase to upload."}>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <ImageUpload
