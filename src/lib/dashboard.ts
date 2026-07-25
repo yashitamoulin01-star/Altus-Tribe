@@ -1,5 +1,6 @@
 import "server-only";
 import { cache } from "react";
+import { createClient } from "@/lib/supabase/server";
 import { loadEditable } from "@/lib/profile-edit";
 import { composeFullName, computeProfileCompletion, requiredSetupMissing } from "@/lib/profile-fields";
 import { getAllMembers } from "@/lib/members-data";
@@ -71,4 +72,29 @@ export async function getSuggestedMembers(limit = 4): Promise<MemberCover[]> {
     (myIndustry && m.industry.trim().toLowerCase() === myIndustry ? 0 : 1);
   others.sort((a, b) => score(a) - score(b));
   return others.slice(0, limit);
+}
+
+// Home stats: real connection + profile-view counts for the signed-in member.
+export interface HomeStats {
+  connections: number;
+  profileViews: number;
+}
+
+export async function getHomeStats(): Promise<HomeStats> {
+  const supabase = await createClient();
+  if (!supabase) return { connections: 0, profileViews: 0 };
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { connections: 0, profileViews: 0 };
+
+  const [conn, views] = await Promise.all([
+    supabase
+      .from("connections")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "accepted")
+      .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`),
+    supabase.from("profile_views").select("id", { count: "exact", head: true }).eq("owner_id", user.id),
+  ]);
+  return { connections: conn.count ?? 0, profileViews: views.count ?? 0 };
 }

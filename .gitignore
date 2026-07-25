@@ -48,3 +48,8 @@ test-results/
 playwright-report/
 
 .env.test
+
+# local dev/build logs
+.dev.log
+.preview-dev.log
+.build.log

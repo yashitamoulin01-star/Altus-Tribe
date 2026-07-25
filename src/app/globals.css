@@ -157,6 +157,15 @@ body {
   background: var(--color-ink-muted);
 }
 
+/* Hide scrollbar entirely (still scrollable) — e.g. horizontal tab strips. */
+.no-scrollbar {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;                /* Chrome/Safari */
+}
+
 /* Glassmorphism & Micro-effects — LIGHT base (default), dark overrides below.
    Used sparingly; the ecosystem language favours solid white surfaces. */
 .glass-panel {
