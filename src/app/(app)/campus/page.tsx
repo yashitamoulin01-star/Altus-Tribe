@@ -104,6 +104,32 @@ export default async function CampusPage() {
             Open PS App ↗
           </span>
         </a>
+
+        {/* PS ecosystem features — honest deep-links into the PS app (until a
+            native/synced integration exists). */}
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            { label: "Tribe Learning", desc: "Courses & programmes" },
+            { label: "Karma Bank", desc: "Give & track karma" },
+            { label: "Gratitude Space", desc: "Share gratitude" },
+            { label: "Refer to Someone", desc: "Refer a founder" },
+          ].map((f) => (
+            <a
+              key={f.label}
+              href={psAppUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col rounded-xl border border-hairline bg-surface p-4 transition-colors hover:border-red/40"
+            >
+              <span className="flex items-center justify-between">
+                <span className="text-[14px] font-semibold text-ink">{f.label}</span>
+                <span className="text-ink-muted transition-colors group-hover:text-red" aria-hidden>↗</span>
+              </span>
+              <span className="mt-0.5 text-[12px] text-ink-muted">{f.desc}</span>
+            </a>
+          ))}
+        </div>
+        <p className="mt-2 text-[12px] text-ink-muted">These open in the Productivity Shastra app.</p>
       </section>
 
       {/* PS Orientation + channels (static entry points) */}
