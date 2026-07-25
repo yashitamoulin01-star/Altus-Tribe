@@ -208,6 +208,27 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
+-- 0029 — Directory cards (Instagram-style discoverable private profiles)
+-- ---------------------------------------------------------------------------
+create or replace function public.directory_cards()
+returns table (
+  id uuid, slug text, full_name text, photo_url text, business_name text,
+  category text, industry text, city text, positioning text,
+  visibility text, is_featured boolean, created_at timestamptz
+)
+language sql stable security definer set search_path = public as $$
+  select p.id, p.slug, p.full_name, p.photo_url,
+    (select b.name from public.businesses b where b.profile_id = p.id),
+    p.category, p.industry, p.city, p.positioning,
+    p.visibility::text, p.is_featured, p.created_at
+  from public.profiles p
+  where p.status = 'active'
+  order by p.full_name;
+$$;
+revoke all on function public.directory_cards() from public, anon;
+grant execute on function public.directory_cards() to authenticated;
+
+-- ---------------------------------------------------------------------------
 -- Private CRM assets bucket (A3–A9 / A21 evidence images) + access policies
 -- (kept LAST — the only section that can hit "must be owner of table objects";
 --  everything above has already committed by the time this runs.)
