@@ -23,7 +23,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pt-4 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-12">
       {/* ── Row 1: Identity Hero & Announcements (Desktop 2-col, Tablet/Mobile 1-col) ── */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Suspense fallback={<CardSkeleton h="h-64" />}>
           <IdentityHero />
         </Suspense>
@@ -37,7 +37,7 @@ export default function HomePage() {
 
       {/* ── Row 3: Referral Rounds, Next Conclave & Today's Network ── */}
       {/* Desktop (>=1024px) = 3 Columns; Tablet (641-1023px) = 2 Col top + 1 Col bottom; Mobile = Stacked */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <ReferralRoundCard />
         <Suspense fallback={<CardSkeleton />}>
           <ConclaveCard />
@@ -51,7 +51,7 @@ export default function HomePage() {
 
       {/* ── Row 4: Recent Activity, Inspiration Corner & Elevator Pitches ── */}
       {/* Desktop (>=1024px) = 3 Columns; Tablet (641-1023px) = 2 Col top + 1 Col bottom; Mobile = Stacked */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <RecentActivity />
         <InspirationCorner />
         <div className="sm:col-span-2 lg:col-span-1">
