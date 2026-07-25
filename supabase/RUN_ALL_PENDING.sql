@@ -182,6 +182,32 @@ $$;
 grant execute on function public.is_email_invited(text) to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
+-- ACCESS-2 — Approval gate re-enabled + consent columns
+-- ---------------------------------------------------------------------------
+alter table public.profiles
+  add column if not exists terms_accepted_at timestamptz,
+  add column if not exists terms_version   text,
+  add column if not exists privacy_version text,
+  add column if not exists notif_opt_in    boolean not null default false;
+
+create or replace function public.handle_new_user()
+returns trigger language plpgsql security definer set search_path = public as $$
+declare display_name text;
+begin
+  display_name := coalesce(
+    nullif(trim(new.raw_user_meta_data->>'full_name'), ''),
+    split_part(new.email, '@', 1), 'Member');
+  insert into public.profiles (id, slug, full_name, status)
+  values (new.id, public.generate_profile_slug(display_name), display_name, 'pending')
+  on conflict (id) do nothing;
+  return new;
+exception when others then
+  raise warning 'handle_new_user failed for auth user %: % (SQLSTATE %)', new.id, sqlerrm, sqlstate;
+  return new;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------
 -- Private CRM assets bucket (A3–A9 / A21 evidence images) + access policies
 -- (kept LAST — the only section that can hit "must be owner of table objects";
 --  everything above has already committed by the time this runs.)

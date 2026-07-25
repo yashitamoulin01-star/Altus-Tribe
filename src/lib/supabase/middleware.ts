@@ -74,17 +74,34 @@ export async function updateSession(request: NextRequest) {
 
   // Signed-in gates for the member worlds.
   if (user && isProtected(pathname)) {
-    // NOTE: the invitation-only "awaiting approval" (pending) gate is PAUSED per
-    // product decision — new users go straight into the app. The DB trigger also
-    // creates new members as `active`. To re-enable, restore the block below and
-    // flip the trigger back to `pending`.
-    // const { data: profile } = await supabase
-    //   .from("profiles").select("status").eq("id", user.id).maybeSingle();
-    // if (profile?.status === "pending") {
-    //   const pendingUrl = request.nextUrl.clone();
-    //   pendingUrl.pathname = "/pending"; pendingUrl.search = "";
-    //   return redirectWithCookies(response, pendingUrl);
-    // }
+    // Invitation approval gate (ACCESS-2): a PENDING member must finish onboarding
+    // (their application), then wait on /pending until an admin approves. Only
+    // pending members are affected; active members and admins pass straight
+    // through. Fail open on lookup error so a hiccup never locks the app.
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("status, onboarding_completed_at")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.status === "pending") {
+        const done = Boolean(profile.onboarding_completed_at);
+        if (!done && !pathname.startsWith("/onboarding")) {
+          const url = request.nextUrl.clone();
+          url.pathname = "/onboarding";
+          url.search = "";
+          return redirectWithCookies(response, url);
+        }
+        if (done && pathname !== "/pending") {
+          const url = request.nextUrl.clone();
+          url.pathname = "/pending";
+          url.search = "";
+          return redirectWithCookies(response, url);
+        }
+      }
+    } catch {
+      // ignore — never block navigation on a profile lookup failure
+    }
 
     // MFA gate: a user who enrolled an authenticator but is still at aal1 must
     // elevate before entering the worlds. Only affects MFA-enrolled users
