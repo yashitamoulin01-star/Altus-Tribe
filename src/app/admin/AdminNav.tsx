@@ -14,6 +14,7 @@ const TABS = [
   { href: "/admin/assets", label: "Assets" },
   { href: "/admin/taxonomies", label: "Categories" },
   { href: "/admin/events", label: "Events" },
+  { href: "/admin/conclave", label: "Conclave" },
   { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/audit", label: "Activities" },
   { href: "/admin/settings", label: "Settings" },
