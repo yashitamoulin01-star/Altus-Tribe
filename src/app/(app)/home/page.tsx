@@ -29,15 +29,14 @@ export default function HomePage() {
         <ReferralReminder />
       </Suspense>
 
-      {/* ── Row 1: Identity Hero & Announcements (Desktop 2-col, Tablet/Mobile 1-col) ── */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Suspense fallback={<CardSkeleton h="h-64" />}>
-          <IdentityHero />
-        </Suspense>
-        <Suspense fallback={<CardSkeleton h="h-64" />}>
-          <HomeAnnouncements />
-        </Suspense>
-      </div>
+      {/* ── Row 1: Full-width Identity box, then Announcements below (stacked on
+           every width — welcome row, full-width identity box, announcements). ── */}
+      <Suspense fallback={<CardSkeleton h="h-64" />}>
+        <IdentityHero />
+      </Suspense>
+      <Suspense fallback={<CardSkeleton h="h-48" />}>
+        <HomeAnnouncements />
+      </Suspense>
 
       {/* ── Row 2: "What would you like to do?" Action Shortcuts ── */}
       <Reveal>

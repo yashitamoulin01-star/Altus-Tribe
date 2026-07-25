@@ -297,7 +297,7 @@ export default function AppShell({
               type="button"
               onClick={toggleSidebar}
               aria-label={sidebarOpen ? "Close Sidebar" : "Open Sidebar"}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-hairline text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink focus:outline-none"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted transition-colors hover:bg-surface-sunk hover:text-ink focus:outline-none"
               title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
