@@ -11,7 +11,6 @@ import ViewPing from "./_components/ViewPing";
 import AddressCard from "./_components/AddressCard";
 import PortfolioGallery from "./_components/PortfolioGallery";
 import SectionCard, { Detail, DetailGrid, Prose } from "./_components/SectionCard";
-import PhoneThemeWrapper from "./_components/PhoneThemeWrapper";
 
 // Personalized per viewer (owner-only + hidden fields stripped, "Message" gated
 // on the signed-in user), so it reads cookies and renders dynamically.
@@ -96,7 +95,7 @@ function ProfileView({
     (member.conclavesAttended != null && member.conclavesAttended > 0);
 
   return (
-    <PhoneThemeWrapper initialTheme="dark">
+    <div className="px-4 pt-4 sm:px-6 lg:px-8">
       <main className="mx-auto w-full max-w-[960px] pb-24 lg:pb-16">
         {!isOwner && member.id && <ViewPing ownerId={member.id} />}
         <nav className="print-hide flex items-center justify-between py-3">
@@ -261,7 +260,7 @@ function ProfileView({
           )}
         </div>
       </main>
-    </PhoneThemeWrapper>
+    </div>
   );
 }
 
