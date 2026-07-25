@@ -13,6 +13,7 @@ const PROTECTED_PREFIXES = [
   "/messages",
   "/notifications",
   "/settings",
+  "/referral-rounds",
   "/admin", // role additionally enforced in the /admin layout
 ];
 

@@ -25,8 +25,15 @@ function fromLocalInput(v: string): string {
 
 const EMPTY: EventInput = {
   title: "", description: "", location: "", link: "",
-  startsAt: "", endsAt: "", featured: false, published: true,
+  startsAt: "", endsAt: "", featured: false, published: true, kind: "event",
 };
+
+const KINDS: { value: EventInput["kind"]; label: string }[] = [
+  { value: "event", label: "Event" },
+  { value: "referral_round", label: "Referral Round" },
+  { value: "conclave", label: "Conclave" },
+  { value: "orientation", label: "PS Orientation" },
+];
 
 function fmt(iso: string | null) {
   if (!iso) return "—";
@@ -58,6 +65,7 @@ export default function EventManager({ initial }: { initial: EventItem[] }) {
       endsAt: e.endsAt ?? "",
       featured: e.featured,
       published: e.published,
+      kind: e.kind,
     });
     setError(null);
   };
@@ -150,6 +158,14 @@ export default function EventManager({ initial }: { initial: EventItem[] }) {
           <div>
             <label className={lbl}>Title</label>
             <input className={field} value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="Altus Conclave" />
+          </div>
+          <div>
+            <label className={lbl}>Type</label>
+            <select className={field} value={form.kind} onChange={(e) => set("kind", e.target.value as EventInput["kind"])}>
+              {KINDS.map((k) => (
+                <option key={k.value} value={k.value}>{k.label}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className={lbl}>Description</label>

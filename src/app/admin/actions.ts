@@ -48,6 +48,7 @@ export interface EventInput {
   endsAt: string;
   featured: boolean;
   published: boolean;
+  kind: "event" | "conclave" | "referral_round" | "orientation";
 }
 
 function eventRow(e: EventInput, createdBy?: string | null) {
@@ -60,6 +61,7 @@ function eventRow(e: EventInput, createdBy?: string | null) {
     ends_at: e.endsAt || null,
     featured: e.featured,
     published: e.published,
+    kind: e.kind,
     ...(createdBy ? { created_by: createdBy } : {}),
   };
 }

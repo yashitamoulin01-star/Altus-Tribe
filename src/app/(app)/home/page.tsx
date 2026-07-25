@@ -1,15 +1,16 @@
 import { Suspense } from "react";
-import ReferralRoundCard from "./ReferralRoundCard";
 import {
   IdentityHero,
   HomeAnnouncements,
   NetworkingActions,
+  ReferralRoundSection,
   ConclaveCard,
   TodaysNetwork,
   RecentActivity,
   InspirationCorner,
   ElevatorPitches,
 } from "./sections";
+import ReferralReminder from "./ReferralReminder";
 
 export const metadata = { title: "Home — Altus Tribe" };
 
@@ -22,6 +23,11 @@ const CardSkeleton = ({ h = "h-48" }: { h?: string }) => (
 export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pt-4 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-12">
+      {/* Referral Round reminder — only within 24h / live */}
+      <Suspense fallback={null}>
+        <ReferralReminder />
+      </Suspense>
+
       {/* ── Row 1: Identity Hero & Announcements (Desktop 2-col, Tablet/Mobile 1-col) ── */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Suspense fallback={<CardSkeleton h="h-64" />}>
@@ -38,7 +44,9 @@ export default function HomePage() {
       {/* ── Row 3: Referral Rounds, Next Conclave & Today's Network ── */}
       {/* Desktop (>=1024px) = 3 Columns; Tablet (641-1023px) = 2 Col top + 1 Col bottom; Mobile = Stacked */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <ReferralRoundCard />
+        <Suspense fallback={<CardSkeleton />}>
+          <ReferralRoundSection />
+        </Suspense>
         <Suspense fallback={<CardSkeleton />}>
           <ConclaveCard />
         </Suspense>

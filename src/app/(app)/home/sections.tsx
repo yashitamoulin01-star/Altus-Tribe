@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getMyProfileSummary, getSuggestedMembers } from "@/lib/dashboard";
-import { getUpcomingEvents } from "@/lib/events";
+import { getUpcomingEvents, getNextReferralRound } from "@/lib/events";
+import ReferralRoundCard from "./ReferralRoundCard";
 import { getAnnouncements } from "@/lib/community";
 import { getNotifications, getUnreadCount } from "@/lib/notifications";
 import { initials } from "./widgets/_shared";
@@ -143,7 +144,7 @@ export function NetworkingActions() {
       icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" /></svg>) },
     { title: "Sacred Space", sub: "Reach Manan Vasa / Team and view important updates.", href: "/sacred-space",
       icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>) },
-    { title: "Referral Rounds", sub: "Build consistent referral relationships inside the Tribe.", href: "/refer",
+    { title: "Referral Rounds", sub: "Build consistent referral relationships inside the Tribe.", href: "/referral-rounds",
       icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M17 2l4 4-4 4" /><path d="M3 11V9a4 4 0 0 1 4-4h14" /><path d="M7 22l-4-4 4-4" /><path d="M21 13v2a4 4 0 0 1-4 4H3" /></svg>) },
     { title: "Campus", sub: "Explore videos, learning and the PS ecosystem.", href: "/campus",
       icon: (<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>) },
@@ -168,6 +169,13 @@ export function NetworkingActions() {
       </div>
     </div>
   );
+}
+
+// Referral Rounds — server-fetches the next scheduled round (admin-set or the
+// standing Wednesday) and hands the date to the client countdown card.
+export async function ReferralRoundSection() {
+  const rr = await getNextReferralRound();
+  return <ReferralRoundCard startsAt={rr.startsAt} title={rr.title} location={rr.location} link={rr.link} />;
 }
 
 // ── 4. NEXT CONCLAVE — real events only ─────────────────────────────────────
