@@ -11,6 +11,7 @@ import {
   ElevatorPitches,
 } from "./sections";
 import ReferralReminder from "./ReferralReminder";
+import Reveal from "@/components/Reveal";
 
 export const metadata = { title: "Home — Altus Tribe" };
 
@@ -39,11 +40,12 @@ export default function HomePage() {
       </div>
 
       {/* ── Row 2: "What would you like to do?" Action Shortcuts ── */}
-      <NetworkingActions />
+      <Reveal>
+        <NetworkingActions />
+      </Reveal>
 
       {/* ── Row 3: Referral Rounds, Next Conclave & Today's Network ── */}
-      {/* Desktop (>=1024px) = 3 Columns; Tablet (641-1023px) = 2 Col top + 1 Col bottom; Mobile = Stacked */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <Reveal className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <Suspense fallback={<CardSkeleton />}>
           <ReferralRoundSection />
         </Suspense>
@@ -55,17 +57,16 @@ export default function HomePage() {
             <TodaysNetwork />
           </Suspense>
         </div>
-      </div>
+      </Reveal>
 
       {/* ── Row 4: Recent Activity, Inspiration Corner & Elevator Pitches ── */}
-      {/* Desktop (>=1024px) = 3 Columns; Tablet (641-1023px) = 2 Col top + 1 Col bottom; Mobile = Stacked */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <Reveal className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <RecentActivity />
         <InspirationCorner />
         <div className="sm:col-span-2 lg:col-span-1">
           <ElevatorPitches />
         </div>
-      </div>
+      </Reveal>
     </main>
   );
 }

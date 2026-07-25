@@ -5,6 +5,7 @@ import { PS_APP_URL, withHttp } from "@/lib/settings-meta";
 import { youtubeEmbed } from "@/lib/media";
 import CampusBrowser from "./CampusBrowser";
 import CircularGallery from "@/components/CircularGallery";
+import Reveal from "@/components/Reveal";
 
 export const metadata = { title: "Campus — Altus Tribe" };
 export const dynamic = "force-dynamic";
@@ -69,7 +70,7 @@ export default async function CampusPage() {
       <CampusBrowser resources={resources} />
 
       {/* React Bits 3D Circular Showcase Gallery */}
-      <section className="mt-12 rounded-2xl border border-hairline/80 bg-surface/60 p-6 backdrop-blur-md">
+      <Reveal as="section" className="mt-12 rounded-2xl border border-hairline/80 bg-surface/60 p-6 backdrop-blur-md">
         <p className="kicker mb-2">Interactive Showcase</p>
         <h2 className="text-xl font-semibold text-ink mb-4">Program & Event Highlights</h2>
         <div className="h-[360px] w-full rounded-xl overflow-hidden bg-black/40">
@@ -81,7 +82,7 @@ export default async function CampusPage() {
             scrollEase={0.05}
           />
         </div>
-      </section>
+      </Reveal>
 
       {/* Productivity Shastra ecosystem entry — Altus Tribe is part of PS. */}
       <section className="mt-12 border-t border-hairline pt-10">
