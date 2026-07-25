@@ -198,8 +198,8 @@ export function AltusLogo() {
         </svg>
       </span>
       <span className="flex flex-col leading-none">
-        <span className="font-sans text-[14px] font-black uppercase tracking-[0.14em] text-ink">Altus</span>
-        <span className="font-sans text-[10px] font-bold uppercase tracking-[0.32em] text-red">Tribe</span>
+        <span className="font-serif text-[15px] font-bold uppercase tracking-[0.12em] text-ink">Altus</span>
+        <span className="font-serif text-[10px] font-bold uppercase tracking-[0.3em] text-red">Tribe</span>
       </span>
     </div>
   );
@@ -321,7 +321,7 @@ export default function AppShell({
                 <Link
                   key={d.href}
                   href={d.href}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] font-semibold transition-all lg:px-4 lg:py-2 lg:text-[14px] ${
+                  className={`flex items-center gap-2 rounded-xl px-3 py-1.5 font-serif text-[13px] font-semibold transition-all lg:px-4 lg:py-2 lg:text-[14px] ${
                     on
                       ? "bg-red text-white shadow-sm shadow-red/20"
                       : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
@@ -389,7 +389,7 @@ export default function AppShell({
                 )}
               </div>
               <div className="hidden sm:flex flex-col text-left">
-                <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink leading-tight">{userName}</span>
+                <span className="max-w-[120px] truncate font-serif text-[13px] font-semibold text-ink leading-tight">{userName}</span>
                 <span className="text-[11px] font-medium text-ink-muted leading-tight">Participant</span>
               </div>
             </Link>
@@ -420,7 +420,7 @@ export default function AppShell({
                   {item.icon}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className={`text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
+                  <p className={`font-serif text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
                     {item.title}
                   </p>
                   {item.sub && (
@@ -488,7 +488,7 @@ export default function AppShell({
             <Link
               key={d.label}
               href={d.href}
-              className={`flex h-14 flex-1 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors ${
+              className={`flex h-14 flex-1 flex-col items-center justify-center gap-1 font-serif text-[11px] font-medium transition-colors ${
                 on ? "font-bold text-red" : "text-ink-muted"
               }`}
             >
