@@ -51,32 +51,34 @@ export default function HomeFeed({
             Share a win, update, or inspiration with your Tribe…
           </button>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
           {quick.map((q) => (
             <button key={q.label} type="button" className="flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-[12px] font-semibold text-ink-secondary transition-colors hover:bg-surface-sunk">
-              <span className="text-red">{q.icon}</span>
-              <span className="truncate">{q.label}</span>
+              <span className="shrink-0 text-red">{q.icon}</span>
+              <span className="whitespace-nowrap">{q.label}</span>
             </button>
           ))}
         </div>
       </section>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-3 border-b border-hairline">
-        <div className="no-scrollbar flex flex-1 items-center gap-1 overflow-x-auto">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`relative whitespace-nowrap px-3 py-2.5 text-[13px] font-semibold transition-colors ${tab === t ? "text-red" : "text-ink-muted hover:text-ink"}`}
-            >
-              {t}
-              {tab === t && <span className="absolute inset-x-2 -bottom-px h-0.5 rounded bg-red" />}
-            </button>
-          ))}
+      {/* Tabs — filter area scrolls independently; Sort never shrinks the filters. */}
+      <div className="flex min-w-0 items-center border-b border-hairline">
+        <div className="no-scrollbar min-w-0 flex-1 overflow-x-auto">
+          <div className="flex w-max items-center gap-5">
+            {TABS.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className={`relative shrink-0 whitespace-nowrap py-2.5 text-[13px] font-semibold transition-colors ${tab === t ? "text-red" : "text-ink-muted hover:text-ink"}`}
+              >
+                {t}
+                {tab === t && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded bg-red" />}
+              </button>
+            ))}
+          </div>
         </div>
-        <span className="hidden shrink-0 text-[12px] text-ink-muted lg:block">Sort by: Latest</span>
+        <span className="ml-4 hidden shrink-0 whitespace-nowrap text-[12px] text-ink-muted lg:block">Sort by: Latest</span>
       </div>
 
       {/* Pinned announcement (REAL) */}
