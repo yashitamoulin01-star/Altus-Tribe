@@ -13,6 +13,7 @@ const KINDS = [
   { value: "video", label: "Video" },
   { value: "brochure", label: "Playbook / Brochure" },
   { value: "inspiration", label: "Inspiration" },
+  { value: "highlight", label: "Event Highlight (photo)" },
 ];
 
 export default function ResourceManager({

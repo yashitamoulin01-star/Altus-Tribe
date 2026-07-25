@@ -10,6 +10,7 @@ const KIND_LABEL: Record<CampusKind, string> = {
   video: "Video",
   brochure: "Playbook",
   inspiration: "Inspiration",
+  highlight: "Highlight",
 };
 
 type Category = "all" | CampusKind | "saved";

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 // Campus data layer (Phase 5.3). Learning resources + per-member bookmark/
 // completion state. Offline-first: bundled samples when unconfigured/unmigrated.
 
-export type CampusKind = "video" | "brochure" | "inspiration";
+export type CampusKind = "video" | "brochure" | "inspiration" | "highlight";
 
 export interface CampusResource {
   id: string;
@@ -88,6 +88,45 @@ export async function getCampusResources(): Promise<CampusResource[]> {
       completed: a?.completed ?? false,
     };
   });
+}
+
+// Program & Event Highlights — admin-uploaded photos (kind='highlight'). Returns
+// each with a resolved image URL: a pasted http(s) external_url, or a short-lived
+// signed URL for a file uploaded to the private `resources` bucket. Empty when
+// none exist (the Campus section hides itself — no stock photos).
+export interface Highlight {
+  id: string;
+  title: string;
+  imageUrl: string;
+}
+
+export async function getHighlights(): Promise<Highlight[]> {
+  const supabase = await createClient();
+  if (!supabase) return [];
+
+  const { data, error } = await supabase
+    .from("resources")
+    .select("id, title, external_url, file_path")
+    .eq("kind", "highlight")
+    .order("created_at", { ascending: false });
+  if (error || !data) return [];
+
+  const isHttp = (s: string) => /^https?:\/\//i.test(s);
+  const out: Highlight[] = [];
+  for (const r of data) {
+    const ext = (r.external_url as string) ?? "";
+    const path = (r.file_path as string) ?? "";
+    let imageUrl = "";
+    if (ext && isHttp(ext)) {
+      imageUrl = ext;
+    } else if (path) {
+      const clean = path.replace(/^resources\//, "");
+      const { data: signed } = await supabase.storage.from("resources").createSignedUrl(clean, 3600);
+      imageUrl = signed?.signedUrl ?? "";
+    }
+    if (imageUrl) out.push({ id: r.id as string, title: (r.title as string) ?? "", imageUrl });
+  }
+  return out;
 }
 
 // Single resource for the detail/player page, with a signed URL for file-backed

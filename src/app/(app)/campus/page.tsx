@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { getCampusResources } from "@/lib/campus";
+import { getCampusResources, getHighlights } from "@/lib/campus";
 import { getPublicSettings } from "@/lib/settings";
 import { PS_APP_URL, withHttp } from "@/lib/settings-meta";
 import { youtubeEmbed } from "@/lib/media";
 import CampusBrowser from "./CampusBrowser";
-import CircularGallery from "@/components/CircularGallery";
 import Reveal from "@/components/Reveal";
 
 export const metadata = { title: "Campus — Altus Tribe" };
@@ -21,9 +20,10 @@ const SOCIAL_KEYS: { key: string; label: string }[] = [
 ];
 
 export default async function CampusPage() {
-  const [resources, settings] = await Promise.all([
+  const [resources, settings, highlights] = await Promise.all([
     getCampusResources(),
     getPublicSettings(),
+    getHighlights(),
   ]);
 
   const socials = SOCIAL_KEYS.map((s) => ({ label: s.label, url: withHttp(settings[s.key]) })).filter(
@@ -69,20 +69,30 @@ export default async function CampusPage() {
 
       <CampusBrowser resources={resources} />
 
-      {/* React Bits 3D Circular Showcase Gallery */}
-      <Reveal as="section" className="mt-12 rounded-2xl border border-hairline/80 bg-surface/60 p-6 backdrop-blur-md">
-        <p className="kicker mb-2">Interactive Showcase</p>
-        <h2 className="text-xl font-semibold text-ink mb-4">Program & Event Highlights</h2>
-        <div className="h-[360px] w-full rounded-xl overflow-hidden bg-black/40">
-          <CircularGallery
-            bend={3}
-            textColor="#ffffff"
-            borderRadius={0.08}
-            scrollSpeed={2.5}
-            scrollEase={0.05}
-          />
-        </div>
-      </Reveal>
+      {/* Program & Event Highlights — big, clear admin-uploaded photo cards.
+          Hidden when no highlights exist (no stock photos). */}
+      {highlights.length > 0 && (
+        <Reveal as="section" className="mt-12">
+          <h2 className="mb-4 text-xl font-semibold text-ink">Program &amp; Event Highlights</h2>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {highlights.map((h) => (
+              <figure key={h.id} className="group overflow-hidden rounded-2xl border border-hairline bg-surface">
+                <div className="aspect-[4/3] w-full overflow-hidden bg-surface-sunk">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={h.imageUrl}
+                    alt={h.title || "Event highlight"}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                </div>
+                {h.title && (
+                  <figcaption className="px-4 py-3 text-[14px] font-semibold text-ink">{h.title}</figcaption>
+                )}
+              </figure>
+            ))}
+          </div>
+        </Reveal>
+      )}
 
       {/* Productivity Shastra ecosystem entry — Altus Tribe is part of PS. */}
       <section className="mt-12 border-t border-hairline pt-10">
