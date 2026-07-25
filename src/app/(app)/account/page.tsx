@@ -14,7 +14,7 @@ export default async function AccountPage() {
     <main className="mx-auto w-full max-w-[640px] flex-1 px-6 py-16 sm:px-10">
       <nav className="mb-10">
         <Link
-          href="/"
+          href="/home"
           className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
         >
           ← Altus Tribe

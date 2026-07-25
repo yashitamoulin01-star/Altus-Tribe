@@ -28,7 +28,7 @@ export default async function ExplorePage({
     <main className="mx-auto w-full max-w-[1120px] px-6 sm:px-10">
       <nav className="flex items-center justify-between py-6">
         <Link
-          href="/"
+          href="/home"
           className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
         >
           ← Altus Tribe

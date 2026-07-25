@@ -99,7 +99,7 @@ function ProfileView({
       <main className="mx-auto w-full max-w-[960px] pb-24 lg:pb-16">
         {!isOwner && member.id && <ViewPing ownerId={member.id} />}
         <nav className="print-hide flex items-center justify-between py-3">
-          <Link href="/" className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
+          <Link href="/explore" className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
             ← The Tribe
           </Link>
         </nav>
