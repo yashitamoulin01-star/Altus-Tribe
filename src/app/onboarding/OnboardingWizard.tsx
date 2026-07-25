@@ -175,6 +175,7 @@ export default function OnboardingWizard({
   const [certifyAccurate, setCertifyAccurate] = useState(false);
   const [understandDisplay, setUnderstandDisplay] = useState(false);
   const [agreeDeclaration, setAgreeDeclaration] = useState(false);
+  const [notifOptIn, setNotifOptIn] = useState(true);
   const [legalDoc, setLegalDoc] = useState<LegalDocType>(null);
   // Home-address choice (§6). Optional field; "none" simply hides the inputs.
   const [homeMode, setHomeMode] = useState<"enter" | "same" | "none">("enter");
@@ -261,7 +262,7 @@ export default function OnboardingWizard({
       if (configured) await saveProfile(d, vis, undefined, COMPLETION);
       setStep(COMPLETION);
     });
-  const enter = () => startFinish(async () => finishOnboarding());
+  const enter = () => startFinish(async () => finishOnboarding({ notifOptIn }));
 
   const eye = (key: string) => (
     <button
@@ -712,10 +713,21 @@ export default function OnboardingWizard({
                   onClick={() => setLegalDoc("declaration")}
                   className="font-semibold text-ink underline transition-colors hover:text-red"
                 >
-                  ALTUS TRIBE Profile Declaration
+                  Terms &amp; Conditions and Privacy Policy
                 </button>
-                .
+                , and understand that authorized Altus Tribe administrators may
+                access the details I submit for membership administration,
+                community operations, support and platform safety.
               </span>
+            </label>
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notifOptIn}
+                onChange={(e) => setNotifOptIn(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-hairline accent-[var(--color-red)] cursor-pointer"
+              />
+              <span>Keep me updated with Altus Tribe notifications, announcements and community updates.</span>
             </label>
           </div>
         </Screen>
