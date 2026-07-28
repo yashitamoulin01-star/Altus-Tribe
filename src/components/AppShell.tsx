@@ -4,15 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
-// Top Nav Items
-const TOP_NAV = [
-  { href: "/home", label: "Home", match: ["/home"] },
-  { href: "/explore", label: "Tribe", match: ["/explore", "/connections", "/messages", "/m/"] },
-  { href: "/sacred-space", label: "Sacred Space", match: ["/sacred-space"] },
-  { href: "/campus", label: "Campus", match: ["/campus"] },
-  { href: "/account", label: "Profile", match: ["/account", "/settings"] },
-];
-
 // Left Sidebar Items
 const SIDEBAR_ITEMS = [
   {
@@ -312,25 +303,7 @@ export default function AppShell({
             </Link>
           </div>
 
-          {/* Desktop/Tablet Top Navigation Links (>= 768px) */}
-          <nav className="hidden items-center gap-1 md:flex lg:gap-1.5">
-            {TOP_NAV.map((d) => {
-              const on = isActive(pathname, d.match);
-              return (
-                <Link
-                  key={d.href}
-                  href={d.href}
-                  className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-[13px] font-semibold transition-all lg:px-4 lg:py-2 lg:text-[14px] ${
-                    on
-                      ? "bg-red text-white shadow-sm shadow-red/20"
-                      : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
-                  }`}
-                >
-                  {d.label}
-                </Link>
-              );
-            })}
-          </nav>
+          {/* Top navigation removed — the left sidebar is the primary nav. */}
 
           {/* Search bar (Desktop & Tablet >= 768px) */}
           <form onSubmit={search} className="hidden md:block w-full max-w-[260px] lg:max-w-[340px]">

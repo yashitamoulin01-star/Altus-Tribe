@@ -170,6 +170,27 @@ export async function ReferralRoundSection() {
   return <ReferralRoundCard startsAt={rr.startsAt} title={rr.title} location={rr.location} link={rr.link} />;
 }
 
+// ── Sacred Space card — reach Manan Vasa / Team ─────────────────────────────
+export function SacredSpaceCard() {
+  return (
+    <section className="eco-card flex flex-col justify-between p-5 sm:p-6">
+      <div>
+        <SectionHead title="Sacred Space" href="/sacred-space" cta="Open →" />
+        <div className="mt-2 flex items-start gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red/10 text-red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+          </span>
+          <div className="min-w-0">
+            <h3 className="text-[15px] font-bold text-ink">Manan Vasa / Team</h3>
+            <p className="mt-1 text-[13px] leading-relaxed text-ink-secondary">Reach Manan Vasa and the team, and see important updates.</p>
+          </div>
+        </div>
+      </div>
+      <Link href="/sacred-space" className={linkSecondary + " mt-5 w-full"}>Enter Sacred Space</Link>
+    </section>
+  );
+}
+
 // ── 4. NEXT CONCLAVE — real events only ─────────────────────────────────────
 export async function ConclaveCard() {
   const events = await getUpcomingEvents(3);

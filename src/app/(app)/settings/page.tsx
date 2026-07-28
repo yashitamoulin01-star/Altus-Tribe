@@ -111,8 +111,8 @@ export default function SettingsPage() {
               <span className="text-xl">🔒</span>
               <span className="font-mono text-xs text-red opacity-0 transition-opacity group-hover:opacity-100">Manage →</span>
             </div>
-            <h3 className="text-[16px] font-semibold text-ink transition-colors group-hover:text-red">Security & MFA</h3>
-            <p className="mt-1 text-[13px] text-ink-muted">Configure multi-factor auth, session control, and privacy.</p>
+            <h3 className="text-[16px] font-semibold text-ink transition-colors group-hover:text-red">Security</h3>
+            <p className="mt-1 text-[13px] text-ink-muted">Two-factor authentication, session control, and privacy.</p>
           </Link>
 
           <Link

@@ -73,11 +73,11 @@ export default async function CampusPage() {
           Hidden when no highlights exist (no stock photos). */}
       {highlights.length > 0 && (
         <Reveal as="section" className="mt-12">
-          <h2 className="mb-4 text-xl font-semibold text-ink">Program &amp; Event Highlights</h2>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="mb-5 text-2xl font-semibold text-ink">Program &amp; Event Highlights</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {highlights.map((h) => (
-              <figure key={h.id} className="group overflow-hidden rounded-2xl border border-hairline bg-surface">
-                <div className="aspect-[4/3] w-full overflow-hidden bg-surface-sunk">
+              <figure key={h.id} className="group overflow-hidden rounded-2xl border border-hairline bg-surface shadow-sm">
+                <div className="aspect-[16/10] w-full overflow-hidden bg-surface-sunk">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={h.imageUrl}
@@ -86,7 +86,7 @@ export default async function CampusPage() {
                   />
                 </div>
                 {h.title && (
-                  <figcaption className="px-4 py-3 text-[14px] font-semibold text-ink">{h.title}</figcaption>
+                  <figcaption className="px-5 py-4 text-[15px] font-semibold text-ink">{h.title}</figcaption>
                 )}
               </figure>
             ))}

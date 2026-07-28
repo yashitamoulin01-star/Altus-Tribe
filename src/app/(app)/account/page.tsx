@@ -88,14 +88,9 @@ export default async function AccountPage() {
                 hint: "Invite a productive peer into the Tribe.",
               },
               {
-                href: "/settings/notifications" as const,
-                label: "Notification Settings",
-                hint: "Choose what reaches you.",
-              },
-              {
-                href: "/settings/security" as const,
-                label: "Security & 2FA",
-                hint: "Add two-factor authentication to your account.",
+                href: "/settings" as const,
+                label: "Settings",
+                hint: "Notifications, security, and privacy.",
               },
             ].map((item) => (
               <Link

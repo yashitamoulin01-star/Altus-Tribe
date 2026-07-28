@@ -18,11 +18,11 @@ export default function ReferPage() {
       <header className="border-b border-hairline pb-10">
         <p className="kicker mb-4">Refer Someone</p>
         <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
-          The Tribe grows by hand.
+          Share Productivity Shastra.
         </h1>
         <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
-          Every member here was invited by someone. If you know a productive
-          person who belongs in the room, send them in.
+          The Tribe itself is invitation-only — but anyone can start with
+          Productivity Shastra. Know someone who&apos;d get more done? Send them in.
         </p>
       </header>
 
@@ -30,8 +30,7 @@ export default function ReferPage() {
         <p className="kicker mb-4">Send an invite</p>
         <ReferInvite />
         <p className="mt-5 max-w-[52ch] text-[15px] leading-relaxed text-ink-muted">
-          They&apos;ll land on the join page. Membership stays curated —
-          applications are reviewed before anyone gets in.
+          They&apos;ll land on the Productivity Shastra app and can get started right away.
         </p>
       </section>
     </main>

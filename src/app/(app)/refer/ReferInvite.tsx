@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { PS_APP_URL } from "@/lib/settings-meta";
 
-// Refer Someone (#134). A member invites a peer into the Tribe by sharing an
-// invite link to /signup via WhatsApp / Email / copied link. The absolute URL is
-// composed on the client at click time so it's correct on any host.
+// Refer Someone. The Tribe itself is invitation-only, but anyone can be invited
+// to Productivity Shastra — so referrals point at the PS app, not the Tribe.
 export default function ReferInvite() {
   const [copied, setCopied] = useState(false);
 
-  const inviteUrl = () => `${window.location.origin}/signup`;
+  const inviteUrl = () => PS_APP_URL;
   const message = (url: string) =>
-    `I think you belong in Altus Tribe — a private community of productive people. Come take a look: ${url}`;
+    `I use Productivity Shastra to get more done — I think you'd love it. Come check it out: ${url}`;
 
   const openWhatsApp = () => {
     window.open(
@@ -22,7 +22,7 @@ export default function ReferInvite() {
 
   const openEmail = () => {
     window.location.href = `mailto:?subject=${encodeURIComponent(
-      "An invitation to Altus Tribe",
+      "An invitation to Productivity Shastra",
     )}&body=${encodeURIComponent(message(inviteUrl()))}`;
   };
 

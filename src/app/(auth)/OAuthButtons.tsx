@@ -37,40 +37,43 @@ const PS_ICON = (
 );
 
 const btn =
-  "flex h-11 w-full items-center justify-center gap-2.5 rounded-[4px] border border-[#e4e4e2] bg-white text-[14px] font-semibold text-[#111111] transition-colors duration-200 hover:border-[#111111]";
+  "flex h-10 w-full items-center justify-center gap-2 rounded-[4px] border border-[#e4e4e2] bg-white px-2 text-[13px] font-semibold text-[#111111] transition-colors duration-200 hover:border-[#111111]";
 
 export default function OAuthButtons() {
   const [psNote, setPsNote] = useState(false);
 
   return (
-    <div className="mb-3 flex flex-col gap-2">
-      <form action={signInWithProvider}>
-        <input type="hidden" name="provider" value="google" />
-        <button type="submit" aria-label="Continue with Google" className={btn}>
-          {GOOGLE_ICON}
-          Continue with Google
-        </button>
-      </form>
+    <div className="mb-2.5 flex flex-col gap-2">
+      {/* Side-by-side providers in a single row (compact) */}
+      <div className="grid grid-cols-2 gap-2">
+        <form action={signInWithProvider}>
+          <input type="hidden" name="provider" value="google" />
+          <button type="submit" aria-label="Continue with Google" className={btn}>
+            {GOOGLE_ICON}
+            <span className="truncate">Google</span>
+          </button>
+        </form>
 
-      <button
-        type="button"
-        onClick={() => setPsNote((v) => !v)}
-        aria-label="Continue with Productivity Shastra"
-        className={btn}
-      >
-        {PS_ICON}
-        Continue with Productivity Shastra
-      </button>
+        <button
+          type="button"
+          onClick={() => setPsNote((v) => !v)}
+          aria-label="Continue with Productivity Shastra"
+          title="Continue with Productivity Shastra"
+          className={btn}
+        >
+          {PS_ICON}
+          <span className="truncate">Productivity Shastra</span>
+        </button>
+      </div>
 
       {psNote && (
         <p className="rounded-[4px] border border-[#f0d4d8] bg-[#fdf2f3] px-3 py-2 text-[12px] leading-relaxed text-[#8a1420]">
-          Single sign-on with Productivity Shastra is being connected. Once the PS
-          identity bridge is live, existing PS members sign in here with one shared
-          account — no new password. For now, please use Google or your email below.
+          Productivity Shastra single sign-on is being connected — for now, use
+          Google or your email below.
         </p>
       )}
 
-      <div className="mt-1 flex items-center gap-3">
+      <div className="flex items-center gap-3">
         <span className="h-px flex-1 bg-[#e4e4e2]" />
         <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-[#9a9a9a]">or</span>
         <span className="h-px flex-1 bg-[#e4e4e2]" />
