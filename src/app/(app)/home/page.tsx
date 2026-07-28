@@ -1,57 +1,57 @@
 import { Suspense } from "react";
-import ProfileSidebar from "./ProfileSidebar";
-import RightRail from "./RightRail";
-import HomeFeed from "./HomeFeed";
+import {
+  IdentityHero,
+  HomeAnnouncements,
+  ConclaveCard,
+  ReferralRoundSection,
+  TodaysNetwork,
+} from "./sections";
 import ReferralReminder from "./ReferralReminder";
-import { getMyProfileSummary } from "@/lib/dashboard";
-import { getAnnouncements } from "@/lib/community";
+import Reveal from "@/components/Reveal";
 
 export const metadata = { title: "Home — Altus Tribe" };
 
-const Skeleton = ({ h = "h-40" }: { h?: string }) => (
+const CardSkeleton = ({ h = "h-48" }: { h?: string }) => (
   <div className={`${h} animate-pulse rounded-2xl border border-hairline bg-surface-sunk/50`} />
 );
 
-// UI-3 Home — community-feed command center. 3-column on desktop
-// (profile · feed · rail), stacks on tablet/mobile.
-async function FeedColumn() {
-  const [me, announcements] = await Promise.all([getMyProfileSummary(), getAnnouncements()]);
-  const a = announcements.find((x) => x.pinnedAt) ?? announcements[0] ?? null;
-  const pinned = a
-    ? { title: a.title, body: a.body, date: a.publishedAt ? new Date(a.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "" }
-    : null;
-  return <HomeFeed userName={me.fullName || me.businessName || "You"} userPhoto={me.photoUrl} pinned={pinned} />;
-}
-
+// Dashboard (owner spec 2026-07-28). Sidebar shell (AppShell) + stacked priority:
+//   compact profile → BIG announcements → conclave + referral rounds → connect.
+// No "Welcome back" banner, no "What would you like to do?" cards. Varied reds.
 export default function HomePage() {
   return (
-    <main className="mx-auto w-full max-w-[1600px] px-4 pt-4 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-12">
+    <main className="mx-auto w-full max-w-[1100px] space-y-6 px-4 pt-4 pb-24 sm:px-6 lg:px-8 lg:py-6 lg:pb-12">
+      {/* Referral Round reminder — only within 24h / live */}
       <Suspense fallback={null}>
         <ReferralReminder />
       </Suspense>
 
-      <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-6 xl:grid-cols-[280px_minmax(0,1fr)_340px]">
-        {/* Left — profile */}
-        <aside className="lg:sticky lg:top-20 lg:self-start">
-          <Suspense fallback={<Skeleton h="h-96" />}>
-            <ProfileSidebar />
-          </Suspense>
-        </aside>
+      {/* Compact profile */}
+      <Suspense fallback={<CardSkeleton h="h-24" />}>
+        <IdentityHero />
+      </Suspense>
 
-        {/* Center — feed */}
-        <div className="min-w-0">
-          <Suspense fallback={<Skeleton h="h-64" />}>
-            <FeedColumn />
-          </Suspense>
-        </div>
+      {/* Announcements — the hero of the page */}
+      <Suspense fallback={<CardSkeleton h="h-56" />}>
+        <HomeAnnouncements />
+      </Suspense>
 
-        {/* Right — rail (below feed on lg, own column on xl) */}
-        <aside className="lg:col-span-2 xl:col-span-1 xl:sticky xl:top-20 xl:self-start">
-          <Suspense fallback={<Skeleton h="h-80" />}>
-            <RightRail />
-          </Suspense>
-        </aside>
-      </div>
+      {/* Conclave + Referral Rounds — paired on desktop */}
+      <Reveal className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Suspense fallback={<CardSkeleton />}>
+          <ConclaveCard />
+        </Suspense>
+        <Suspense fallback={<CardSkeleton />}>
+          <ReferralRoundSection />
+        </Suspense>
+      </Reveal>
+
+      {/* People you should connect with */}
+      <Reveal>
+        <Suspense fallback={<CardSkeleton />}>
+          <TodaysNetwork />
+        </Suspense>
+      </Reveal>
     </main>
   );
 }

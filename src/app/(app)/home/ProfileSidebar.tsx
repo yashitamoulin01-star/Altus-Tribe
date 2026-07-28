@@ -19,7 +19,7 @@ export default async function ProfileSidebar() {
   return (
     <div className="space-y-4">
       {/* Profile card */}
-      <section className="overflow-hidden rounded-2xl border border-hairline bg-surface">
+      <section className="overflow-hidden rounded-none border border-hairline bg-surface">
         <div className="h-16 bg-red/10" />
         <div className="flex flex-col items-center px-5 pb-5 text-center">
           <div className="-mt-10 h-20 w-20 overflow-hidden rounded-full border-4 border-surface bg-surface-sunk">
@@ -42,12 +42,12 @@ export default async function ProfileSidebar() {
           )}
 
           <div className="mt-4 flex w-full gap-2">
-            <Link href={me.slug ? `/m/${me.slug}` : "/account"} className="flex-1 rounded-lg border border-hairline px-3 py-2 text-center text-[12px] font-semibold text-ink transition-colors hover:border-hairline-bright">View My Profile</Link>
-            <Link href="/notifications" className="flex-1 rounded-lg border border-red/30 bg-red/5 px-3 py-2 text-center text-[12px] font-semibold text-red transition-colors hover:bg-red/10">Notifications</Link>
+            <Link href={me.slug ? `/m/${me.slug}` : "/account"} className="flex-1 rounded-none border border-hairline px-3 py-2 text-center text-[12px] font-semibold text-ink transition-colors hover:border-hairline-bright">View My Profile</Link>
+            <Link href="/notifications" className="flex-1 rounded-none border border-red/30 bg-red/5 px-3 py-2 text-center text-[12px] font-semibold text-red transition-colors hover:bg-red/10">Notifications</Link>
           </div>
 
           {me.completion < 100 && (
-            <div className="mt-4 w-full rounded-xl bg-surface-sunk/60 p-3 text-left">
+            <div className="mt-4 w-full rounded-none bg-surface-sunk/60 p-3 text-left">
               <div className="flex items-center justify-between">
                 <span className="text-[12px] font-semibold text-ink">Profile {me.completion}% complete</span>
               </div>
@@ -61,7 +61,7 @@ export default async function ProfileSidebar() {
       </section>
 
       {/* Stats */}
-      <section className="rounded-2xl border border-hairline bg-surface p-4">
+      <section className="rounded-none border border-hairline bg-surface p-4">
         {[
           { label: "Connections", value: stats.connections, icon: QUICK_LINKS[0].icon },
           { label: "Profile views", value: stats.profileViews, icon: (<svg width="16" height="16" viewBox="0 0 24 24" {...svg}><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z" /><circle cx="12" cy="12" r="3" /></svg>) },
@@ -74,12 +74,12 @@ export default async function ProfileSidebar() {
       </section>
 
       {/* Quick links */}
-      <section className="rounded-2xl border border-hairline bg-surface p-4">
+      <section className="rounded-none border border-hairline bg-surface p-4">
         <p className="mb-2 text-[13px] font-bold text-ink">Quick Links</p>
         <ul className="space-y-1">
           {QUICK_LINKS.map((q) => (
             <li key={q.label}>
-              <Link href={q.href} className="flex items-center gap-2.5 rounded-lg px-2 py-2 text-[12px] text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink">
+              <Link href={q.href} className="flex items-center gap-2.5 rounded-none px-2 py-2 text-[12px] text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink">
                 <span className="text-red">{q.icon}</span>
                 <span className="min-w-0 truncate">{q.label}</span>
               </Link>

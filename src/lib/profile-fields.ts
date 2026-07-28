@@ -128,6 +128,30 @@ export const CONNECT_MODES: { value: string; label: string }[] = [
   { value: "dnd", label: "DND" },
 ];
 
+// Exact grey embedded placeholder text for the address lines (spec §3/4/6). Used
+// verbatim by both the onboarding wizard and the profile editor so they match.
+export const ADDRESS_PLACEHOLDERS = {
+  line1: "Address Line 1 / Unit Number / Floor Number / Lot Number",
+  line2: "Building Name / Unit Name",
+  line3: "Street Name / Road Name",
+  line4: "Area Name / Sector Name",
+  landmark: "Nearby landmark (optional)",
+  pincode: "PIN / Postal code",
+  city: "Start typing your city…",
+  state: "Select or type your state",
+  country: "Select or type your country",
+  mapLink: "Google Maps link (optional)",
+} as const;
+
+// Grey example for "Best time to connect" (spec §10).
+export const BEST_TIME_PLACEHOLDER = "e.g. 10:00 AM to 7:00 PM, Monday to Friday";
+
+// Photo upload rule (spec §1): JPG/JPEG/PNG, 20 MB max.
+export const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+export const PHOTO_ACCEPT = "image/jpeg,image/png";
+export const PHOTO_HINT = "JPG, JPEG or PNG. Maximum size 20 MB.";
+export const PHOTO_TOO_LARGE_MSG = "Maximum upload size is 20 MB.";
+
 const emptyAddress: EditableAddress = {
   line1: "",
   line2: "",
@@ -238,30 +262,28 @@ export function computeProfileCompletion(d: EditableProfile): number {
   return Math.round((passed / COMPLETION_CHECKS.length) * 100);
 }
 
-// --- Required-setup gate (spec §G) -----------------------------------------
-// "Required setup completion" determines whether a member may finish onboarding.
-// Optional fields (biography, socials, etc.) NEVER block completion — those feed
-// the separate "profile richness" percentage above. Returns the human labels of
-// any missing required fields so the review screen can list what's left.
+// --- Required-setup gate ----------------------------------------------------
+// Source of truth = the owner's AUTHORITATIVE 48-field CQ Tribe matrix
+// (2026-07-28). Only the participant-fillable "Mandatory: Yes" fields gate
+// completion. NOT gated: #1 Photo, #13 Personal email, #16 Nature of business,
+// #17 USP (matrix marks them "—"). #29/#30 PS/BSS batches are mandatory but
+// ADMIN-FILLED / read-only for members, so they never block a member. Home &
+// factory addresses are optional blocks. Work address requires ALL of line
+// 1–4 + city/state/country/PIN. Returns human labels of what's still missing.
+// See memory: form-48-field-spec.
 const REQUIRED_SETUP: { label: string; ok: (d: EditableProfile) => boolean }[] = [
-  { label: "Participant photo", ok: (d) => d.photoUrl.trim().length > 0 },
   { label: "First name", ok: (d) => d.firstName.trim().length > 0 },
   { label: "Last name", ok: (d) => d.lastName.trim().length > 0 },
   { label: "Business name", ok: (d) => d.businessName.trim().length > 0 },
-  { label: "Brand name", ok: (d) => d.brandNames.trim().length > 0 },
-  { label: "Business category", ok: (d) => d.category.trim().length > 0 },
-  { label: "Industry", ok: (d) => d.industry.trim().length > 0 },
   { label: "Cell number", ok: (d) => isValidPhone(d.cellNo) },
   { label: "Alternate number", ok: (d) => isValidPhone(d.altNo) },
   { label: "Work email", ok: (d) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.workEmail.trim()) },
-  { label: "Personal email", ok: (d) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.personalEmail.trim()) },
-  { label: "Work address", ok: (d) => [d.workAddress.line1, d.workAddress.pincode, d.workAddress.city, d.workAddress.state, d.workAddress.country].every((v) => v.trim().length > 0) },
+  { label: "Work address", ok: (d) => [d.workAddress.line1, d.workAddress.line2, d.workAddress.line3, d.workAddress.line4, d.workAddress.city, d.workAddress.state, d.workAddress.country, d.workAddress.pincode].every((v) => v.trim().length > 0) },
+  { label: "Business category", ok: (d) => d.category.trim().length > 0 },
+  { label: "Industry / sector", ok: (d) => d.industry.trim().length > 0 },
   { label: "Best mode to connect", ok: (d) => d.bestModes.length > 0 },
   { label: "Birth date", ok: (d) => d.birthDate.trim().length > 0 },
   { label: "Blood group", ok: (d) => d.bloodGroup.trim().length > 0 },
-  { label: "PS (Productivity Shastra) batch", ok: (d) => d.psBatch.trim().length > 0 },
-  { label: "CQ batch", ok: (d) => d.cqBatch.trim().length > 0 },
-  { label: "BSS batch", ok: (d) => d.bssBatch.trim().length > 0 },
 ];
 
 export function requiredSetupMissing(d: EditableProfile): string[] {
@@ -279,7 +301,6 @@ export function factoryAddressMissing(a: EditableAddress): string[] {
   if (!FACTORY_STARTED(a)) return [];
   const need: [string, string][] = [
     ["Address line 1", a.line1],
-    ["Nearby landmark", a.landmark],
     ["PIN / postal code", a.pincode],
     ["City", a.city],
     ["State", a.state],
@@ -311,6 +332,9 @@ export const VISIBILITY_FIELDS: { key: string; label: string }[] = [
   { key: "can_connect", label: "Can connect others to" },
   { key: "want_connect", label: "Want to connect with" },
   { key: "contribution", label: "Contribution to the Tribe" },
+  { key: "interested_helping", label: "Interested in helping others" },
+  { key: "interested_coaching", label: "Interested in coaching / mentoring" },
+  { key: "interested_networking", label: "Interested in business networking" },
 ];
 
 export type FieldVisibility = Record<string, boolean>;

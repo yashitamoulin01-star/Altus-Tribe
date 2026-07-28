@@ -27,7 +27,7 @@ export default async function LoginPage({
             New to the community?
           </p>
           <Link
-            href="/signup"
+            href="/request-access"
             className="flex h-8 items-center justify-center rounded-[2px] border border-[#111111] bg-white px-3 text-xs font-semibold text-[#111111] no-underline transition-colors duration-200 hover:bg-[#111111] hover:text-white"
           >
             Request Membership

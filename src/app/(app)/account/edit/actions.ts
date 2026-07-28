@@ -180,11 +180,13 @@ export async function saveProfile(
     .eq("profile_id", profileId);
   if (wDelErr) return failFrom("saveProfile", wDelErr, SAVE_FAILED, { userId: user.id });
 
+  // Up to 10 total: matrix #18 Digital Brochures (max 5) + #19 Product/Service
+  // Videos (max 5) are two separate groups, each capped at 5 client-side.
   const attachments = d.attachments
     .filter((w) =>
       isFileKind(w.kind) ? w.filePath.trim() : w.url.trim(),
     )
-    .slice(0, 5);
+    .slice(0, 10);
   if (attachments.length) {
     const { error: wInsErr } = await supabase.from("work_items").insert(
       attachments.map((w, i) => ({

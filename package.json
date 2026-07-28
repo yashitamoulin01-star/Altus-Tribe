@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "node supabase/seed.mjs",
+    "test": "node --test \"src/lib/**/*.test.ts\"",
     "test:e2e": "playwright test"
   },
   "dependencies": {

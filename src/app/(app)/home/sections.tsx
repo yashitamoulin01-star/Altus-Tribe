@@ -3,7 +3,7 @@ import { getMyProfileSummary, getSuggestedMembers } from "@/lib/dashboard";
 import { getUpcomingEvents, getNextReferralRound } from "@/lib/events";
 import ReferralRoundCard from "./ReferralRoundCard";
 import { getAnnouncements } from "@/lib/community";
-import { getNotifications, getUnreadCount } from "@/lib/notifications";
+import { getNotifications } from "@/lib/notifications";
 import { initials } from "./widgets/_shared";
 
 // ── UI-3 Home Sections — REAL DATA ONLY (no fake participants / stock images).
@@ -33,101 +33,96 @@ function fmtDate(iso: string | null | undefined) {
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// ── 1. IDENTITY HERO — the signed-in participant, real data ─────────────────
+// ── 1. IDENTITY — compact profile strip (no "Welcome back" banner) ──────────
+// Deliberately small so Announcements below carries the visual weight.
 export async function IdentityHero() {
-  const [me, unread] = await Promise.all([getMyProfileSummary(), getUnreadCount()]);
+  const me = await getMyProfileSummary();
   const displayName = me.fullName || me.businessName || "Complete your profile";
-  const first = me.fullName ? me.fullName.split(" ")[0] : "there";
   const meta = [me.category, me.natureOfBusiness || me.industry].filter(Boolean).join("  •  ");
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-[24px] font-bold text-ink sm:text-[28px] tracking-tight">
-          Welcome back, {first}
-        </h1>
-        <p className="mt-0.5 text-[14px] text-ink-secondary">Let&apos;s build meaningful connections today.</p>
-      </div>
-
-      <section className="eco-card p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
-          <div className="relative h-18 w-18 shrink-0 overflow-hidden rounded-full border-2 border-hairline bg-surface-sunk sm:h-20 sm:w-20">
-            {me.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={me.photoUrl} alt={displayName} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center font-sans text-lg font-bold text-ink-muted">
-                {initials(displayName) || "·"}
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-[18px] font-bold text-ink sm:text-[20px]">{displayName}</h2>
-            </div>
-            {me.businessName && <p className="mt-0.5 text-[14px] font-semibold text-ink-secondary">{me.businessName}</p>}
-            {meta && <p className="mt-1 text-[12px] text-ink-muted">{meta}</p>}
-          </div>
-        </div>
-
-        {me.usp ? (
-          <div className="mt-4 rounded-xl border border-hairline bg-surface-sunk/60 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-ink-muted">My USP</p>
-            <p className="mt-1 text-[14px] leading-relaxed text-ink font-medium">“{me.usp}”</p>
-          </div>
+    <section className="eco-card flex flex-wrap items-center gap-4 p-4 sm:p-5">
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-red/25 bg-surface-sunk sm:h-16 sm:w-16">
+        {me.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={me.photoUrl} alt={displayName} className="h-full w-full object-cover" />
         ) : (
-          <div className="mt-4 rounded-xl border border-dashed border-hairline p-4">
-            <p className="text-[13px] text-ink-muted">
-              Add your USP so the Tribe understands your business value.{" "}
-              <Link href="/account/edit" className="font-semibold text-red">Add it →</Link>
-            </p>
+          <div className="flex h-full w-full items-center justify-center text-base font-bold text-ink-muted">
+            {initials(displayName) || "·"}
           </div>
         )}
+      </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <Link href={me.slug ? `/m/${me.slug}` : "/account"} className={linkSecondary}>
-            View My Profile
-          </Link>
-          <Link href="/notifications" className={linkPrimary + " relative"}>
-            Notifications
-            {unread > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-red">
-                {unread > 9 ? "9+" : unread}
-              </span>
-            )}
-          </Link>
-        </div>
-      </section>
-    </div>
+      <div className="min-w-0 flex-1">
+        <h2 className="truncate text-[16px] font-bold text-ink sm:text-[18px]">{displayName}</h2>
+        {me.businessName && <p className="truncate text-[13px] font-semibold text-ink-secondary">{me.businessName}</p>}
+        {meta && <p className="truncate text-[11px] text-ink-muted">{meta}</p>}
+        {!me.usp && (
+          <p className="mt-1 text-[12px] text-ink-muted">
+            Add your USP so the Tribe understands your value.{" "}
+            <Link href="/account/edit" className="font-semibold text-red">Add it →</Link>
+          </p>
+        )}
+      </div>
+
+      <div className="flex shrink-0 items-center gap-2">
+        <Link href={me.slug ? `/m/${me.slug}` : "/account"} className={linkSecondary}>View Profile</Link>
+      </div>
+    </section>
   );
 }
 
 // ── 2. ANNOUNCEMENTS — real, pinned-first, no stock image ───────────────────
 export async function HomeAnnouncements() {
-  const items = (await getAnnouncements()).slice(0, 3);
+  const items = (await getAnnouncements()).slice(0, 4);
+  const [lead, ...rest] = items;
 
   return (
-    <section className="eco-card flex flex-col p-5 sm:p-6">
-      <SectionHead title="Announcements from Manan Vasa" href="/sacred-space" />
-      {items.length === 0 ? (
-        <p className="text-[13px] text-ink-muted">No announcements yet.</p>
-      ) : (
-        <ul className="divide-y divide-hairline">
-          {items.map((a) => (
-            <li key={a.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
-              <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 text-[14px] font-bold text-ink">
-                  <span className="truncate">{a.title}</span>
-                  {a.pinnedAt && <span className="shrink-0 rounded-md bg-red/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-red">Pinned</span>}
-                </p>
-                {a.body && <p className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-ink-secondary">{a.body}</p>}
-                <p className="mt-1 text-[11px] text-ink-muted">{fmtDate(a.publishedAt)}</p>
+    <section className="eco-card relative overflow-hidden p-6 sm:p-8">
+      {/* vibrant-red accent wash for prominence */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.06]" style={{ background: "radial-gradient(38rem 22rem at 100% 0%, #e11d2a, transparent 55%)" }} />
+      <div className="relative">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-red text-white shadow-sm shadow-red/40">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
+            </span>
+            <h2 className="text-[20px] font-bold tracking-tight text-ink sm:text-[24px]">Announcements from Manan Vasa</h2>
+          </div>
+          <Link href="/sacred-space" className="shrink-0 text-[13px] font-semibold text-red transition-colors hover:text-red-hover">See all →</Link>
+        </div>
+
+        {!lead ? (
+          <p className="text-[14px] text-ink-muted">No announcements yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {/* lead — large, red-accented card */}
+            <article className="rounded-2xl border border-red/20 bg-gradient-to-br from-red/[0.06] to-transparent p-5">
+              <div className="flex items-center gap-2">
+                {lead.pinnedAt && <span className="rounded-md bg-red px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white shadow-sm shadow-red/30">Pinned</span>}
+                <span className="text-[11px] font-medium text-ink-muted">{fmtDate(lead.publishedAt)}</span>
               </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              <h3 className="mt-2 text-[18px] font-bold text-ink sm:text-[20px]">{lead.title}</h3>
+              {lead.body && <p className="mt-1.5 text-[14px] leading-relaxed text-ink-secondary">{lead.body}</p>}
+            </article>
+
+            {rest.length > 0 && (
+              <ul className="divide-y divide-hairline">
+                {rest.map((a) => (
+                  <li key={a.id} className="py-3 first:pt-1">
+                    <p className="flex items-center gap-2 text-[15px] font-bold text-ink">
+                      <span className="truncate">{a.title}</span>
+                      {a.pinnedAt && <span className="shrink-0 rounded-md bg-red/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-red">Pinned</span>}
+                    </p>
+                    {a.body && <p className="mt-0.5 line-clamp-2 text-[13px] leading-relaxed text-ink-secondary">{a.body}</p>}
+                    <p className="mt-1 text-[11px] text-ink-muted">{fmtDate(a.publishedAt)}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -222,7 +217,7 @@ export async function TodaysNetwork() {
 
   return (
     <section className="eco-card flex flex-col p-5 sm:p-6">
-      <SectionHead title="Today's Network" href="/explore" />
+      <SectionHead title="People you should connect with" href="/explore" />
       {people.length === 0 ? (
         <p className="text-[13px] text-ink-muted">No participants to suggest yet — explore the full directory.</p>
       ) : (

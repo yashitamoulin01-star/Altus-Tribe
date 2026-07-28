@@ -37,7 +37,7 @@ export default function HomeFeed({
   return (
     <div className="space-y-4">
       {/* Composer */}
-      <section className="rounded-2xl border border-hairline bg-surface p-4 sm:p-5">
+      <section className="rounded-none border border-hairline bg-surface p-4 sm:p-5">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-hairline">
             {userPhoto ? (
@@ -47,13 +47,13 @@ export default function HomeFeed({
               <Initial name={userName} />
             )}
           </div>
-          <button type="button" className="flex-1 rounded-full border border-hairline bg-surface-sunk px-4 py-2.5 text-left text-[14px] text-ink-muted transition-colors hover:border-hairline-bright">
+          <button type="button" className="flex-1 rounded-none border border-hairline bg-surface-sunk px-4 py-2.5 text-left text-[14px] text-ink-muted transition-colors hover:border-hairline-bright">
             Share a win, update, or inspiration with your Tribe…
           </button>
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-4">
           {quick.map((q) => (
-            <button key={q.label} type="button" className="flex items-center justify-center gap-2 rounded-lg px-2 py-2 text-[12px] font-semibold text-ink-secondary transition-colors hover:bg-surface-sunk">
+            <button key={q.label} type="button" className="flex items-center justify-center gap-2 rounded-none px-2 py-2 text-[12px] font-semibold text-ink-secondary transition-colors hover:bg-surface-sunk">
               <span className="shrink-0 text-red">{q.icon}</span>
               <span className="whitespace-nowrap">{q.label}</span>
             </button>
@@ -73,7 +73,7 @@ export default function HomeFeed({
                 className={`relative shrink-0 whitespace-nowrap py-2.5 text-[13px] font-semibold transition-colors ${tab === t ? "text-red" : "text-ink-muted hover:text-ink"}`}
               >
                 {t}
-                {tab === t && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded bg-red" />}
+                {tab === t && <span className="absolute inset-x-0 -bottom-px h-0.5 rounded-none bg-red" />}
               </button>
             ))}
           </div>
@@ -83,12 +83,12 @@ export default function HomeFeed({
 
       {/* Pinned announcement (REAL) */}
       {pinned && (
-        <article className="rounded-2xl border border-hairline bg-surface p-4 sm:p-5">
+        <article className="rounded-none border border-hairline bg-surface p-4 sm:p-5">
           <div className="flex items-start gap-3">
             <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full"><Initial name="Manan Vasa" /></div>
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-2 text-[14px] font-bold text-ink">Manan Vasa
-                <span className="rounded bg-red/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-red">Pinned</span>
+                <span className="rounded-none bg-red/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-red">Pinned</span>
               </p>
               <p className="text-[11px] text-ink-muted">Announcement · {pinned.date}</p>
               <h3 className="mt-2 text-[16px] font-bold text-ink">{pinned.title}</h3>
@@ -99,11 +99,11 @@ export default function HomeFeed({
       )}
 
       {/* Sample feed posts — PREVIEW ONLY (needs a community-posts backend) */}
-      <div className="rounded-xl border border-dashed border-hairline bg-surface-sunk/40 px-4 py-3 text-center text-[12px] text-ink-muted">
+      <div className="rounded-none border border-dashed border-hairline bg-surface-sunk/40 px-4 py-3 text-center text-[12px] text-ink-muted">
         Below are sample posts for design preview — the community feed (wins, pitches, composer) needs a posts backend before it&apos;s live.
       </div>
 
-      <article className="rounded-2xl border border-hairline bg-surface p-4 sm:p-5">
+      <article className="rounded-none border border-hairline bg-surface p-4 sm:p-5">
         <div className="flex items-start gap-3">
           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full"><Initial name="Sample Participant" /></div>
           <div className="min-w-0 flex-1">
