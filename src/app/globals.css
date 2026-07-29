@@ -294,6 +294,16 @@ body {
   50% { opacity: 0.4; transform: scale(1.3); }
 }
 
+/* Tribe Live ticker — seamless marquee (content duplicated, so -50% loops). */
+@keyframes tribe-ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.animate-tribe-ticker {
+  animation: tribe-ticker 45s linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
