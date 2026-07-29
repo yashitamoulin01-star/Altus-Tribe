@@ -72,7 +72,16 @@ function CoverCard({
             {[member.roleTitle, member.industry, member.city].filter(Boolean).join("  ·  ")}
           </p>
           {member.businessName && <p className="mt-2 text-[13px] text-ink-muted">{member.businessName}</p>}
-          <p className="mt-3 line-clamp-2 text-[14px] leading-snug text-ink-secondary">{member.positioning}</p>
+          <p className="mt-2.5 line-clamp-2 text-[14px] leading-snug text-ink-secondary">{member.positioning}</p>
+          {member.openTo.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1">
+              {member.openTo.slice(0, 3).map((o) => (
+                <span key={o} className="rounded-full bg-red/8 px-2 py-0.5 text-[10px] font-medium text-red">
+                  {OPEN_TO_LABELS[o] ?? o}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       </Link>
       {state !== "self" && (
@@ -127,9 +136,9 @@ function Strip({
 }) {
   if (items.length === 0) return null;
   return (
-    <section className="mt-10">
+    <section className="mt-8">
       <p className="kicker mb-3">{title}</p>
-      <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {items.map((m) => (
           <CoverCard key={m.slug} member={m} state={stateFor(m)} online={isOnline?.(m)} />
         ))}
@@ -220,7 +229,7 @@ export default function ExploreGallery({
   return (
     <div>
       {/* Concierge search */}
-      <div className="relative mt-10">
+      <div className="relative mt-6">
         <svg
           className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-muted"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden
@@ -294,7 +303,7 @@ export default function ExploreGallery({
 
       {/* Directory */}
       {results.length > 0 ? (
-        <div className="mt-6 grid grid-cols-2 gap-5 pb-24 md:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-4 pb-16 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {results.map((m) => (
             <CoverCard key={m.slug} member={m} state={stateFor(m)} online={isOnline(m)} />
           ))}

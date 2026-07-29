@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getUpcomingEvents, getNextReferralRound } from "@/lib/events";
+import ReferralRoundActions from "./ReferralRoundActions";
 
 export const metadata = { title: "Referral Rounds — Altus Tribe" };
 export const dynamic = "force-dynamic";
@@ -33,11 +34,7 @@ export default async function ReferralRoundsPage() {
         <p className="mt-1 text-[20px] font-bold text-ink">{fmt(next.startsAt)}</p>
         {next.location && <p className="mt-0.5 text-[14px] text-ink-secondary">{next.location}</p>}
         {next.description && <p className="mt-3 text-[14px] leading-relaxed text-ink-secondary">{next.description}</p>}
-        {next.link && (
-          <a href={next.link} target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex h-11 items-center rounded-xl bg-red px-5 text-[14px] font-semibold text-white transition-colors hover:bg-red-hover">
-            Register / Join
-          </a>
-        )}
+        <ReferralRoundActions startsAt={next.startsAt} location={next.location} link={next.link} />
       </section>
 
       {/* Upcoming */}

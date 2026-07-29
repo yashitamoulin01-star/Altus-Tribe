@@ -36,7 +36,7 @@ export default async function SacredSpacePage() {
 
       {/* Query history */}
       {queries.length > 0 && (
-        <section className="border-b border-hairline py-8">
+        <section className="border-b border-hairline py-6">
           <p className="kicker mb-3">Your queries</p>
           <ul className="divide-y divide-hairline">
             {queries.map((c) => (
@@ -60,11 +60,11 @@ export default async function SacredSpacePage() {
       )}
 
       {/* Announcements */}
-      <section className="py-2">
-        <p className="kicker py-8">Announcements</p>
+      <section className="pt-6">
+        <p className="kicker mb-3">Announcements</p>
         <div className="divide-y divide-hairline">
           {announcements.map((a, i) => (
-            <article key={a.id} className="py-8">
+            <article key={a.id} className="py-5">
               <div className="flex items-baseline gap-3">
                 <span className="font-mono text-xs tabular-nums text-red">{String(i + 1).padStart(2, "0")}</span>
                 {a.publishedAt && <span className="kicker">{fmtDate(a.publishedAt)}</span>}
@@ -72,12 +72,12 @@ export default async function SacredSpacePage() {
                   <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-red">★ Pinned</span>
                 )}
               </div>
-              <h2 className="mt-3 text-2xl font-semibold leading-tight tracking-[-0.015em] text-ink">{a.title}</h2>
-              {a.body && <p className="mt-3 text-[17px] leading-[1.7] text-ink-secondary">{a.body}</p>}
+              <h2 className="mt-2 text-lg font-semibold leading-tight tracking-[-0.015em] text-ink">{a.title}</h2>
+              {a.body && <p className="mt-1.5 text-[15px] leading-relaxed text-ink-secondary">{a.body}</p>}
             </article>
           ))}
           {announcements.length === 0 && (
-            <p className="py-10 text-center text-[16px] text-ink-secondary">
+            <p className="py-8 text-center text-[15px] text-ink-secondary">
               No announcements yet. This space stays quiet until it matters.
             </p>
           )}
@@ -86,7 +86,7 @@ export default async function SacredSpacePage() {
 
       {/* Resources */}
       {resources.length > 0 && (
-        <section className="border-t border-hairline py-8">
+        <section className="border-t border-hairline py-6">
           <div className="mb-4 flex items-center justify-between">
             <p className="kicker">Resources</p>
             <Link href="/campus" className="text-[13px] text-red transition-colors hover:text-red-hover">

@@ -20,11 +20,11 @@ export default async function GroupsPage() {
   const groups = (await getConversations()).filter((c) => c.kind === "group");
 
   return (
-    <main className="mx-auto w-full max-w-[800px] px-6 pt-8 pb-28 sm:px-10">
+    <main className="mx-auto w-full max-w-[800px] px-6 pt-6 pb-16 sm:px-10">
       <header className="flex items-end justify-between gap-4 pb-6">
         <div>
-          <p className="kicker mb-3 text-red font-semibold">Tribe</p>
-          <h1 className="text-3xl font-semibold tracking-[-0.02em] text-ink sm:text-4xl">Groups</h1>
+          <p className="kicker mb-2 text-red font-semibold">Tribe</p>
+          <h1 className="text-2xl font-semibold tracking-[-0.02em] text-ink md:text-3xl">Groups</h1>
           <p className="mt-2 text-[15px] text-ink-secondary">
             Instant group chat with cohorts, interest circles and business communities.
           </p>
@@ -38,20 +38,23 @@ export default async function GroupsPage() {
       </header>
 
       {groups.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-hairline px-6 py-16 text-center">
-          <p className="text-[15px] font-medium text-ink">No groups yet</p>
-          <p className="mt-1 text-[13px] text-ink-muted">
-            Create a group to start an instant conversation with participants.
+        <div className="rounded-xl border border-dashed border-hairline px-6 py-12 text-center">
+          <span className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-red/10 text-red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>
+          </span>
+          <p className="text-[15px] font-semibold text-ink">Start your first group</p>
+          <p className="mx-auto mt-1.5 max-w-[46ch] text-[13px] leading-relaxed text-ink-muted">
+            Groups are real-time group chats — spin one up for a cohort, an interest circle, or a business community, pick the participants, and start the conversation.
           </p>
           <Link
             href="/messages/new"
-            className="mt-5 inline-block rounded-xl bg-red px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-red-hover"
+            className="mt-5 inline-block rounded-lg bg-red px-5 py-2.5 text-[13px] font-semibold text-white transition-colors hover:bg-red-hover"
           >
             Create a group →
           </Link>
         </div>
       ) : (
-        <ul className="divide-y divide-hairline rounded-2xl border border-hairline bg-surface">
+        <ul className="divide-y divide-hairline rounded-xl border border-hairline bg-surface">
           {groups.map((g) => (
             <li key={g.id}>
               <Link href={`/messages/${g.id}`} className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-surface-hover">
