@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { signOut } from "@/app/(auth)/actions";
+import GlobalSearch from "./GlobalSearch";
 
 // Left Sidebar Items
 const SIDEBAR_ITEMS = [
@@ -201,6 +202,7 @@ export default function AppShell({
   whatsappNumber,
   whatsappPrefill,
   unread,
+  isAdmin = false,
 }: {
   children: React.ReactNode;
   whatsappNumber: string | null;
@@ -210,10 +212,9 @@ export default function AppShell({
   userInitials?: string;
   userPhoto?: string | null;
   unread: number;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [q, setQ] = useState("");
   const [dark, setDark] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [todayStr, setTodayStr] = useState("");
@@ -247,12 +248,6 @@ export default function AppShell({
     const next = !sidebarOpen;
     setSidebarOpen(next);
     localStorage.setItem("altus-sidebar-open", String(next));
-  };
-
-  const search = (e: React.FormEvent) => {
-    e.preventDefault();
-    const t = q.trim();
-    router.push(t ? `/explore?q=${encodeURIComponent(t)}` : "/explore");
   };
 
   const toggleTheme = () => {
@@ -304,21 +299,8 @@ export default function AppShell({
 
           {/* Top navigation removed — the left sidebar is the primary nav. */}
 
-          {/* Search bar */}
-          <form onSubmit={search} className="mx-auto hidden w-full max-w-[420px] md:block">
-            <div className="relative">
-              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="search"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search Participants, Groups & Resources"
-                className="h-10 w-full rounded-xl border border-hairline bg-surface-sunk pl-10 pr-3 text-[13px] text-ink placeholder:text-ink-muted transition-colors focus:border-red/40 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red/8 dark:focus:bg-surface"
-              />
-            </div>
-          </form>
+          {/* Universal search / command palette */}
+          <GlobalSearch isAdmin={isAdmin} />
 
           {/* Right Controls */}
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">

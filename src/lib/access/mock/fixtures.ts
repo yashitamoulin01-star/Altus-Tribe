@@ -6,6 +6,16 @@ import type { AccessRequest, AllowlistEntry, ImportRun } from "../types";
 
 export const seedAllowlist: AllowlistEntry[] = [
   {
+    // Test account for Request Membership + profile form (owner, 2026-07-29).
+    id: "al-000", fullName: "Yashita Mouli", email: "yashitamouli.altuscorp@gmail.com",
+    phoneE164: "+919820000000", whatsappE164: "+919820000000",
+    company: "Altus Corp", designation: "Participant", city: "Mumbai",
+    state: "Maharashtra", country: "India", sourceAprContact: true,
+    sourceJulRegistration: true, productivityShastraId: null,
+    status: "not_requested", stale: false, adminNotes: null,
+    createdAt: "2026-04-02T09:00:00Z", updatedAt: "2026-04-02T09:00:00Z",
+  },
+  {
     id: "al-001", fullName: "Aarav Mehta", email: "aarav@brightpack.in",
     phoneE164: "+919820011001", whatsappE164: "+919820011001",
     company: "BrightPack Solutions", designation: "Founder", city: "Mumbai",

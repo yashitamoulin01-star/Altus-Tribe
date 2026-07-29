@@ -4,6 +4,7 @@ import { getUpcomingEvents, getNextReferralRound } from "@/lib/events";
 import { getNotifications } from "@/lib/notifications";
 import { initials } from "./widgets/_shared";
 import ReferralRoundMini from "./ReferralRoundMini";
+import Reveal from "@/components/Reveal";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Home dashboard — matches the owner's reference spec (2026-07-29). Scan order:
@@ -76,8 +77,8 @@ function KpiRibbon() {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
       {KPIS.map((k) => (
-        <div key={k.label} className="rounded-xl border border-hairline bg-white p-3 dark:bg-surface">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-red/8 text-red">{icon(k.i, 14)}</span>
+        <div key={k.label} className="group rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.035] p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-red/25 hover:shadow-md dark:from-surface dark:to-surface">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-red to-red-hover text-white shadow-sm shadow-red/30 transition-transform group-hover:scale-105">{icon(k.i, 14)}</span>
           <p className="mt-2 text-[18px] font-bold leading-none text-ink">{k.value}</p>
           <p className="mt-1 text-[10px] leading-tight text-ink-muted">{k.label}</p>
           <p className="mt-1 flex items-center gap-0.5 text-[9px] font-semibold text-emerald-600">
@@ -92,11 +93,10 @@ function KpiRibbon() {
 // ── Networking cards ────────────────────────────────────────────────────────
 function CardHead({ i, title, count, href }: { i: string; title: string; count: number; href: string }) {
   return (
-    <div className="mb-3 flex items-center justify-between gap-2">
-      <div className="flex items-center gap-1.5">
-        <span className="text-red">{icon(i, 14)}</span>
-        <h3 className="text-[13px] font-semibold text-ink">{title}</h3>
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /><span className="text-[10px] font-medium text-emerald-600">Online</span>
+    <div className="mb-3 flex items-center justify-between gap-2 border-b border-hairline pb-2.5">
+      <div className="flex items-center gap-2">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon(i, 13)}</span>
+        <h3 className="text-[13px] font-bold text-ink">{title}</h3>
       </div>
       <Link href={href} className="shrink-0 text-[11px] font-semibold text-red hover:text-red-hover">Open all ({count}) →</Link>
     </div>
@@ -126,33 +126,40 @@ function PersonCard({ p, action }: { p: Person; action: "accept" | "pending" | "
   );
 }
 
-const RECEIVED: Person[] = [
-  { name: "Priya Shah", role: "CEO", company: "InnovateX", tag: "Technology", mutual: 3 },
-  { name: "Hetesh Vichare", role: "Founder", company: "TechNova", tag: "Technology", mutual: 2 },
-];
-const SENT: Person[] = [
-  { name: "Rohan Mehta", role: "CTO", company: "DataSprout", tag: "AI / SaaS", mutual: 1 },
-  { name: "Karan Desai", role: "Co-founder", company: "Nexora", tag: "Technology", mutual: 1 },
-];
+const CARD = "min-w-0 rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface";
 
+// Adaptive networking workspace: sections with no data are hidden and their
+// space is reallocated. With no referral backend yet, Received/Sent are empty →
+// Recommended expands to full width with more cards. When a referrals backend
+// lands, populate `received`/`sent` and the layout adapts automatically.
 async function Networking() {
-  const recs = await getSuggestedMembers(4);
+  const received: Person[] = []; // ← wire real referrals-received here
+  const sent: Person[] = []; //     ← wire real referrals-sent here
+  const hasR = received.length > 0;
+  const hasS = sent.length > 0;
+  const solo = !hasR && !hasS;
+  const recs = await getSuggestedMembers(solo ? 8 : 4);
+
   return (
-    <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_2fr_3fr]">
-      <section className="rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-        <CardHead i='<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>' title="Referrals Received" count={12} href="/connections" />
-        <div className="flex gap-3">{RECEIVED.map((p) => <PersonCard key={p.name} p={p} action="accept" />)}</div>
-      </section>
-      <section className="rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-        <CardHead i='<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' title="Referrals Sent" count={8} href="/connections" />
-        <div className="flex gap-3">{SENT.map((p) => <PersonCard key={p.name} p={p} action="pending" />)}</div>
-      </section>
-      <section className="rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-        <CardHead i='<path d="M14 9V5a3 3 0 0 0-6 0v4"/><rect x="2" y="9" width="20" height="12" rx="2"/>' title="Recommended for you" count={20} href="/explore" />
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+      {hasR && (
+        <section style={{ flex: 2 }} className={CARD}>
+          <CardHead i='<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>' title="Referrals Received" count={received.length} href="/connections" />
+          <div className="flex gap-3">{received.slice(0, 2).map((p) => <PersonCard key={p.name} p={p} action="accept" />)}</div>
+        </section>
+      )}
+      {hasS && (
+        <section style={{ flex: 2 }} className={CARD}>
+          <CardHead i='<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' title="Referrals Sent" count={sent.length} href="/connections" />
+          <div className="flex gap-3">{sent.slice(0, 2).map((p) => <PersonCard key={p.name} p={p} action="pending" />)}</div>
+        </section>
+      )}
+      <section style={{ flex: solo ? 5 : 3 }} className={CARD}>
+        <CardHead i='<path d="M14 9V5a3 3 0 0 0-6 0v4"/><rect x="2" y="9" width="20" height="12" rx="2"/>' title="Recommended for you" count={recs.length} href="/explore" />
         {recs.length === 0 ? (
           <p className="text-[12px] text-ink-muted">No suggestions yet — explore the directory.</p>
         ) : (
-          <div className="flex gap-3">
+          <div className={`grid gap-3 ${solo ? "grid-cols-2 sm:grid-cols-4 xl:grid-cols-8" : "grid-cols-2 lg:grid-cols-4"}`}>
             {recs.map((m) => (
               <PersonCard key={m.slug} action="connect" p={{ name: m.fullName, role: m.category || "Member", company: m.businessName || "", tag: m.industry || m.category || "Technology", mutual: 2, photo: m.photoUrl, slug: m.slug }} />
             ))}
@@ -169,9 +176,9 @@ const secondary = "flex h-9 items-center justify-center rounded-lg border border
 
 function CampusCard() {
   return (
-    <section className="flex flex-col rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-1.5"><span className="text-red">{icon('<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Campus</h3></div>
+    <section className="flex flex-col rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+      <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
+        <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Campus</h3></div>
         <Link href="/campus" className="text-[11px] font-semibold text-red hover:text-red-hover">See all →</Link>
       </div>
       <div className="flex-1 space-y-2.5">
@@ -195,9 +202,9 @@ async function ConclaveCard() {
   const sub = ev ? `${fmtDate(ev.startsAt)}${ev.location ? ` · ${ev.location}` : ""}` : "Jan 15 – 17, 2026 · Mumbai";
   const daysLeft = ev ? daysUntil(ev.startsAt) : 15;
   return (
-    <section className="flex flex-col rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-1.5"><span className="text-red">{icon('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Next Altus Conclave</h3></div>
+    <section className="flex flex-col rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+      <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
+        <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Next Altus Conclave</h3></div>
         <Link href="/campus" className="text-[11px] font-semibold text-red hover:text-red-hover">See all →</Link>
       </div>
       <div className="flex-1 rounded-xl bg-red/[0.04] p-4 text-center">
@@ -220,9 +227,9 @@ async function ConclaveCard() {
 async function ReferralCard() {
   const rr = await getNextReferralRound();
   return (
-    <section className="flex flex-col rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-1.5"><span className="text-red">{icon('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Next Referral Round</h3></div>
+    <section className="flex flex-col rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+      <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
+        <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Next Referral Round</h3></div>
         <div className="flex items-center gap-1.5"><span className="rounded bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700">Starting Soon</span><span className="rounded bg-surface-sunk px-1.5 py-0.5 text-[9px] font-semibold text-ink-muted">FREE</span></div>
       </div>
       <ReferralRoundMini startsAt={rr.startsAt} location={rr.location} link={rr.link} />
@@ -244,9 +251,9 @@ async function RecentActivity() {
     ? notifs.map((n, i) => ({ title: n.title, detail: n.link ? "View →" : "", when: rel(n.createdAt), i: ACTIVITY[i % ACTIVITY.length].i, tone: ACTIVITY[i % ACTIVITY.length].tone, link: n.link || "/notifications" }))
     : ACTIVITY.map((a) => ({ ...a, link: "/notifications" }));
   return (
-    <section className="rounded-2xl border border-hairline bg-white p-4 dark:bg-surface">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-center gap-1.5"><span className="text-red">{icon('<polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Recent Activity</h3></div>
+    <section className="rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+      <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
+        <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Recent Activity</h3></div>
         <Link href="/notifications" className="text-[11px] font-semibold text-red hover:text-red-hover">See all →</Link>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -265,14 +272,14 @@ export default async function HomeDashboard() {
   await getMyProfileSummary();
   return (
     <div className="space-y-4">
-      <KpiRibbon />
-      <Networking />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <Reveal><KpiRibbon /></Reveal>
+      <Reveal delay={60}><Networking /></Reveal>
+      <Reveal delay={120} className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <CampusCard />
         <ConclaveCard />
         <ReferralCard />
-      </div>
-      <RecentActivity />
+      </Reveal>
+      <Reveal delay={160}><RecentActivity /></Reveal>
     </div>
   );
 }
