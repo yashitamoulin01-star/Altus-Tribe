@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getMyProfileSummary, getSuggestedMembers } from "@/lib/dashboard";
+import { getMyProfileSummary, getSuggestedMembers, type MyProfileSummary } from "@/lib/dashboard";
 import { getUpcomingEvents, getNextReferralRound } from "@/lib/events";
 import { getNotifications } from "@/lib/notifications";
 import { initials } from "./widgets/_shared";
@@ -62,30 +62,43 @@ function MutualStack({ n }: { n: number }) {
   );
 }
 
-// ── KPI ribbon (separate bordered cards) ────────────────────────────────────
+// ── Analytics ribbon (one continuous panel, pastel per-metric icons) ─────────
+// Reference: premium enterprise KPI ribbon (Stripe / Linear / HubSpot). Each
+// metric gets its own soft pastel icon chip (exact hex so it renders regardless
+// of the Tailwind theme). Number dominates; label muted; trend green.
 const KPIS = [
-  { label: "Connections Made", value: "146", delta: "12 this month", i: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-  { label: "Referrals Sent", value: "38", delta: "8 this month", i: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' },
-  { label: "Referrals Received", value: "27", delta: "6 this month", i: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' },
-  { label: "Successful Referrals", value: "19", delta: "5 this month", i: '<circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/>' },
-  { label: "People You Helped", value: "52", delta: "11 this month", i: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>' },
-  { label: "Businesses Connected", value: "23", delta: "4 this month", i: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>' },
-  { label: "Contribution Score", value: "840", delta: "Top 18%", i: '<polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.5 5.8 21 7 14 2 9.3 9 8.5 12 2"/>' },
-  { label: "Community Rank", value: "#32", delta: "7 this month", i: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>' },
+  { label: "Connections Made", value: "146", delta: "12 this month", bg: "#FEE2E2", fg: "#DC2626", i: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+  { label: "Referrals Sent", value: "38", delta: "8 this month", bg: "#EDE9FE", fg: "#7C3AED", i: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' },
+  { label: "Referrals Received", value: "27", delta: "6 this month", bg: "#DCFCE7", fg: "#16A34A", i: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>' },
+  { label: "Successful Referrals", value: "19", delta: "5 this month", bg: "#FFEDD5", fg: "#EA580C", i: '<circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/>' },
+  { label: "People You Helped", value: "52", delta: "11 this month", bg: "#DBEAFE", fg: "#2563EB", i: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/>' },
+  { label: "Businesses Connected", value: "23", delta: "4 this month", bg: "#F3E8FF", fg: "#9333EA", i: '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>' },
+  { label: "Contribution Score", value: "840", delta: "Top 18%", bg: "#FCE7F3", fg: "#DB2777", i: '<polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.5 5.8 21 7 14 2 9.3 9 8.5 12 2"/>' },
+  { label: "Community Rank", value: "#32", delta: "7 this month", bg: "#E0F2FE", fg: "#0284C7", i: '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>' },
 ];
 function KpiRibbon() {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-8">
-      {KPIS.map((k) => (
-        <div key={k.label} className="group rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.035] p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:border-red/25 hover:shadow-md dark:from-surface dark:to-surface">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-red to-red-hover text-white shadow-sm shadow-red/30 transition-transform group-hover:scale-105">{icon(k.i, 14)}</span>
-          <p className="mt-2 text-[18px] font-bold leading-none text-ink">{k.value}</p>
-          <p className="mt-1 text-[10px] leading-tight text-ink-muted">{k.label}</p>
-          <p className="mt-1 flex items-center gap-0.5 text-[9px] font-semibold text-emerald-600">
-            <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l8 10H4z" /></svg>{k.delta}
-          </p>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-2xl border border-hairline bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04),0_20px_40px_rgba(225,33,45,0.03)] dark:bg-surface dark:shadow-none">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
+        {KPIS.map((k) => (
+          <div
+            key={k.label}
+            className="group flex flex-col px-3.5 py-3.5 transition-colors hover:bg-surface-sunk/40 xl:border-l xl:border-hairline/70 xl:first:border-l-0"
+          >
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-full shadow-inner transition-transform group-hover:scale-105"
+              style={{ backgroundColor: k.bg, color: k.fg }}
+            >
+              {icon(k.i, 17)}
+            </span>
+            <p className="mt-2.5 text-[21px] font-bold leading-none text-ink">{k.value}</p>
+            <p className="mt-1.5 text-[10px] font-medium leading-tight text-ink-muted">{k.label}</p>
+            <p className="mt-1.5 flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600">
+              <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l8 10H4z" /></svg>{k.delta}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -110,8 +123,12 @@ function PersonCard({ p, action }: { p: Person; action: "accept" | "pending" | "
       <p className="mt-1.5 text-[12px] font-semibold leading-tight text-ink">{p.name}</p>
       <p className="text-[10px] leading-tight text-ink-muted">{p.role}{p.company ? ` · ${p.company}` : ""}</p>
       <span className={`mt-1.5 whitespace-nowrap rounded px-2 py-0.5 text-[9px] font-semibold ${chipClass(p.tag)}`}>{p.tag}</span>
-      <p className="mt-1.5 text-[9px] text-ink-muted">{p.mutual} Mutual Connection{p.mutual === 1 ? "" : "s"}</p>
-      <div className="mt-1.5 mb-2"><MutualStack n={p.mutual} /></div>
+      {p.mutual > 0 && (
+        <>
+          <p className="mt-1.5 text-[9px] text-ink-muted">{p.mutual} Mutual Connection{p.mutual === 1 ? "" : "s"}</p>
+          <div className="mt-1.5 mb-2"><MutualStack n={p.mutual} /></div>
+        </>
+      )}
       <div className="mt-auto flex w-full gap-1.5">
         {action === "accept" && <>
           <button className="flex-1 rounded-md bg-red py-1.5 text-[11px] font-semibold text-white hover:bg-red-hover">Accept</button>
@@ -128,43 +145,130 @@ function PersonCard({ p, action }: { p: Person; action: "accept" | "pending" | "
 
 const CARD = "min-w-0 rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface";
 
-// Adaptive networking workspace: sections with no data are hidden and their
-// space is reallocated. With no referral backend yet, Received/Sent are empty →
-// Recommended expands to full width with more cards. When a referrals backend
-// lands, populate `received`/`sent` and the layout adapts automatically.
+// ── Contextual "Networking Insights" panel ──────────────────────────────────
+// Fills leftover column space so a thin/new community never shows empty
+// whitespace and never stretches or fakes profile cards. Same visual language
+// as the cards (rounded, subtle red gradient, small icon).
+type Insight = { ic: string; kicker: string; title: string; body: string; cta?: { label: string; href: string }; by?: string };
+function InsightPanel({ ins }: { ins: Insight }) {
+  return (
+    <div className="flex flex-1 flex-col rounded-xl border border-dashed border-red/20 bg-gradient-to-br from-red/[0.035] to-transparent p-4">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red/10 text-red">{icon(ins.ic, 15)}</span>
+      <p className="mt-2 text-[9px] font-semibold uppercase tracking-wide text-red/80">{ins.kicker}</p>
+      <p className="mt-0.5 text-[12.5px] font-bold leading-snug text-ink">{ins.title}</p>
+      <p className="mt-1 flex-1 text-[11px] leading-relaxed text-ink-muted">{ins.body}</p>
+      {ins.by && <p className="mt-1.5 text-[10px] font-semibold text-ink-secondary">— {ins.by}</p>}
+      {ins.cta && <Link href={ins.cta.href} className={`${primary} mt-3 w-full`}>{ins.cta.label}</Link>}
+    </div>
+  );
+}
+
+const IC_USER = '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>';
+const IC_RECV = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>';
+const IC_SENT = '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>';
+const IC_REC = '<path d="M14 9V5a3 3 0 0 0-6 0v4"/><rect x="2" y="9" width="20" height="12" rx="2"/>';
+const IC_BULB = '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/>';
+const IC_STAR = '<polygon points="12 2 15 8.5 22 9.3 17 14 18.2 21 12 17.5 5.8 21 7 14 2 9.3 9 8.5 12 2"/>';
+const IC_TARGET = '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>';
+const IC_BRIEF = '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>';
+
+// Rotate by the hour so the homepage feels fresh on return, without any client JS.
+const rotate = <T,>(arr: T[]) => arr[Math.floor(Date.now() / 3_600_000) % arr.length];
+
+// Referrals-Received filler (educational when empty, tips otherwise).
+function receivedInsight(count: number): Insight {
+  if (count === 0)
+    return { ic: IC_RECV, kicker: "How it works", title: "How referrals reach you", body: "When a member believes you're the right fit, they introduce you here. A complete profile with a clear USP makes you far easier to refer.", cta: { label: "View Referral Guide", href: "/referral-rounds" } };
+  return rotate<Insight>([
+    { ic: IC_BULB, kicker: "Referral etiquette", title: "Respond promptly", body: "Acknowledge every introduction quickly — even a short reply keeps the referrer's trust and momentum going." },
+    { ic: IC_STAR, kicker: "Be referable", title: "Sharpen your USP", body: "A one-line value statement helps members refer you to exactly the right people." },
+  ]);
+}
+
+// Referrals-Sent filler.
+function sentInsight(count: number): Insight {
+  if (count === 0)
+    return { ic: IC_SENT, kicker: "Give first", title: "Start making referrals", body: "Help other members by introducing relevant businesses. Strong communities grow through meaningful introductions.", cta: { label: "Explore Members", href: "/explore" } };
+  return rotate<Insight>([
+    { ic: IC_TARGET, kicker: "Best practice", title: "Be specific", body: "Specific introductions create stronger relationships than generic networking. Say why the two should meet." },
+    { ic: IC_BULB, kicker: "Community", title: "Help others first", body: "The strongest communities are built by members who give before they ask." },
+  ]);
+}
+
+// Recommended filler — the "Tribe Coach" priority engine (Decision 3).
+function tribeCoach(me: MyProfileSummary): Insight {
+  if (me.completion < 70)
+    return { ic: IC_USER, kicker: "Get started", title: "Complete Your Profile", body: "Members with complete profiles receive better recommendations.", cta: { label: "Complete Profile", href: "/account/edit" } };
+  if (!me.usp.trim())
+    return { ic: IC_STAR, kicker: "Stand out", title: "Add Your USP", body: "Clearly explain your value so other members know exactly when to connect with you.", cta: { label: "Add USP", href: "/account/edit" } };
+  if (!me.photoUrl)
+    return { ic: IC_USER, kicker: "Build trust", title: "Upload a Professional Photo", body: "Professional photos improve trust and engagement across the Tribe.", cta: { label: "Upload Photo", href: "/account/edit" } };
+  if (!me.industry.trim() || !me.businessName.trim())
+    return { ic: IC_BRIEF, kicker: "Get matched", title: "Complete Business Information", body: "Industry and business details help us recommend the right connections for you.", cta: { label: "Update Details", href: "/account/edit" } };
+  // Profile complete → rotate growth coaching (Decision 3, items 6–10).
+  return rotate<Insight>([
+    { ic: IC_STAR, kicker: "Founder tip", title: "People trust people before businesses", body: "Lead relationships with who you are — the business follows.", by: "Manan Vasa" },
+    { ic: IC_TARGET, kicker: "Networking", title: "Be specific to be memorable", body: "Members who clearly define their ideal customer receive better introductions." },
+    { ic: IC_BULB, kicker: "Weekly challenge", title: "Three small moves", body: "Meet one new member, help one business, and start one conversation this week." },
+    { ic: IC_BRIEF, kicker: "Industry insight", title: `Grow in ${me.industry || "your field"}`, body: "Share a recent win or client success story to strengthen your credibility and visibility." },
+  ]);
+}
+
+// Adaptive networking workspace (Decisions 1–6): three equal columns, always
+// present. Each shows up to 4 cards; leftover space becomes a contextual
+// Insights panel — never blank whitespace, never stretched or fabricated cards.
+// When both referral columns are empty, Recommended expands 4 → 6 first.
 async function Networking() {
+  const me = await getMyProfileSummary();
   const received: Person[] = []; // ← wire real referrals-received here
   const sent: Person[] = []; //     ← wire real referrals-sent here
-  const hasR = received.length > 0;
-  const hasS = sent.length > 0;
-  const solo = !hasR && !hasS;
-  const recs = await getSuggestedMembers(solo ? 8 : 4);
+  const bothEmpty = received.length === 0 && sent.length === 0;
+  const recs = await getSuggestedMembers(bothEmpty ? 6 : 4);
+  const recCards = recs.slice(0, bothEmpty ? 6 : 4);
 
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
-      {hasR && (
-        <section style={{ flex: 2 }} className={CARD}>
-          <CardHead i='<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>' title="Referrals Received" count={received.length} href="/connections" />
-          <div className="flex gap-3">{received.slice(0, 2).map((p) => <PersonCard key={p.name} p={p} action="accept" />)}</div>
-        </section>
-      )}
-      {hasS && (
-        <section style={{ flex: 2 }} className={CARD}>
-          <CardHead i='<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>' title="Referrals Sent" count={sent.length} href="/connections" />
-          <div className="flex gap-3">{sent.slice(0, 2).map((p) => <PersonCard key={p.name} p={p} action="pending" />)}</div>
-        </section>
-      )}
-      <section style={{ flex: solo ? 5 : 3 }} className={CARD}>
-        <CardHead i='<path d="M14 9V5a3 3 0 0 0-6 0v4"/><rect x="2" y="9" width="20" height="12" rx="2"/>' title="Recommended for you" count={recs.length} href="/explore" />
-        {recs.length === 0 ? (
-          <p className="text-[12px] text-ink-muted">No suggestions yet — explore the directory.</p>
-        ) : (
-          <div className={`grid gap-3 ${solo ? "grid-cols-2 sm:grid-cols-4 xl:grid-cols-8" : "grid-cols-2 lg:grid-cols-4"}`}>
-            {recs.map((m) => (
-              <PersonCard key={m.slug} action="connect" p={{ name: m.fullName, role: m.category || "Member", company: m.businessName || "", tag: m.industry || m.category || "Technology", mutual: 2, photo: m.photoUrl, slug: m.slug }} />
-            ))}
-          </div>
-        )}
+      {/* Referrals Received */}
+      <section style={{ flex: 1 }} className={CARD}>
+        <CardHead i={IC_RECV} title="Referrals Received" count={received.length} href="/connections" />
+        <div className="flex flex-1 flex-col gap-3">
+          {received.length > 0 && (
+            <div className="grid grid-cols-1 gap-3">
+              {received.slice(0, 4).map((p) => <PersonCard key={p.name} p={p} action="accept" />)}
+            </div>
+          )}
+          {received.length < 4 && <InsightPanel ins={receivedInsight(received.length)} />}
+        </div>
+      </section>
+
+      {/* Referrals Sent */}
+      <section style={{ flex: 1 }} className={CARD}>
+        <CardHead i={IC_SENT} title="Referrals Sent" count={sent.length} href="/connections" />
+        <div className="flex flex-1 flex-col gap-3">
+          {sent.length > 0 && (
+            <div className="grid grid-cols-1 gap-3">
+              {sent.slice(0, 4).map((p) => <PersonCard key={p.name} p={p} action="pending" />)}
+            </div>
+          )}
+          {sent.length < 4 && <InsightPanel ins={sentInsight(sent.length)} />}
+        </div>
+      </section>
+
+      {/* Recommended For You */}
+      <section style={{ flex: 1 }} className={CARD}>
+        <CardHead i={IC_REC} title="Recommended for you" count={recs.length} href="/explore" />
+        <div className="flex flex-1 flex-col gap-3">
+          {recCards.length > 0 && (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {recCards.map((m) => (
+                <PersonCard key={m.slug} action="connect" p={{ name: m.fullName, role: m.category || "Member", company: m.businessName || "", tag: m.industry || m.category || "Technology", mutual: 0, photo: m.photoUrl, slug: m.slug }} />
+              ))}
+            </div>
+          )}
+          {recCards.length === 0
+            ? <InsightPanel ins={{ ic: IC_REC, kicker: "Recommendations", title: "Complete your profile", body: "We don't have enough information yet to recommend members. Complete your profile so we can recommend the right people.", cta: { label: "Complete Profile", href: "/account/edit" } }} />
+            : recCards.length < 4 && <InsightPanel ins={tribeCoach(me)} />}
+        </div>
       </section>
     </div>
   );
