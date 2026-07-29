@@ -5,6 +5,7 @@ import {
   ConclaveCard,
   ReferralRoundSection,
   SacredSpaceCard,
+  TodaysNetwork,
 } from "./sections";
 import ReferralReminder from "./ReferralReminder";
 import Reveal from "@/components/Reveal";
@@ -25,9 +26,9 @@ export default function HomePage() {
         <ReferralReminder />
       </Suspense>
 
-      {/* Row 1 — profile (compact, left) + announcements (bigger, right) */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:items-start">
-        <Suspense fallback={<CardSkeleton h="h-40" />}>
+      {/* Row 1 — profile + announcements, equal-size boxes side by side */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
+        <Suspense fallback={<CardSkeleton h="h-56" />}>
           <IdentityHero />
         </Suspense>
         <Suspense fallback={<CardSkeleton h="h-56" />}>
@@ -44,6 +45,13 @@ export default function HomePage() {
           <ReferralRoundSection />
         </Suspense>
         <SacredSpaceCard />
+      </Reveal>
+
+      {/* People you should connect with — recommended, at the end */}
+      <Reveal>
+        <Suspense fallback={<CardSkeleton h="h-40" />}>
+          <TodaysNetwork />
+        </Suspense>
       </Reveal>
     </main>
   );

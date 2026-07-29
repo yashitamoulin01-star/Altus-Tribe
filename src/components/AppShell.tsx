@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { signOut } from "@/app/(auth)/actions";
 
 // Left Sidebar Items
 const SIDEBAR_ITEMS = [
@@ -199,22 +200,18 @@ export default function AppShell({
   children,
   whatsappNumber,
   whatsappPrefill,
-  userName,
-  userInitials,
-  userPhoto,
   unread,
 }: {
   children: React.ReactNode;
   whatsappNumber: string | null;
   whatsappPrefill?: string;
-  userName: string;
-  userInitials: string;
-  userPhoto: string | null;
+  // still accepted from the layout, but the header no longer shows a profile chip
+  userName?: string;
+  userInitials?: string;
+  userPhoto?: string | null;
   unread: number;
 }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [q, setQ] = useState("");
   const [dark, setDark] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [todayStr, setTodayStr] = useState("");
@@ -248,12 +245,6 @@ export default function AppShell({
     const next = !sidebarOpen;
     setSidebarOpen(next);
     localStorage.setItem("altus-sidebar-open", String(next));
-  };
-
-  const search = (e: React.FormEvent) => {
-    e.preventDefault();
-    const t = q.trim();
-    router.push(t ? `/explore?q=${encodeURIComponent(t)}` : "/explore");
   };
 
   const toggleTheme = () => {
@@ -305,24 +296,10 @@ export default function AppShell({
 
           {/* Top navigation removed — the left sidebar is the primary nav. */}
 
-          {/* Search bar (Desktop & Tablet >= 768px) */}
-          <form onSubmit={search} className="hidden md:block w-full max-w-[260px] lg:max-w-[340px]">
-            <div className="relative">
-              <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              <input
-                type="search"
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search Participants, Groups & Resources"
-                className="h-9 w-full rounded-xl border border-hairline bg-surface-sunk pl-9 pr-3 text-[12px] text-ink placeholder:text-ink-muted transition-colors focus:border-red/40 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red/8 lg:h-10 lg:pl-10 lg:pr-4 lg:text-[13px] dark:focus:bg-surface"
-              />
-            </div>
-          </form>
+          {/* Search removed */}
 
           {/* Right Controls */}
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             {todayStr && (
               <span className="hidden xl:block text-[12px] font-medium text-ink-muted">
                 {todayStr}
@@ -351,20 +328,6 @@ export default function AppShell({
               )}
             </Link>
 
-            <Link href="/account" className="flex items-center gap-2 rounded-xl border border-hairline p-1 sm:pr-3 transition-colors hover:border-hairline-bright hover:bg-surface-sunk">
-              <div className="h-7 w-7 sm:h-8 sm:w-8 overflow-hidden rounded-full bg-red text-white flex items-center justify-center text-[11px] sm:text-[12px] font-bold">
-                {userPhoto ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={userPhoto} alt={userName} className="h-full w-full object-cover" />
-                ) : (
-                  userInitials
-                )}
-              </div>
-              <div className="hidden sm:flex flex-col text-left">
-                <span className="max-w-[120px] truncate text-[13px] font-semibold text-ink leading-tight">{userName}</span>
-                <span className="text-[11px] font-medium text-ink-muted leading-tight">Participant</span>
-              </div>
-            </Link>
           </div>
         </div>
       </header>
@@ -424,6 +387,21 @@ export default function AppShell({
               <p className="text-[11px] text-emerald-600/80 dark:text-emerald-500">On WhatsApp</p>
             </div>
           </a>
+
+          {/* Sign out */}
+          <form action={signOut} className="mt-2">
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 rounded-xl border border-hairline p-3 text-left text-ink-secondary transition-colors hover:border-red/40 hover:bg-red/5 hover:text-red"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-sunk">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </span>
+              <span className="text-[13px] font-semibold">Sign out</span>
+            </button>
+          </form>
         </div>
       </aside>
 

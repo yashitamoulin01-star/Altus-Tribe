@@ -33,40 +33,51 @@ function fmtDate(iso: string | null | undefined) {
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-// ── 1. IDENTITY — compact profile strip (no "Welcome back" banner) ──────────
-// Deliberately small so Announcements below carries the visual weight.
+// ── 1. IDENTITY — vertical profile card (compact height) ────────────────────
 export async function IdentityHero() {
   const me = await getMyProfileSummary();
   const displayName = me.fullName || me.businessName || "Complete your profile";
-  const meta = [me.category, me.natureOfBusiness || me.industry].filter(Boolean).join("  •  ");
+  const meta = [me.category, me.natureOfBusiness || me.industry].filter(Boolean).join(" • ");
+  const pct = Math.max(0, Math.min(100, me.completion ?? 0));
 
   return (
-    <section className="eco-card flex flex-wrap items-center gap-4 p-4 sm:p-5">
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-red/25 bg-surface-sunk sm:h-16 sm:w-16">
-        {me.photoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={me.photoUrl} alt={displayName} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-base font-bold text-ink-muted">
-            {initials(displayName) || "·"}
+    <section className="eco-card flex h-full flex-col overflow-hidden">
+      {/* red header band with overlapping avatar */}
+      <div className="relative h-10 bg-gradient-to-b from-red/12 to-transparent">
+        <div className="absolute left-1/2 top-3 -translate-x-1/2">
+          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border-4 border-paper bg-red text-[15px] font-bold text-white shadow-sm">
+            {me.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={me.photoUrl} alt={displayName} className="h-full w-full object-cover" />
+            ) : (
+              initials(displayName) || "·"
+            )}
           </div>
-        )}
+        </div>
       </div>
 
-      <div className="min-w-0 flex-1">
-        <h2 className="truncate text-[16px] font-bold text-ink sm:text-[18px]">{displayName}</h2>
-        {me.businessName && <p className="truncate text-[13px] font-semibold text-ink-secondary">{me.businessName}</p>}
-        {meta && <p className="truncate text-[11px] text-ink-muted">{meta}</p>}
-        {!me.usp && (
-          <p className="mt-1 text-[12px] text-ink-muted">
-            Add your USP so the Tribe understands your value.{" "}
-            <Link href="/account/edit" className="font-semibold text-red">Add it →</Link>
-          </p>
-        )}
-      </div>
+      <div className="flex flex-1 flex-col px-5 pb-5 pt-10 text-center">
+        <h2 className="text-[17px] font-bold leading-tight text-ink sm:text-[19px]">{displayName}</h2>
+        {meta && <p className="mt-0.5 text-[12px] text-ink-muted">{meta}</p>}
 
-      <div className="flex shrink-0 items-center gap-2">
-        <Link href={me.slug ? `/m/${me.slug}` : "/account"} className={linkSecondary}>View Profile</Link>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Link href={me.slug ? `/m/${me.slug}` : "/account"} className="flex items-center justify-center rounded-xl border border-hairline bg-white px-2 py-2 text-[13px] font-semibold text-ink transition-colors hover:border-hairline-bright dark:bg-surface">
+            View My Profile
+          </Link>
+          <Link href="/notifications" className="flex items-center justify-center rounded-xl border border-red/25 bg-red/5 px-2 py-2 text-[13px] font-semibold text-red transition-colors hover:bg-red/10">
+            Notifications
+          </Link>
+        </div>
+
+        <div className="mt-3 rounded-xl bg-surface-sunk/60 p-3 text-left">
+          <p className="text-[12px] font-semibold text-ink">Profile {pct}% complete</p>
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-hairline">
+            <div className="h-full rounded-full bg-red transition-[width]" style={{ width: `${pct}%` }} />
+          </div>
+          <Link href="/account/edit" className="mt-2 inline-block text-[12px] font-semibold text-red hover:underline">
+            Complete Profile →
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -242,20 +253,21 @@ export async function TodaysNetwork() {
       {people.length === 0 ? (
         <p className="text-[13px] text-ink-muted">No participants to suggest yet — explore the full directory.</p>
       ) : (
-        <div className="mt-1 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-1 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {people.map((m) => (
-            <Link key={m.slug} href={`/m/${m.slug}`} className="flex flex-col items-center rounded-xl border border-hairline bg-surface-sunk/40 p-3 text-center transition-all hover:bg-surface-sunk hover:border-hairline-bright">
-              <div className="h-14 w-14 overflow-hidden rounded-full border border-hairline bg-white">
+            <Link key={m.slug} href={`/m/${m.slug}`} className="flex items-center gap-3 rounded-xl border border-hairline bg-surface-sunk/40 p-2.5 transition-all hover:border-hairline-bright hover:bg-surface-sunk">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-hairline bg-white">
                 {m.photoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={m.photoUrl} alt={m.fullName} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center font-bold text-[13px] text-ink-muted">{initials(m.fullName)}</div>
+                  <div className="flex h-full w-full items-center justify-center text-[12px] font-bold text-ink-muted">{initials(m.fullName)}</div>
                 )}
               </div>
-              <p className="mt-2 w-full truncate text-[13px] font-bold text-ink">{m.fullName}</p>
-              {m.businessName && <p className="w-full truncate text-[11px] font-medium text-ink-secondary">{m.businessName}</p>}
-              {m.category && <p className="w-full truncate text-[10px] text-ink-muted">{m.category}</p>}
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-bold text-ink">{m.fullName}</p>
+                {m.businessName && <p className="truncate text-[11px] font-medium text-ink-secondary">{m.businessName}</p>}
+              </div>
             </Link>
           ))}
         </div>
