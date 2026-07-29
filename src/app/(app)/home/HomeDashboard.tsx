@@ -154,7 +154,7 @@ const CARD = "min-w-0 rounded-2xl border border-hairline bg-gradient-to-br from-
 type Insight = { ic: string; kicker: string; title: string; body: string; cta?: { label: string; href: string }; by?: string };
 function InsightPanel({ ins }: { ins: Insight }) {
   return (
-    <div className="flex flex-1 flex-col rounded-xl border border-dashed border-red/20 bg-gradient-to-br from-red/[0.035] to-transparent p-4">
+    <div className="flex flex-col rounded-xl border border-dashed border-red/20 bg-gradient-to-br from-red/[0.035] to-transparent p-4">
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red/10 text-red">{icon(ins.ic, 15)}</span>
       <p className="mt-2 text-[9px] font-semibold uppercase tracking-wide text-red/80">{ins.kicker}</p>
       <p className="mt-0.5 text-[12.5px] font-bold leading-snug text-ink">{ins.title}</p>
@@ -229,11 +229,11 @@ async function Networking() {
   const recCards = recs.slice(0, bothEmpty ? 6 : 4);
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
       {/* Referrals Received */}
       <section style={{ flex: 1 }} className={CARD}>
         <CardHead i={IC_RECV} title="Referrals Received" count={received.length} href="/connections" />
-        <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-3">
           {received.length > 0 && (
             <div className="grid grid-cols-1 gap-3">
               {received.slice(0, 4).map((p) => <PersonCard key={p.name} p={p} action="accept" />)}
@@ -246,7 +246,7 @@ async function Networking() {
       {/* Referrals Sent */}
       <section style={{ flex: 1 }} className={CARD}>
         <CardHead i={IC_SENT} title="Referrals Sent" count={sent.length} href="/connections" />
-        <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-3">
           {sent.length > 0 && (
             <div className="grid grid-cols-1 gap-3">
               {sent.slice(0, 4).map((p) => <PersonCard key={p.name} p={p} action="pending" />)}
@@ -259,9 +259,9 @@ async function Networking() {
       {/* Recommended For You */}
       <section style={{ flex: 1 }} className={CARD}>
         <CardHead i={IC_REC} title="Recommended for you" count={recs.length} href="/explore" />
-        <div className="flex flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-3">
           {recCards.length > 0 && (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div className="grid grid-cols-2 gap-3">
               {recCards.map((m) => (
                 <PersonCard key={m.slug} action="connect" p={{ name: m.fullName, role: m.category || "Member", company: m.businessName || "", tag: m.industry || m.category || "Technology", mutual: 0, photo: m.photoUrl, slug: m.slug }} />
               ))}
