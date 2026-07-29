@@ -71,7 +71,7 @@ const SIDEBAR_ITEMS = [
   },
   {
     group: "Community",
-    href: "/campus",
+    href: "/conclave",
     title: "Altus Conclave",
     sub: "Events & Registrations",
     icon: (
@@ -268,14 +268,12 @@ export default function AppShell({
 
   // Account Dock — profile is only viewable once the required fields are done.
   const roleLabel = isAdmin ? "Admin" : "Participant";
-  const canViewProfile = requiredComplete && !!profileSlug;
   const li = (d: string) => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: d }} />
   );
   const accountLinks = [
-    canViewProfile
-      ? { label: "View my profile", href: `/m/${profileSlug}`, icon: li('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>') }
-      : { label: "Complete profile to view", href: "/account/edit", icon: li('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>') },
+    // View → the PUBLIC profile as others see it (never the editor).
+    { label: "View my profile", href: profileSlug ? `/m/${profileSlug}` : "/account", icon: li('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>') },
     { label: "Edit profile", href: "/account/edit", icon: li('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/>') },
     { label: "Account", href: "/account", icon: li('<circle cx="12" cy="8" r="4"/><path d="M5 20c0-4 3.5-7 7-7s7 3 7 7"/>') },
     { label: "Settings", href: "/settings", icon: li('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>') },

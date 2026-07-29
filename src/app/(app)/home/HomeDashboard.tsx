@@ -80,7 +80,7 @@ const KPIS = [
 ];
 function KpiRibbon() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-hairline bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04),0_20px_40px_rgba(225,33,45,0.03)] dark:bg-surface dark:shadow-none">
+    <div className="overflow-hidden rounded-xl border border-hairline bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04),0_20px_40px_rgba(225,33,45,0.03)] dark:bg-surface dark:shadow-none">
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
         {KPIS.map((k) => (
           <div
@@ -145,7 +145,7 @@ function PersonCard({ p, action }: { p: Person; action: "accept" | "pending" | "
   );
 }
 
-const CARD = "min-w-0 rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface";
+const CARD = "min-w-0 rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface";
 
 // ── Contextual "Networking Insights" panel ──────────────────────────────────
 // Fills leftover column space so a thin/new community never shows empty
@@ -279,7 +279,7 @@ const secondary = "flex h-9 items-center justify-center rounded-lg border border
 
 function CampusCard() {
   return (
-    <section className="flex flex-col rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+    <section className="flex flex-col rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
       <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
         <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Campus</h3></div>
         <Link href="/campus" className="text-[11px] font-semibold text-red hover:text-red-hover">See all →</Link>
@@ -305,7 +305,7 @@ async function ConclaveCard() {
   const sub = ev ? `${fmtDate(ev.startsAt)}${ev.location ? ` · ${ev.location}` : ""}` : "Jan 15 – 17, 2026 · Mumbai";
   const daysLeft = ev ? daysUntil(ev.startsAt) : 15;
   return (
-    <section className="flex flex-col rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+    <section className="flex flex-col rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
       <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
         <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Next Altus Conclave</h3></div>
         <Link href="/campus" className="text-[11px] font-semibold text-red hover:text-red-hover">See all →</Link>
@@ -330,7 +330,7 @@ async function ConclaveCard() {
 async function ReferralCard() {
   const rr = await getNextReferralRound();
   return (
-    <section className="flex flex-col rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+    <section className="flex flex-col rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
       <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
         <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Next Referral Round</h3></div>
         <div className="flex items-center gap-1.5"><span className="rounded bg-purple-100 px-1.5 py-0.5 text-[9px] font-semibold text-purple-700">Starting Soon</span><span className="rounded bg-surface-sunk px-1.5 py-0.5 text-[9px] font-semibold text-ink-muted">FREE</span></div>
@@ -354,7 +354,7 @@ async function RecentActivity() {
     ? notifs.map((n, i) => ({ title: n.title, detail: n.link ? "View →" : "", when: rel(n.createdAt), i: ACTIVITY[i % ACTIVITY.length].i, tone: ACTIVITY[i % ACTIVITY.length].tone, link: n.link || "/notifications" }))
     : ACTIVITY.map((a) => ({ ...a, link: "/notifications" }));
   return (
-    <section className="rounded-2xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
+    <section className="rounded-xl border border-hairline bg-gradient-to-br from-white to-red/[0.02] p-4 shadow-sm transition-all hover:shadow-md hover:border-red/20 dark:from-surface dark:to-surface">
       <div className="mb-3 flex items-center justify-between border-b border-hairline pb-2.5">
         <div className="flex items-center gap-1.5"><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon('<polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>')}</span><h3 className="text-[13px] font-semibold text-ink">Recent Activity</h3></div>
         <Link href="/notifications" className="text-[11px] font-semibold text-red hover:text-red-hover">See all →</Link>
