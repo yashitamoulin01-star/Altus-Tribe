@@ -356,7 +356,7 @@ export default function AppShell({
           sidebarOpen ? "w-60 xl:w-64 translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0 p-0 border-none pointer-events-none"
         }`}
       >
-        <div className="space-y-3 scroll-mask-y">
+        <div className="space-y-3">
           {NAV_GROUP_ORDER.map((group) => (
             <div key={group} className="space-y-1">
               <p className="px-3 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
