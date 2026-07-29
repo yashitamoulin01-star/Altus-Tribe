@@ -6,9 +6,11 @@ import { useState, useEffect } from "react";
 import { signOut } from "@/app/(auth)/actions";
 import GlobalSearch from "./GlobalSearch";
 
-// Left Sidebar Items
+// Left Sidebar Items — grouped (Workspace / Community / Learning / System).
+// Profile + Settings intentionally live in the bottom Account Dock, not here.
 const SIDEBAR_ITEMS = [
   {
+    group: "Workspace",
     href: "/home",
     title: "Home",
     sub: "",
@@ -20,6 +22,7 @@ const SIDEBAR_ITEMS = [
     match: ["/home"],
   },
   {
+    group: "Workspace",
     href: "/explore",
     title: "Connect",
     sub: "Connect with Participants",
@@ -31,6 +34,7 @@ const SIDEBAR_ITEMS = [
     match: ["/explore"],
   },
   {
+    group: "Workspace",
     href: "/groups",
     title: "Tribe",
     sub: "Groups, Chats & Community",
@@ -42,6 +46,7 @@ const SIDEBAR_ITEMS = [
     match: ["/groups", "/messages", "/tribe"],
   },
   {
+    group: "Community",
     href: "/sacred-space",
     title: "Sacred Space",
     sub: "Manan Vasa / Team",
@@ -53,6 +58,7 @@ const SIDEBAR_ITEMS = [
     match: ["/sacred-space"],
   },
   {
+    group: "Community",
     href: "/referral-rounds",
     title: "Referral Rounds",
     sub: "Wednesdays 10–11 AM",
@@ -64,6 +70,7 @@ const SIDEBAR_ITEMS = [
     match: ["/referral-rounds"],
   },
   {
+    group: "Community",
     href: "/campus",
     title: "Altus Conclave",
     sub: "Events & Registrations",
@@ -75,6 +82,7 @@ const SIDEBAR_ITEMS = [
     match: ["/conclave"],
   },
   {
+    group: "Learning",
     href: "/campus",
     title: "Campus",
     sub: "Learning & Ecosystem",
@@ -86,17 +94,7 @@ const SIDEBAR_ITEMS = [
     match: ["/campus"],
   },
   {
-    href: "/account",
-    title: "My Profile",
-    sub: "Profile & Preferences",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <circle cx="12" cy="8" r="4" /><path d="M5 20c0-4 3.5-7 7-7s7 3 7 7" />
-      </svg>
-    ),
-    match: ["/account"],
-  },
-  {
+    group: "System",
     href: "/notifications",
     title: "Notifications",
     sub: "",
@@ -107,18 +105,8 @@ const SIDEBAR_ITEMS = [
     ),
     match: ["/notifications"],
   },
-  {
-    href: "/settings",
-    title: "Settings",
-    sub: "Account & Preferences",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
-    match: ["/settings"],
-  },
 ];
+const NAV_GROUP_ORDER = ["Workspace", "Community", "Learning", "System"];
 
 // Mobile Bottom Nav Items
 const MOBILE_NAV = [
@@ -201,16 +189,24 @@ export default function AppShell({
   children,
   whatsappNumber,
   whatsappPrefill,
+  userName = "Participant",
+  userInitials = "·",
+  userPhoto = null,
+  completion = 0,
+  profileSlug = null,
+  requiredComplete = false,
   unread,
   isAdmin = false,
 }: {
   children: React.ReactNode;
   whatsappNumber: string | null;
   whatsappPrefill?: string;
-  // still accepted from the layout, but the header no longer shows a profile chip
   userName?: string;
   userInitials?: string;
   userPhoto?: string | null;
+  completion?: number;
+  profileSlug?: string | null;
+  requiredComplete?: boolean;
   unread: number;
   isAdmin?: boolean;
 }) {
@@ -218,6 +214,7 @@ export default function AppShell({
   const [dark, setDark] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [todayStr, setTodayStr] = useState("");
+  const [accountOpen, setAccountOpen] = useState(false);
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -268,6 +265,23 @@ export default function AppShell({
   // Real Manan Vasa WhatsApp (config-driven, verified fallback passed by layout).
   const digits = (whatsappNumber ?? "").replace(/[^0-9]/g, "");
   const waHref = `https://wa.me/${digits}${whatsappPrefill ? `?text=${encodeURIComponent(whatsappPrefill)}` : ""}`;
+
+  // Account Dock — profile is only viewable once the required fields are done.
+  const roleLabel = isAdmin ? "Admin" : "Participant";
+  const canViewProfile = requiredComplete && !!profileSlug;
+  const li = (d: string) => (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: d }} />
+  );
+  const accountLinks = [
+    canViewProfile
+      ? { label: "View my profile", href: `/m/${profileSlug}`, icon: li('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>') }
+      : { label: "Complete profile to view", href: "/account/edit", icon: li('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>') },
+    { label: "Edit profile", href: "/account/edit", icon: li('<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 0 1 3 3L12 15l-4 1 1-4z"/>') },
+    { label: "Account", href: "/account", icon: li('<circle cx="12" cy="8" r="4"/><path d="M5 20c0-4 3.5-7 7-7s7 3 7 7"/>') },
+    { label: "Settings", href: "/settings", icon: li('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>') },
+    { label: "Security", href: "/settings/security", icon: li('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>') },
+    ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin", icon: li('<path d="m12 2 7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6z"/><path d="m9 12 2 2 4-4"/>') }] : []),
+  ];
 
   return (
     <div className="min-h-screen bg-paper text-ink overflow-x-hidden">
@@ -342,44 +356,130 @@ export default function AppShell({
           sidebarOpen ? "w-60 xl:w-64 translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0 p-0 border-none pointer-events-none"
         }`}
       >
-        <div className="space-y-1 scroll-mask-y">
-          {SIDEBAR_ITEMS.map((item) => {
-            const on = isActive(pathname, item.match);
-            return (
-              <Link
-                key={item.title}
-                href={item.href}
-                className={`flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all ${
-                  on
-                    ? "bg-red/8 text-red shadow-sm border border-red/15 font-semibold"
-                    : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
-                }`}
-              >
-                <span className={`mt-0.5 shrink-0 ${on ? "text-red" : "text-ink-muted"}`}>
-                  {item.icon}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className={`text-[13px] xl:text-[14px] leading-tight ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
-                    {item.title}
-                  </p>
-                  {item.sub && (
-                    <p className="mt-0.5 truncate text-[11px] text-ink-muted leading-tight">
-                      {item.sub}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            );
-          })}
+        <div className="space-y-3 scroll-mask-y">
+          {NAV_GROUP_ORDER.map((group) => (
+            <div key={group} className="space-y-1">
+              <p className="px-3 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
+                {group}
+              </p>
+              {SIDEBAR_ITEMS.filter((i) => i.group === group).map((item) => {
+                const on = isActive(pathname, item.match);
+                return (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    className={`group/nav relative flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                      on
+                        ? "border border-red/15 bg-gradient-to-r from-red/10 to-red/[0.02] font-semibold text-red shadow-sm"
+                        : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
+                    }`}
+                  >
+                    {on && <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r bg-red" />}
+                    <span className={`mt-0.5 shrink-0 transition-transform group-hover/nav:scale-105 ${on ? "text-red" : "text-ink-muted"}`}>
+                      {item.icon}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-[13px] leading-tight xl:text-[14px] ${on ? "font-bold text-red" : "font-semibold text-ink"}`}>
+                        {item.title}
+                      </p>
+                      {item.sub && (
+                        <p className="mt-0.5 truncate text-[11px] leading-tight text-ink-muted">
+                          {item.sub}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
-        {/* Bottom Left WhatsApp CTA */}
-        <div className="pt-3 border-t border-hairline">
+        {/* Bottom: Account Dock (profile / role / completion) + Manan WhatsApp */}
+        <div className="relative pt-3 border-t border-hairline">
+          {/* Account popover */}
+          {accountOpen && (
+            <>
+              <button
+                type="button"
+                aria-label="Close account menu"
+                onClick={() => setAccountOpen(false)}
+                className="fixed inset-0 z-10 cursor-default"
+                tabIndex={-1}
+              />
+              <div className="absolute inset-x-0 bottom-full z-20 mb-2 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg dark:bg-surface">
+                {accountLinks.map((l) => (
+                  <Link
+                    key={l.label}
+                    href={l.href}
+                    onClick={() => setAccountOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-medium text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink"
+                  >
+                    <span className="text-ink-muted">{l.icon}</span>
+                    {l.label}
+                  </Link>
+                ))}
+                <form action={signOut}>
+                  <button
+                    type="submit"
+                    className="flex w-full items-center gap-2.5 border-t border-hairline px-3 py-2.5 text-[13px] font-medium text-ink-secondary transition-colors hover:bg-red/5 hover:text-red"
+                  >
+                    <span className="text-ink-muted">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                      </svg>
+                    </span>
+                    Sign out
+                  </button>
+                </form>
+              </div>
+            </>
+          )}
+
+          {/* Account Dock button */}
+          <button
+            type="button"
+            onClick={() => setAccountOpen((v) => !v)}
+            aria-expanded={accountOpen}
+            className="flex w-full items-center gap-2.5 rounded-xl border border-hairline p-2.5 text-left transition-colors hover:border-red/30 hover:bg-surface-sunk"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-sunk text-[12px] font-bold text-ink-muted">
+              {userPhoto ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={userPhoto} alt={userName} className="h-full w-full object-cover" />
+              ) : (
+                userInitials
+              )}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold text-ink">{userName}</span>
+              <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
+                {isAdmin && <span className="inline-block h-1.5 w-1.5 rounded-full bg-red" />}
+                {roleLabel}
+              </span>
+            </span>
+            <svg className={`shrink-0 text-ink-muted transition-transform ${accountOpen ? "rotate-180" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="18 15 12 9 6 15" />
+            </svg>
+          </button>
+
+          {/* Tiny profile-completion footer (red-tinted) — only complete profiles unlock the public profile */}
+          <Link href="/account/edit" className="mt-1.5 block rounded-lg bg-red/[0.06] px-2.5 py-1.5 transition-colors hover:bg-red/10">
+            <span className="flex items-center justify-between text-[10px] font-semibold text-red">
+              <span>{requiredComplete ? "Profile complete" : "Complete your profile"}</span>
+              <span>{completion}%</span>
+            </span>
+            <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-red/15">
+              <span className="block h-full rounded-full bg-red" style={{ width: `${Math.min(100, Math.max(0, completion))}%` }} />
+            </span>
+          </Link>
+
+          {/* Manan WhatsApp CTA */}
           <a
             href={waHref}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-left transition-colors hover:bg-emerald-500/10"
+            className="mt-2 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-left transition-colors hover:bg-emerald-500/10"
           >
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -391,21 +491,6 @@ export default function AppShell({
               <p className="text-[11px] text-emerald-600/80 dark:text-emerald-500">On WhatsApp</p>
             </div>
           </a>
-
-          {/* Sign out */}
-          <form action={signOut} className="mt-2">
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 rounded-xl border border-hairline p-3 text-left text-ink-secondary transition-colors hover:border-red/40 hover:bg-red/5 hover:text-red"
-            >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-sunk">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              </span>
-              <span className="text-[13px] font-semibold">Sign out</span>
-            </button>
-          </form>
         </div>
       </aside>
 

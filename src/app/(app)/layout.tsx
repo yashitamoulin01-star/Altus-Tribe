@@ -29,6 +29,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       userName={userName}
       userInitials={initials(userName) || "·"}
       userPhoto={me.photoUrl}
+      completion={me.completion}
+      profileSlug={me.slug}
+      requiredComplete={me.requiredComplete}
       unread={unread}
       isAdmin={admin.isAdmin}
     >
