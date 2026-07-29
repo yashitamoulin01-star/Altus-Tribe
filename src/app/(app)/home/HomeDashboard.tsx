@@ -112,9 +112,6 @@ function CardHead({ i, title, count, href }: { i: string; title: string; count: 
       <div className="flex items-center gap-2">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon(i, 13)}</span>
         <h3 className="text-[13px] font-bold text-ink">{title}</h3>
-        <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Online
-        </span>
       </div>
       <Link href={href} className="shrink-0 text-[11px] font-semibold text-red hover:text-red-hover">Open all ({count}) →</Link>
     </div>
