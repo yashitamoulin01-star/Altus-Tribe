@@ -48,7 +48,7 @@ export default async function CampusPage() {
       </header>
 
       {featuredVideo && (
-        <section className="mb-10 overflow-hidden rounded-2xl border border-hairline bg-surface">
+        <section className="mb-6 overflow-hidden rounded-xl border border-hairline bg-surface">
           <div className="aspect-video w-full bg-black/40">
             <iframe
               src={featuredVideo}
@@ -72,11 +72,11 @@ export default async function CampusPage() {
       {/* Program & Event Highlights — big, clear admin-uploaded photo cards.
           Hidden when no highlights exist (no stock photos). */}
       {highlights.length > 0 && (
-        <Reveal as="section" className="mt-12">
-          <h2 className="mb-5 text-2xl font-semibold text-ink">Program &amp; Event Highlights</h2>
+        <Reveal as="section" className="mt-8">
+          <h2 className="mb-4 text-xl font-semibold text-ink">Program &amp; Event Highlights</h2>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {highlights.map((h) => (
-              <figure key={h.id} className="group overflow-hidden rounded-2xl border border-hairline bg-surface shadow-sm">
+              <figure key={h.id} className="group overflow-hidden rounded-xl border border-hairline bg-surface shadow-sm">
                 <div className="aspect-[16/10] w-full overflow-hidden bg-surface-sunk">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
