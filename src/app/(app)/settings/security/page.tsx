@@ -17,8 +17,8 @@ export default async function SecurityPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[640px] flex-1 px-6 py-16 sm:px-10">
-      <nav className="mb-10">
+    <main className="mx-auto w-full max-w-[640px] flex-1 px-6 py-8 sm:px-10">
+      <nav className="mb-5">
         <Link
           href="/account"
           className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink"
@@ -27,12 +27,12 @@ export default async function SecurityPage() {
         </Link>
       </nav>
 
-      <p className="kicker mb-4">Security</p>
-      <h1 className="text-3xl font-semibold tracking-[-0.015em] text-ink">
-        Two-factor authentication
+      <p className="kicker mb-2">Account</p>
+      <h1 className="text-2xl font-semibold tracking-[-0.015em] text-ink md:text-3xl">
+        Security
       </h1>
-      <p className="mt-4 text-[16px] leading-relaxed text-ink-secondary">
-        Protect your account with a time-based code from an authenticator app.
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-secondary">
+        Two-factor authentication, active sessions, and account controls.
       </p>
 
       <MfaManager factors={factors} />

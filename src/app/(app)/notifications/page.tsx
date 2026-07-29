@@ -16,8 +16,8 @@ export default async function NotificationsPage() {
     <main className="mx-auto w-full max-w-[680px] px-6 pt-8 sm:px-10">
       <header className="flex items-end justify-between border-b border-hairline pb-6">
         <div>
-          <p className="kicker mb-4">Notifications</p>
-          <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
+          <p className="kicker mb-3">Notifications</p>
+          <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
             What you missed.
           </h1>
         </div>

@@ -15,19 +15,19 @@ export default function ReferPage() {
         </Link>
       </nav>
 
-      <header className="border-b border-hairline pb-10">
-        <p className="kicker mb-4">Refer Someone</p>
-        <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
+      <header className="border-b border-hairline pb-6">
+        <p className="kicker mb-3">Refer Someone</p>
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
           Share Productivity Shastra.
         </h1>
-        <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
+        <p className="mt-3 max-w-[46ch] text-[15px] leading-snug text-ink-secondary">
           The Tribe itself is invitation-only — but anyone can start with
           Productivity Shastra. Know someone who&apos;d get more done? Send them in.
         </p>
       </header>
 
       <section className="py-10">
-        <p className="kicker mb-4">Send an invite</p>
+        <p className="kicker mb-3">Send an invite</p>
         <ReferInvite />
         <p className="mt-5 max-w-[52ch] text-[15px] leading-relaxed text-ink-muted">
           They&apos;ll land on the Productivity Shastra app and can get started right away.

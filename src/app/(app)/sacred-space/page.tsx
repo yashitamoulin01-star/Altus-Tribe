@@ -22,13 +22,13 @@ export default async function SacredSpacePage() {
   const queries = conversations.filter((c) => c.kind === "support");
 
   return (
-    <main className="mx-auto w-full max-w-[760px] px-6 pt-8 pb-24 sm:px-10">
-      <header className="border-b border-hairline pb-10">
-        <p className="kicker mb-4">Sacred Space</p>
-        <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
+    <main className="mx-auto w-full max-w-[760px] px-6 pt-6 pb-16 sm:px-10">
+      <header className="border-b border-hairline pb-6">
+        <p className="kicker mb-3">Sacred Space</p>
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
           From Manan Vasa.
         </h1>
-        <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
+        <p className="mt-3 max-w-[46ch] text-[15px] leading-snug text-ink-secondary">
           Ask the team anything, and read the notes from the leader of the Tribe.
         </p>
         <AskManan />
@@ -37,7 +37,7 @@ export default async function SacredSpacePage() {
       {/* Query history */}
       {queries.length > 0 && (
         <section className="border-b border-hairline py-8">
-          <p className="kicker mb-4">Your queries</p>
+          <p className="kicker mb-3">Your queries</p>
           <ul className="divide-y divide-hairline">
             {queries.map((c) => (
               <li key={c.id}>

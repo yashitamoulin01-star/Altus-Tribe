@@ -35,13 +35,13 @@ export default async function CampusPage() {
   const featuredTitle = settings.featured_video_title;
 
   return (
-    <main className="mx-auto w-full max-w-[1080px] px-6 pt-8 pb-24 sm:px-10">
+    <main className="mx-auto w-full max-w-[1080px] px-6 pt-6 pb-16 sm:px-10">
       <header className="pb-6">
-        <p className="kicker mb-4">Campus</p>
-        <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
+        <p className="kicker mb-3">Campus</p>
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
           Keep sharpening.
         </h1>
-        <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
+        <p className="mt-3 max-w-[46ch] text-[15px] leading-snug text-ink-secondary">
           Manan Vasa&apos;s library, member wins, and the playbooks that keep the Tribe
           productive. Save what matters and track what you&apos;ve finished.
         </p>

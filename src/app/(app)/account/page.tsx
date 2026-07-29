@@ -21,7 +21,7 @@ export default async function AccountPage() {
         </Link>
       </nav>
 
-      <p className="kicker mb-4">Your account</p>
+      <p className="kicker mb-3">Your account</p>
       <h1 className="text-3xl font-semibold tracking-[-0.015em] text-ink">
         {user ? "You're in." : "Sign-in preview"}
       </h1>

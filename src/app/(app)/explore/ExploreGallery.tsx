@@ -128,7 +128,7 @@ function Strip({
   if (items.length === 0) return null;
   return (
     <section className="mt-10">
-      <p className="kicker mb-4">{title}</p>
+      <p className="kicker mb-3">{title}</p>
       <div className="grid grid-cols-2 gap-5 md:grid-cols-4">
         {items.map((m) => (
           <CoverCard key={m.slug} member={m} state={stateFor(m)} online={isOnline?.(m)} />

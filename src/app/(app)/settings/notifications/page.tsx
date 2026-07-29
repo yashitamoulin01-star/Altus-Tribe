@@ -19,11 +19,11 @@ export default async function NotificationSettingsPage() {
       </nav>
 
       <header className="border-b border-hairline pb-8">
-        <p className="kicker mb-4">Notification Settings</p>
-        <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
+        <p className="kicker mb-3">Notification Settings</p>
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
           Only what matters.
         </h1>
-        <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
+        <p className="mt-3 max-w-[46ch] text-[15px] leading-snug text-ink-secondary">
           Choose what the Tribe reaches you about.
         </p>
       </header>

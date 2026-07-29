@@ -17,11 +17,11 @@ export default async function ReferralRoundsPage() {
   const rest = rounds.filter((e) => e.id !== next.id);
 
   return (
-    <main className="mx-auto w-full max-w-[760px] px-6 pt-8 pb-24 sm:px-10">
+    <main className="mx-auto w-full max-w-[760px] px-6 pt-6 pb-16 sm:px-10">
       <header className="pb-6">
         <p className="kicker mb-3">Tribe</p>
-        <h1 className="text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink">Referral Rounds</h1>
-        <p className="mt-4 max-w-[52ch] text-lg leading-snug text-ink-secondary">
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink">Referral Rounds</h1>
+        <p className="mt-3 max-w-[52ch] text-[15px] leading-snug text-ink-secondary">
           Every Wednesday, 10:00–11:00 AM — a structured hour to give and receive
           quality referrals inside the Tribe. Free for all participants.
         </p>

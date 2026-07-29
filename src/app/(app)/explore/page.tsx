@@ -75,10 +75,10 @@ export default async function ExplorePage({
 
       <header className="pb-2 pt-4">
         <p className="kicker mb-5">Explore People</p>
-        <h1 className="max-w-[16ch] text-4xl font-semibold leading-[1.05] tracking-[-0.02em] text-ink md:text-5xl">
+        <h1 className="max-w-[16ch] text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
           People worth knowing.
         </h1>
-        <p className="mt-5 max-w-[46ch] text-lg leading-snug text-ink-secondary">
+        <p className="mt-3 max-w-[46ch] text-[15px] leading-snug text-ink-secondary">
           Every member here was invited. Search the room, or let a filter narrow
           it down.
         </p>
