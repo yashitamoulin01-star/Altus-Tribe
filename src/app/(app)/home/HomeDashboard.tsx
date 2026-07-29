@@ -112,6 +112,9 @@ function CardHead({ i, title, count, href }: { i: string; title: string; count: 
       <div className="flex items-center gap-2">
         <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-red/10 text-red">{icon(i, 13)}</span>
         <h3 className="text-[13px] font-bold text-ink">{title}</h3>
+        <span className="flex items-center gap-1 text-[10px] font-semibold text-emerald-600">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Online
+        </span>
       </div>
       <Link href={href} className="shrink-0 text-[11px] font-semibold text-red hover:text-red-hover">Open all ({count}) →</Link>
     </div>
@@ -154,7 +157,7 @@ const CARD = "min-w-0 rounded-2xl border border-hairline bg-gradient-to-br from-
 type Insight = { ic: string; kicker: string; title: string; body: string; cta?: { label: string; href: string }; by?: string };
 function InsightPanel({ ins }: { ins: Insight }) {
   return (
-    <div className="flex flex-col rounded-xl border border-dashed border-red/20 bg-gradient-to-br from-red/[0.035] to-transparent p-4">
+    <div className="flex flex-1 flex-col rounded-xl border border-dashed border-red/20 bg-gradient-to-br from-red/[0.035] to-transparent p-4">
       <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-red/10 text-red">{icon(ins.ic, 15)}</span>
       <p className="mt-2 text-[9px] font-semibold uppercase tracking-wide text-red/80">{ins.kicker}</p>
       <p className="mt-0.5 text-[12.5px] font-bold leading-snug text-ink">{ins.title}</p>
@@ -224,53 +227,50 @@ async function Networking() {
   const me = await getMyProfileSummary();
   const received: Person[] = []; // ← wire real referrals-received here
   const sent: Person[] = []; //     ← wire real referrals-sent here
-  const bothEmpty = received.length === 0 && sent.length === 0;
-  const recs = await getSuggestedMembers(bothEmpty ? 6 : 4);
-  const recCards = recs.slice(0, bothEmpty ? 6 : 4);
+  const recs = await getSuggestedMembers(4);
 
+  // Reference design: ONE row, three equal-height boxes. Each box shows a
+  // horizontal row of person cards OR, when that data is empty, a single
+  // contextual panel that fills the SAME box height (items-stretch keeps all
+  // three equal). Content adapts to data; the row height never changes.
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
       {/* Referrals Received */}
-      <section style={{ flex: 1 }} className={CARD}>
+      <section style={{ flex: 2 }} className={`${CARD} flex flex-col`}>
         <CardHead i={IC_RECV} title="Referrals Received" count={received.length} href="/connections" />
-        <div className="flex flex-col gap-3">
-          {received.length > 0 && (
-            <div className="grid grid-cols-1 gap-3">
-              {received.slice(0, 4).map((p) => <PersonCard key={p.name} p={p} action="accept" />)}
-            </div>
-          )}
-          {received.length < 4 && <InsightPanel ins={receivedInsight(received.length)} />}
-        </div>
+        {received.length > 0 ? (
+          <div className="flex flex-1 gap-3">
+            {received.slice(0, 2).map((p) => <PersonCard key={p.name} p={p} action="accept" />)}
+          </div>
+        ) : (
+          <InsightPanel ins={receivedInsight(0)} />
+        )}
       </section>
 
       {/* Referrals Sent */}
-      <section style={{ flex: 1 }} className={CARD}>
+      <section style={{ flex: 2 }} className={`${CARD} flex flex-col`}>
         <CardHead i={IC_SENT} title="Referrals Sent" count={sent.length} href="/connections" />
-        <div className="flex flex-col gap-3">
-          {sent.length > 0 && (
-            <div className="grid grid-cols-1 gap-3">
-              {sent.slice(0, 4).map((p) => <PersonCard key={p.name} p={p} action="pending" />)}
-            </div>
-          )}
-          {sent.length < 4 && <InsightPanel ins={sentInsight(sent.length)} />}
-        </div>
+        {sent.length > 0 ? (
+          <div className="flex flex-1 gap-3">
+            {sent.slice(0, 2).map((p) => <PersonCard key={p.name} p={p} action="pending" />)}
+          </div>
+        ) : (
+          <InsightPanel ins={sentInsight(0)} />
+        )}
       </section>
 
       {/* Recommended For You */}
-      <section style={{ flex: 1 }} className={CARD}>
+      <section style={{ flex: 3 }} className={`${CARD} flex flex-col`}>
         <CardHead i={IC_REC} title="Recommended for you" count={recs.length} href="/explore" />
-        <div className="flex flex-col gap-3">
-          {recCards.length > 0 && (
-            <div className="grid grid-cols-2 gap-3">
-              {recCards.map((m) => (
-                <PersonCard key={m.slug} action="connect" p={{ name: m.fullName, role: m.category || "Member", company: m.businessName || "", tag: m.industry || m.category || "Technology", mutual: 0, photo: m.photoUrl, slug: m.slug }} />
-              ))}
-            </div>
-          )}
-          {recCards.length === 0
-            ? <InsightPanel ins={{ ic: IC_REC, kicker: "Recommendations", title: "Complete your profile", body: "We don't have enough information yet to recommend members. Complete your profile so we can recommend the right people.", cta: { label: "Complete Profile", href: "/account/edit" } }} />
-            : recCards.length < 4 && <InsightPanel ins={tribeCoach(me)} />}
-        </div>
+        {recs.length > 0 ? (
+          <div className="flex flex-1 gap-3">
+            {recs.slice(0, 4).map((m) => (
+              <PersonCard key={m.slug} action="connect" p={{ name: m.fullName, role: m.category || "Member", company: m.businessName || "", tag: m.industry || m.category || "Technology", mutual: 0, photo: m.photoUrl, slug: m.slug }} />
+            ))}
+          </div>
+        ) : (
+          <InsightPanel ins={tribeCoach(me)} />
+        )}
       </section>
     </div>
   );
