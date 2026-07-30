@@ -81,10 +81,13 @@ export default function EditFeature({
   const fullName = composeFullName(d) || "Your profile";
 
   return (
-    <main className="mx-auto w-full max-w-[720px] flex-1 px-5 py-8 sm:px-8 sm:py-10">
-      <nav className="mb-6 flex items-center justify-between">
-        <Link href={backHref} className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">← {backLabel}</Link>
-        {slug && configured && <Link href={`/m/${slug}`} className="text-[14px] text-red transition-colors hover:text-red-hover">View my feature →</Link>}
+    <main className="mx-auto w-full max-w-[720px] flex-1 px-5 pt-6 pb-16 sm:px-8">
+      <nav className="mb-6 flex items-center justify-between gap-3">
+        <Link href={backHref} className="inline-flex items-center gap-2 rounded-xl border border-hairline bg-surface px-4 py-2 text-[13px] font-semibold text-ink shadow-sm transition-colors hover:border-hairline-bright">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+          {backLabel}
+        </Link>
+        {slug && configured && <Link href={`/m/${slug}`} className="text-[13px] font-semibold text-red transition-colors hover:text-red-hover">View my profile →</Link>}
       </nav>
 
       <header className="mb-6">
@@ -94,8 +97,7 @@ export default function EditFeature({
             <p className="text-[14px] text-ink">You are editing{editingName ? ` ${editingName}` : " this member"}&apos;s profile on their behalf.</p>
           </div>
         )}
-        <p className="kicker mb-2">Profile</p>
-        <h1 className="text-[24px] font-bold tracking-[-0.015em] text-ink sm:text-[28px]">{adminTargetId ? "Edit this member's profile" : `Complete your profile — ${fullName}`}</h1>
+        <h1 className="text-2xl font-semibold tracking-[-0.02em] text-ink md:text-3xl">{adminTargetId ? "Edit this member's profile" : `Complete your profile — ${fullName}`}</h1>
         {!configured && <p className="mt-2 text-[14px] text-ink-muted">Preview mode — connect Supabase to save changes.</p>}
       </header>
 

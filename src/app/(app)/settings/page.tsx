@@ -37,21 +37,28 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="mx-auto w-full max-w-[760px] px-6 pt-6 pb-16 sm:px-10 space-y-6">
-      <header className="border-b border-hairline pb-6">
-        <p className="kicker mb-3">Preferences</p>
+    <main className="mx-auto w-full max-w-[900px] px-6 pt-6 pb-16 sm:px-10 space-y-6">
+      <Link
+        href="/account"
+        className="inline-flex items-center gap-2 rounded-xl border border-hairline bg-surface px-4 py-2 text-[13px] font-semibold text-ink shadow-sm transition-colors hover:border-hairline-bright"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+        Back
+      </Link>
+
+      <header>
         <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
-          Account Settings
+          Settings
         </h1>
-        <p className="mt-3 text-[15px] text-ink-secondary">
-          Customize your experience, manage display themes, and configure privacy controls.
+        <p className="mt-2 text-[15px] text-ink-secondary">
+          Manage your profile, preferences, and application data.
         </p>
       </header>
 
       {/* Theme Selector Section */}
-      <section className="rounded-2xl border border-hairline/80 bg-surface/80 p-6 backdrop-blur-md space-y-4">
+      <section className="overflow-hidden rounded-2xl border border-hairline bg-surface p-6 shadow-md space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-ink">Appearance & Theme</h2>
+          <h2 className="text-[17px] font-semibold text-ink">Appearance &amp; Theme</h2>
           <p className="text-[13px] text-ink-muted mt-1">Select your preferred viewing experience. Dark mode is optimized for high contrast.</p>
         </div>
 
@@ -93,7 +100,7 @@ export default function SettingsPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Link
             href="/settings/notifications"
-            className="group rounded-2xl border border-hairline/80 bg-surface/80 p-5 backdrop-blur-md transition-all hover:border-red/40 hover:bg-surface-hover shadow-sm"
+            className="group rounded-2xl border border-hairline bg-surface p-5 shadow-sm transition-all hover:border-red/40 hover:bg-surface-hover hover:shadow-md"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-ink-muted transition-colors group-hover:text-red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg></span>
@@ -105,7 +112,7 @@ export default function SettingsPage() {
 
           <Link
             href="/settings/security"
-            className="group rounded-2xl border border-hairline/80 bg-surface/80 p-5 backdrop-blur-md transition-all hover:border-red/40 hover:bg-surface-hover shadow-sm"
+            className="group rounded-2xl border border-hairline bg-surface p-5 shadow-sm transition-all hover:border-red/40 hover:bg-surface-hover hover:shadow-md"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-ink-muted transition-colors group-hover:text-red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></span>
@@ -117,7 +124,7 @@ export default function SettingsPage() {
 
           <Link
             href="/account/edit"
-            className="group rounded-2xl border border-hairline/80 bg-surface/80 p-5 backdrop-blur-md transition-all hover:border-red/40 hover:bg-surface-hover shadow-sm"
+            className="group rounded-2xl border border-hairline bg-surface p-5 shadow-sm transition-all hover:border-red/40 hover:bg-surface-hover hover:shadow-md"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-ink-muted transition-colors group-hover:text-red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="8" r="4" /><path d="M5 20c0-4 3.5-7 7-7s7 3 7 7" /></svg></span>
@@ -129,7 +136,7 @@ export default function SettingsPage() {
 
           <Link
             href="/refer"
-            className="group rounded-2xl border border-hairline/80 bg-surface/80 p-5 backdrop-blur-md transition-all hover:border-red/40 hover:bg-surface-hover shadow-sm"
+            className="group rounded-2xl border border-hairline bg-surface p-5 shadow-sm transition-all hover:border-red/40 hover:bg-surface-hover hover:shadow-md"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-ink-muted transition-colors group-hover:text-red"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden><polyline points="20 12 20 22 4 22 4 12" /><rect x="2" y="7" width="20" height="5" /><line x1="12" y1="22" x2="12" y2="7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg></span>
