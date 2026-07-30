@@ -29,30 +29,33 @@ export default async function MessagesPage() {
   const conversations = await getConversations();
 
   return (
-    <main className="mx-auto w-full max-w-[800px] px-6 pt-8 pb-28 sm:px-10 space-y-8">
-      <header className="border-b border-hairline/80 pb-6">
+    <main className="mx-auto w-full max-w-[800px] px-6 pt-6 pb-16 sm:px-10 space-y-6">
+      <header className="border-b border-hairline pb-6">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="kicker mb-2 text-red font-semibold">Tribe Messaging</p>
-            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+            <p className="kicker mb-3">Tribe Messaging</p>
+            <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">
               Conversations
             </h1>
-            <p className="mt-2 text-[14px] text-ink-secondary">
+            <p className="mt-3 text-[15px] text-ink-secondary">
               Private 1:1 and group communications with fellow Tribe members.
             </p>
           </div>
           <Link
             href="/messages/new"
-            className="shrink-0 rounded-xl bg-red px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover active:scale-95"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-red px-4 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover active:scale-95"
           >
-            ＋ New group
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
+            New group
           </Link>
         </div>
       </header>
 
       {conversations.length === 0 ? (
         <div className="py-20 text-center border border-dashed border-hairline rounded-2xl bg-surface/40">
-          <p className="text-3xl mb-3">💬</p>
+          <svg className="mx-auto mb-3 text-ink-muted" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+          </svg>
           <p className="text-[16px] font-semibold text-ink">No conversations yet</p>
           <p className="mt-1 text-[13px] text-ink-muted mb-4">
             Visit a member&apos;s feature page or explore the directory to start a chat.

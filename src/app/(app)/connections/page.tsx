@@ -56,17 +56,17 @@ export default async function ConnectionsPage() {
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-[760px] px-5 pt-8 pb-28 sm:px-8 space-y-8">
+    <main className="mx-auto w-full max-w-[760px] px-6 pt-6 pb-16 sm:px-10 space-y-6">
       <nav>
         <Link href="/explore" className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
-          ← Explore Members
+          ← Connect with Participants
         </Link>
       </nav>
 
-      <header className="border-b border-hairline/80 pb-6">
-        <p className="kicker mb-2 text-red font-semibold">Networking</p>
-        <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">Your Circle</h1>
-        <p className="mt-2 text-[14px] text-ink-secondary">Manage your private connection requests and trusted contacts.</p>
+      <header className="border-b border-hairline pb-6">
+        <p className="kicker mb-3">Networking</p>
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-ink md:text-3xl">Your Circle</h1>
+        <p className="mt-3 text-[15px] text-ink-secondary">Manage your private connection requests and trusted contacts.</p>
       </header>
 
       {/* Requests */}
@@ -99,7 +99,9 @@ export default async function ConnectionsPage() {
         </div>
         {connections.length === 0 ? (
           <div className="rounded-xl border border-dashed border-hairline/60 p-8 text-center">
-            <p className="text-2xl mb-2">🤝</p>
+            <svg className="mx-auto mb-3 text-ink-muted" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
             <p className="text-[14px] font-medium text-ink">No connections yet</p>
             <p className="mt-1 text-[13px] text-ink-muted mb-4">Explore the Tribe member directory to connect with founders and creators.</p>
             <Link href="/explore" className="inline-block rounded-xl bg-red px-5 py-2.5 text-[13px] font-semibold text-white shadow-md shadow-red/20 transition-all hover:bg-red-hover">
