@@ -4,6 +4,7 @@ import { MANAN_WHATSAPP_NUMBER, MANAN_WHATSAPP_PREFILL } from "@/lib/settings-me
 import { getMyProfileSummary } from "@/lib/dashboard";
 import { getUnreadCount } from "@/lib/notifications";
 import { getAdminContext } from "@/lib/admin";
+import { buildTickerItems } from "@/lib/ticker";
 import { initials } from "./home/widgets/_shared";
 
 // Shell for the authenticated "worlds" (Tribe · Sacred Space · Campus · You).
@@ -11,11 +12,12 @@ import { initials } from "./home/widgets/_shared";
 // (no hardcoded names). Manan Vasa WhatsApp is config-driven with a verified
 // fallback (never a placeholder number).
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const [settings, me, unread, admin] = await Promise.all([
+  const [settings, me, unread, admin, tickerItems] = await Promise.all([
     getPublicSettings(),
     getMyProfileSummary(),
     getUnreadCount(),
     getAdminContext(),
+    buildTickerItems(),
   ]);
 
   const whatsappNumber = settings.manan_whatsapp_number || MANAN_WHATSAPP_NUMBER;
@@ -32,6 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       completion={me.completion}
       profileSlug={me.slug}
       requiredComplete={me.requiredComplete}
+      tickerItems={tickerItems}
       unread={unread}
       isAdmin={admin.isAdmin}
     >

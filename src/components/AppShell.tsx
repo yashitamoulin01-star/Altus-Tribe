@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { signOut } from "@/app/(auth)/actions";
 import GlobalSearch from "./GlobalSearch";
+import TribeLiveTicker, { type TickerItem } from "./TribeLiveTicker";
 
 // Left Sidebar Items — grouped (Workspace / Community / Learning / System).
 // Profile + Settings intentionally live in the bottom Account Dock, not here.
@@ -195,6 +196,7 @@ export default function AppShell({
   completion = 0,
   profileSlug = null,
   requiredComplete = false,
+  tickerItems = [],
   unread,
   isAdmin = false,
 }: {
@@ -207,6 +209,7 @@ export default function AppShell({
   completion?: number;
   profileSlug?: string | null;
   requiredComplete?: boolean;
+  tickerItems?: TickerItem[];
   unread: number;
   isAdmin?: boolean;
 }) {
@@ -344,20 +347,86 @@ export default function AppShell({
               )}
             </Link>
 
+            {/* Profile + completion — moved from the sidebar into the top nav.
+                The avatar's red ring shows profile completion at a glance. */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setAccountOpen((v) => !v)}
+                aria-expanded={accountOpen}
+                aria-label="Account menu"
+                className="flex items-center gap-1.5 rounded-full transition-colors hover:opacity-90"
+                title={`Profile ${completion}% complete`}
+              >
+                <span
+                  className="relative flex h-9 w-9 items-center justify-center rounded-full sm:h-10 sm:w-10"
+                  style={{ background: `conic-gradient(var(--color-red) ${Math.min(100, Math.max(0, completion)) * 3.6}deg, rgba(0,0,0,0.10) 0deg)` }}
+                >
+                  <span className="flex h-[30px] w-[30px] items-center justify-center overflow-hidden rounded-full border-2 border-white bg-surface-sunk text-[11px] font-bold text-ink-muted sm:h-[34px] sm:w-[34px] dark:border-surface">
+                    {userPhoto ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={userPhoto} alt={userName} className="h-full w-full object-cover" />
+                    ) : (
+                      userInitials
+                    )}
+                  </span>
+                </span>
+                <svg className={`hidden shrink-0 text-ink-muted transition-transform sm:block ${accountOpen ? "rotate-180" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg>
+              </button>
+
+              {accountOpen && (
+                <>
+                  <button type="button" aria-label="Close account menu" onClick={() => setAccountOpen(false)} className="fixed inset-0 z-10 cursor-default" tabIndex={-1} />
+                  <div className="absolute right-0 top-full z-20 mt-2 w-60 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg dark:bg-surface">
+                    <div className="border-b border-hairline px-3.5 py-3">
+                      <p className="truncate text-[14px] font-semibold text-ink">{userName}</p>
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
+                        {isAdmin && <span className="inline-block h-1.5 w-1.5 rounded-full bg-red" />}
+                        {roleLabel}
+                      </p>
+                      <Link href="/account/edit" onClick={() => setAccountOpen(false)} className="mt-2.5 block">
+                        <span className="flex items-center justify-between text-[10px] font-semibold text-red">
+                          <span>{requiredComplete ? "Profile complete" : "Complete your profile"}</span>
+                          <span>{completion}%</span>
+                        </span>
+                        <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-red/15">
+                          <span className="block h-full rounded-full bg-red" style={{ width: `${Math.min(100, Math.max(0, completion))}%` }} />
+                        </span>
+                      </Link>
+                    </div>
+                    {accountLinks.map((l) => (
+                      <Link key={l.label} href={l.href} onClick={() => setAccountOpen(false)} className="flex items-center gap-2.5 px-3.5 py-2.5 text-[13px] font-medium text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink">
+                        <span className="text-ink-muted">{l.icon}</span>
+                        {l.label}
+                      </Link>
+                    ))}
+                    <form action={signOut}>
+                      <button type="submit" className="flex w-full items-center gap-2.5 border-t border-hairline px-3.5 py-2.5 text-[13px] font-medium text-ink-secondary transition-colors hover:bg-red/5 hover:text-red">
+                        <span className="text-ink-muted">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                        </span>
+                        Sign out
+                      </button>
+                    </form>
+                  </div>
+                </>
+              )}
+            </div>
+
           </div>
         </div>
       </header>
 
       {/* ── Collapsible Left Sidebar (Desktop >= 1024px) ── */}
       <aside
-        className={`fixed left-0 top-16 sm:top-20 bottom-0 z-30 hidden border-r border-hairline bg-white p-3.5 overflow-y-auto transition-all duration-300 ease-in-out lg:flex lg:flex-col justify-between dark:bg-surface ${
+        className={`fixed left-0 top-16 sm:top-20 bottom-0 z-30 hidden border-r border-hairline bg-white p-3 overflow-y-auto transition-all duration-300 ease-in-out lg:flex lg:flex-col dark:bg-surface ${
           sidebarOpen ? "w-60 xl:w-64 translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0 p-0 border-none pointer-events-none"
         }`}
       >
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {NAV_GROUP_ORDER.map((group) => (
-            <div key={group} className="space-y-1">
-              <p className="px-3 pb-0.5 pt-1 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
+            <div key={group} className="space-y-0.5">
+              <p className="px-3 pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
                 {group}
               </p>
               {SIDEBAR_ITEMS.filter((i) => i.group === group).map((item) => {
@@ -366,7 +435,7 @@ export default function AppShell({
                   <Link
                     key={item.title}
                     href={item.href}
-                    className={`group/nav relative flex items-start gap-3 rounded-xl px-3 py-2.5 transition-all ${
+                    className={`group/nav relative flex items-start gap-3 rounded-xl px-3 py-2 transition-all ${
                       on
                         ? "border border-red/15 bg-gradient-to-r from-red/10 to-red/[0.02] font-semibold text-red shadow-sm"
                         : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
@@ -393,103 +462,6 @@ export default function AppShell({
           ))}
         </div>
 
-        {/* Bottom: Account Dock (profile / role / completion) + Manan WhatsApp */}
-        <div className="relative pt-3 border-t border-hairline">
-          {/* Account popover */}
-          {accountOpen && (
-            <>
-              <button
-                type="button"
-                aria-label="Close account menu"
-                onClick={() => setAccountOpen(false)}
-                className="fixed inset-0 z-10 cursor-default"
-                tabIndex={-1}
-              />
-              <div className="absolute inset-x-0 bottom-full z-20 mb-2 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg dark:bg-surface">
-                {accountLinks.map((l) => (
-                  <Link
-                    key={l.label}
-                    href={l.href}
-                    onClick={() => setAccountOpen(false)}
-                    className="flex items-center gap-2.5 px-3 py-2.5 text-[13px] font-medium text-ink-secondary transition-colors hover:bg-surface-sunk hover:text-ink"
-                  >
-                    <span className="text-ink-muted">{l.icon}</span>
-                    {l.label}
-                  </Link>
-                ))}
-                <form action={signOut}>
-                  <button
-                    type="submit"
-                    className="flex w-full items-center gap-2.5 border-t border-hairline px-3 py-2.5 text-[13px] font-medium text-ink-secondary transition-colors hover:bg-red/5 hover:text-red"
-                  >
-                    <span className="text-ink-muted">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-                      </svg>
-                    </span>
-                    Sign out
-                  </button>
-                </form>
-              </div>
-            </>
-          )}
-
-          {/* Account Dock button */}
-          <button
-            type="button"
-            onClick={() => setAccountOpen((v) => !v)}
-            aria-expanded={accountOpen}
-            className="flex w-full items-center gap-2.5 rounded-xl border border-hairline p-2.5 text-left transition-colors hover:border-red/30 hover:bg-surface-sunk"
-          >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-hairline bg-surface-sunk text-[12px] font-bold text-ink-muted">
-              {userPhoto ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={userPhoto} alt={userName} className="h-full w-full object-cover" />
-              ) : (
-                userInitials
-              )}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[13px] font-semibold text-ink">{userName}</span>
-              <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
-                {isAdmin && <span className="inline-block h-1.5 w-1.5 rounded-full bg-red" />}
-                {roleLabel}
-              </span>
-            </span>
-            <svg className={`shrink-0 text-ink-muted transition-transform ${accountOpen ? "rotate-180" : ""}`} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="18 15 12 9 6 15" />
-            </svg>
-          </button>
-
-          {/* Tiny profile-completion footer (red-tinted) — only complete profiles unlock the public profile */}
-          <Link href="/account/edit" className="mt-1.5 block rounded-lg bg-red/[0.06] px-2.5 py-1.5 transition-colors hover:bg-red/10">
-            <span className="flex items-center justify-between text-[10px] font-semibold text-red">
-              <span>{requiredComplete ? "Profile complete" : "Complete your profile"}</span>
-              <span>{completion}%</span>
-            </span>
-            <span className="mt-1 block h-1 w-full overflow-hidden rounded-full bg-red/15">
-              <span className="block h-full rounded-full bg-red" style={{ width: `${Math.min(100, Math.max(0, completion))}%` }} />
-            </span>
-          </Link>
-
-          {/* Manan WhatsApp CTA */}
-          <a
-            href={waHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-left transition-colors hover:bg-emerald-500/10"
-          >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.81 9.81 0 0 0 12.04 2z" />
-              </svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[12px] font-bold text-emerald-700 dark:text-emerald-400">Chat with Manan Vasa</p>
-              <p className="text-[11px] text-emerald-600/80 dark:text-emerald-500">On WhatsApp</p>
-            </div>
-          </a>
-        </div>
       </aside>
 
       {/* ── Main Content Area ── */}
@@ -498,19 +470,19 @@ export default function AppShell({
           sidebarOpen ? "lg:pl-60 xl:pl-64" : "lg:pl-0"
         }`}
       >
+        {/* Tribe Live — announcement ribbon attached under the nav, always on */}
+        <TribeLiveTicker items={tickerItems} />
         {children}
       </div>
 
-      {/* ── Floating WhatsApp Button (shown when sidebar is closed or on mobile/tablet) ── */}
+      {/* ── Floating WhatsApp Button — always in the bottom-right corner ── */}
       <a
         href={waHref}
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Chat with Manan Vasa on WhatsApp"
         title="Chat with Manan Vasa"
-        className={`group fixed right-4 bottom-[calc(3.75rem+env(safe-area-inset-bottom)+0.75rem)] z-30 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition-all hover:scale-105 active:scale-95 sm:right-6 lg:bottom-6 ${
-          sidebarOpen ? "lg:hidden" : "lg:flex"
-        }`}
+        className="group fixed right-4 bottom-[calc(3.75rem+env(safe-area-inset-bottom)+0.75rem)] z-30 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition-all hover:scale-105 active:scale-95 sm:right-6 lg:bottom-6"
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
           <path d="M12.04 2a9.9 9.9 0 0 0-8.4 15.16L2 22l4.95-1.3A9.9 9.9 0 1 0 12.04 2Zm0 18.05a8.15 8.15 0 0 1-4.15-1.14l-.3-.18-2.94.77.78-2.86-.2-.3a8.16 8.16 0 1 1 7.01 3.95Zm4.5-6.1c-.25-.12-1.46-.72-1.68-.8-.23-.08-.4-.12-.56.13-.16.25-.64.8-.78.97-.14.16-.29.18-.54.06a6.68 6.68 0 0 1-3.35-2.93c-.25-.43.25-.4.72-1.33.08-.16.04-.3-.02-.42-.06-.12-.56-1.35-.77-1.85-.2-.48-.4-.42-.56-.43h-.48c-.16 0-.42.06-.64.31-.22.25-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.69 2.58 4.1 3.62 1.53.66 2.13.72 2.9.6.46-.06 1.46-.6 1.67-1.18.2-.58.2-1.07.14-1.18-.06-.1-.22-.16-.47-.28Z" />
