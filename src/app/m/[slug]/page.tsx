@@ -5,6 +5,7 @@ import { type Member } from "@/lib/members";
 import { getUser } from "@/lib/auth";
 import { getConnectionState, type ConnectionState } from "@/lib/connections";
 import ConnectButton from "@/components/ConnectButton";
+import Footer from "@/components/Footer";
 import ProfileHeader from "./_components/ProfileHeader";
 import ActionBar from "./_components/ActionBar";
 import ViewPing from "./_components/ViewPing";
@@ -99,8 +100,9 @@ function ProfileView({
       <main className="mx-auto w-full max-w-[960px] pb-24 lg:pb-16">
         {!isOwner && member.id && <ViewPing ownerId={member.id} />}
         <nav className="print-hide flex items-center justify-between py-3">
-          <Link href="/explore" className="font-mono text-xs uppercase tracking-[0.12em] text-ink-muted transition-colors hover:text-ink">
-            ← The Tribe
+          <Link href="/explore" className="inline-flex items-center gap-2 rounded-xl border border-hairline bg-surface px-4 py-2 text-[13px] font-semibold text-ink shadow-sm transition-colors hover:border-hairline-bright">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+            The Tribe
           </Link>
         </nav>
 
@@ -260,6 +262,7 @@ function ProfileView({
           )}
         </div>
       </main>
+      <Footer className="mt-8" />
     </div>
   );
 }
