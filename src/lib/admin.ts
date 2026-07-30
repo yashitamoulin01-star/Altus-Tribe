@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 
 // Admin data layer (docs/12-spec-admin-crm.md). Role-gated roster + mutations.
 // Offline/unconfigured Supabase → a labelled preview with sample data, matching
@@ -54,9 +55,7 @@ export async function getAdminContext(): Promise<AdminContext> {
     // Offline preview: allow viewing the (sample) admin so the demo works.
     return { configured: false, role: null, canAccess: true, isAdmin: true, userId: null };
   }
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { configured: true, role: null, canAccess: false, isAdmin: false, userId: null };
 
   const { data } = await supabase

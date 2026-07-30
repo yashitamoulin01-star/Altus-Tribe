@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import { rateLimit } from "@/lib/rate-limit";
 import { messageBodySchema, uuidSchema } from "@/lib/validation/actions";
@@ -28,9 +29,7 @@ export async function sendMessage(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
   // Per-user spam guard: 20 messages / 10s. Keyed by user id (not IP) so it
@@ -104,9 +103,7 @@ export async function getOrCreateDirectConversation(
   const supabase = await createClient();
   if (!supabase) return { id: null, error: "offline" };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { id: null, error: "unauthenticated" };
   if (user.id === otherProfileId) return { id: null, error: "self" };
 
@@ -186,9 +183,7 @@ export async function createGroup(
   const supabase = await createClient();
   if (!supabase) return { id: null, error: "offline" };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { id: null, error: "unauthenticated" };
 
   // Dedupe + drop the caller from the invitee list (they're added as owner below).
@@ -239,9 +234,7 @@ export async function addGroupMembers(
 
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
   const rows = [...new Set(ids.data)].map((profile_id) => ({
@@ -268,9 +261,7 @@ export async function leaveGroup(conversationId: string): Promise<SendResult> {
 
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "offline" };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { ok: false, error: "unauthenticated" };
 
   const { error } = await supabase

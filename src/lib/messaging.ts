@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 
 // Messaging data layer (docs/11-spec-messaging-notifications.md). Real-time chat
 // backed by Supabase; falls back to bundled sample threads when Supabase is
@@ -157,9 +158,7 @@ export async function getConversations(): Promise<ConversationSummary[]> {
   const supabase = await createClient();
   if (!supabase) return SAMPLE_CONVERSATIONS;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return SAMPLE_CONVERSATIONS;
 
   const { data, error } = await supabase
@@ -225,9 +224,7 @@ export async function getConversation(id: string): Promise<ConversationDetail | 
   const supabase = await createClient();
   if (!supabase) return SAMPLE_THREADS[id] ?? null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return SAMPLE_THREADS[id] ?? null;
 
   const { data: conv, error } = await supabase
@@ -297,9 +294,7 @@ export async function getGroupInfo(id: string): Promise<GroupInfo | null> {
   const supabase = await createClient();
   if (!supabase) return null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return null;
 
   const { data: conv, error } = await supabase

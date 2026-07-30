@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import {
   emptyEditable,
   type AttachmentKind,
@@ -62,9 +63,7 @@ export async function loadEditable(
   const supabase = await createClient();
   if (!supabase) return null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return null;
 
   // Resolve whose profile we're loading, authorizing admin access to others.

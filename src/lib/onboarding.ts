@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { emptyOnboarding, type OnboardingData } from "@/lib/onboarding-shared";
 import { loadEditable } from "@/lib/profile-edit";
 import type { EditableProfile, FieldVisibility } from "@/lib/profile-fields";
@@ -56,9 +57,7 @@ export async function loadOnboarding(): Promise<OnboardingState | null> {
   const supabase = await createClient();
   if (!supabase) return null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return null;
 
   const { data: profile } = await supabase

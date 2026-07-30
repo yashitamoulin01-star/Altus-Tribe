@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 import { badId } from "@/lib/validation/actions";
 
@@ -15,9 +16,7 @@ async function setFlag(
   if (badId(resourceId)) return { ok: false };
   const supabase = await createClient();
   if (!supabase) return { ok: false };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { ok: false };
 
   const { error } = await supabase.from("resource_activity").upsert(

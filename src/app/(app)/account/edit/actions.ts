@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { failFrom } from "@/lib/validation/actions";
 import {
   capsName,
@@ -34,9 +35,7 @@ export async function saveProfile(
   const supabase = await createClient();
   if (!supabase) return { ok: false, error: "not-configured" };
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { ok: false, error: "not-signed-in" };
 
   // Resolve whose profile is being written, authorizing admin edits of others.

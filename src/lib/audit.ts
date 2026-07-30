@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 
 // Audit trail writer (Phase 6). Appends an immutable row attributed to the
@@ -15,9 +16,7 @@ export async function logAudit(action: string, details: AuditDetails = {}): Prom
   try {
     const supabase = await createClient();
     if (!supabase) return;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getUser();
     if (!user) return;
 
     const { error } = await supabase.from("audit_logs").insert({

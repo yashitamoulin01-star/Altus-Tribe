@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { createStaticClient } from "@/lib/supabase/static";
 import { isFieldVisible, type FieldVisibility } from "@/lib/profile-fields";
 import {
@@ -320,9 +321,7 @@ export const getMember = cache(async (slug: string): Promise<Member | undefined>
   }
   if (!data) return undefined;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   const isOwner = user?.id === data.id;
 
   return rowToMember(data, isOwner, supabase.storage);

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { signOut } from "@/app/(auth)/actions";
 
 export const metadata = { title: "Under review — Altus Tribe" };
@@ -11,9 +12,7 @@ export default async function PendingPage() {
   const supabase = await createClient();
   if (!supabase) redirect("/login");
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase

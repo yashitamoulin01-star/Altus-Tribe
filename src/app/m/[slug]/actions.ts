@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { badId } from "@/lib/validation/actions";
 
 // Record a profile view (Phase 5.2). Upsert on (viewer, owner): the FIRST view
@@ -11,9 +12,7 @@ export async function recordProfileView(ownerId: string): Promise<void> {
   if (badId(ownerId)) return;
   const supabase = await createClient();
   if (!supabase) return;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user || user.id === ownerId) return;
 
   await supabase.from("profile_views").upsert(

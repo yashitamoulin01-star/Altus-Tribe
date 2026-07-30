@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 
 // The 8/13-screen wizard autosaves through saveProfile (account/edit/actions);
 // this action only marks completion and routes into the app.
@@ -14,9 +15,7 @@ const PRIVACY_VERSION = "1.0";
 export async function finishOnboarding(consent?: { notifOptIn?: boolean }): Promise<void> {
   const supabase = await createClient();
   if (supabase) {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getUser();
     if (user) {
       const now = new Date().toISOString();
       await supabase

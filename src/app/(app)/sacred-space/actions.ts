@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { logError } from "@/lib/logger";
 
 // Ask Manan Vasa (Phase 5.4): resolve-or-create the member's support conversation
@@ -9,9 +10,7 @@ import { logError } from "@/lib/logger";
 export async function askManan(): Promise<{ id: string | null }> {
   const supabase = await createClient();
   if (!supabase) return { id: null };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { id: null };
 
   // Existing support conversation I'm already in?

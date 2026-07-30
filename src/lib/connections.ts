@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 
 // Member connections (Phase 5, Tribe). A directed request that becomes mutual on
 // accept. All reads are scoped to the signed-in user; RLS is the real boundary.
@@ -56,9 +57,7 @@ export async function getConnectionMap(): Promise<Map<string, ConnectionState>> 
   const map = new Map<string, ConnectionState>();
   const supabase = await createClient();
   if (!supabase) return map;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return map;
 
   const { data, error } = await supabase
@@ -86,9 +85,7 @@ export async function getConnectionMap(): Promise<Map<string, ConnectionState>> 
 export async function getConnectionState(otherId: string): Promise<ConnectionState> {
   const supabase = await createClient();
   if (!supabase) return "none";
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return "none";
   if (user.id === otherId) return "self";
   const map = await getConnectionMap();
@@ -99,9 +96,7 @@ export async function getConnectionState(otherId: string): Promise<ConnectionSta
 export async function getIncomingRequests(): Promise<ConnectionPerson[]> {
   const supabase = await createClient();
   if (!supabase) return [];
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -127,9 +122,7 @@ export async function getIncomingRequests(): Promise<ConnectionPerson[]> {
 export async function getConnections(): Promise<ConnectionPerson[]> {
   const supabase = await createClient();
   if (!supabase) return [];
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return [];
 
   const { data, error } = await supabase
@@ -159,9 +152,7 @@ export async function getConnections(): Promise<ConnectionPerson[]> {
 export async function getIncomingRequestCount(): Promise<number> {
   const supabase = await createClient();
   if (!supabase) return 0;
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return 0;
   const { count, error } = await supabase
     .from("connections")

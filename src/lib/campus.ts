@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 
 // Campus data layer (Phase 5.3). Learning resources + per-member bookmark/
 // completion state. Offline-first: bundled samples when unconfigured/unmigrated.
@@ -69,9 +70,7 @@ export async function getCampusResources(): Promise<CampusResource[]> {
     return [];
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   const activity = user ? await activityMap(supabase, user.id) : new Map();
 
   return (data ?? []).map((r) => {
@@ -154,9 +153,7 @@ export async function getCampusResource(
   }
   if (!data) return null;
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   const activity = user ? await activityMap(supabase, user.id) : new Map();
   const a = activity.get(data.id as string);
 

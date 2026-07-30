@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getUser } from "@/lib/auth";
 import { loadEditable } from "@/lib/profile-edit";
 import { composeFullName, computeProfileCompletion, requiredSetupMissing } from "@/lib/profile-fields";
 import { getAllMembers } from "@/lib/members-data";
@@ -83,9 +84,7 @@ export interface HomeStats {
 export async function getHomeStats(): Promise<HomeStats> {
   const supabase = await createClient();
   if (!supabase) return { connections: 0, profileViews: 0 };
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
   if (!user) return { connections: 0, profileViews: 0 };
 
   const [conn, views] = await Promise.all([
