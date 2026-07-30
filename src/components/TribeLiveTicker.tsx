@@ -43,7 +43,7 @@ export default function TribeLiveTicker({ items }: { items: TickerItem[] }) {
     ));
 
   return (
-    <div className="group fixed inset-x-0 top-16 z-40 flex h-9 items-center overflow-hidden border-b border-hairline bg-white/95 backdrop-blur sm:top-20 dark:bg-surface/95">
+    <div className="group fixed inset-x-0 top-16 z-40 flex h-9 items-center overflow-hidden border-b border-hairline bg-white sm:top-20 dark:bg-surface">
       {/* Fixed TRIBE LIVE badge */}
       <div className="z-10 flex h-full shrink-0 items-center gap-1.5 border-r border-hairline bg-white px-3 dark:bg-surface">
         <span className="relative flex h-2 w-2">

@@ -63,16 +63,18 @@
 /* DARK MODE — opt-in. Applied by the pre-paint init script (adds `.dark`). */
 .dark,
 [data-theme="dark"] {
-  --color-paper: #09090b;
-  --color-surface: #121215;
-  --color-surface-hover: #1c1c21;
-  --color-surface-sunk: #16161a;
+  /* Tiered elevation: canvas (darkest) < sunk (inputs) < surface (cards) < hover.
+     Cards must read as clearly lifted off the canvas or the UI looks dead/flat. */
+  --color-paper: #08080a;          /* app canvas — darkest */
+  --color-surface: #17171c;        /* cards — clearly elevated off the canvas */
+  --color-surface-hover: #212129;
+  --color-surface-sunk: #101014;   /* recessed inputs — just above the canvas */
 
   --color-ink: #f4f4f5;
-  --color-ink-secondary: #a1a1aa;
-  --color-ink-muted: #71717a;
-  --color-hairline: #27272a;
-  --color-hairline-bright: #3f3f46;
+  --color-ink-secondary: #b0b0ba;  /* lifted for readable secondary text */
+  --color-ink-muted: #7d7d87;
+  --color-hairline: #2e2e35;       /* visible card edges */
+  --color-hairline-bright: #42424c;
 
   --color-red: #ef4444;
   --color-red-hover: #dc2626;
@@ -263,15 +265,17 @@ body {
               backdrop-filter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .header-scroll-blend.scrolled {
-  background-color: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  box-shadow: 0 4px 20px -2px rgba(9, 9, 11, 0.06) !important;
+  /* Near-opaque on scroll so content passing underneath does not ghost through
+     as a translucent smear. Light blur only, no over-saturation. */
+  background-color: rgba(255, 255, 255, 0.97) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: 0 1px 0 rgba(9, 9, 11, 0.05), 0 6px 16px -10px rgba(9, 9, 11, 0.10) !important;
   border-bottom-color: var(--color-hairline-bright) !important;
 }
 .dark .header-scroll-blend.scrolled {
-  background-color: rgba(18, 18, 21, 0.85) !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4) !important;
+  background-color: rgba(23, 23, 28, 0.97) !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5), 0 6px 16px -10px rgba(0, 0, 0, 0.5) !important;
 }
 
 /* Pulsing Red Indicator */

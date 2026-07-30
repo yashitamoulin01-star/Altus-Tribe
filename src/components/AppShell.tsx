@@ -94,20 +94,9 @@ const SIDEBAR_ITEMS = [
     ),
     match: ["/campus"],
   },
-  {
-    group: "System",
-    href: "/notifications",
-    title: "Notifications",
-    sub: "",
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-        <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
-      </svg>
-    ),
-    match: ["/notifications"],
-  },
+  // Notifications intentionally omitted here — it lives as the bell in the top bar.
 ];
-const NAV_GROUP_ORDER = ["Workspace", "Community", "Learning", "System"];
+const NAV_GROUP_ORDER = ["Workspace", "Community", "Learning"];
 
 // Mobile Bottom Nav Items
 const MOBILE_NAV = [
@@ -430,10 +419,10 @@ export default function AppShell({
           sidebarOpen ? "w-60 xl:w-64 translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0 p-0 border-none pointer-events-none"
         }`}
       >
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {NAV_GROUP_ORDER.map((group) => (
             <div key={group} className="space-y-0.5">
-              <p className="px-3 pb-0.5 pt-2 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
+              <p className="px-3 pb-0 pt-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-muted/70">
                 {group}
               </p>
               {SIDEBAR_ITEMS.filter((i) => i.group === group).map((item) => {
@@ -442,14 +431,14 @@ export default function AppShell({
                   <Link
                     key={item.title}
                     href={item.href}
-                    className={`group/nav relative flex items-start gap-3 rounded-xl px-3 py-2 transition-all ${
+                    className={`group/nav relative flex items-center gap-2.5 rounded-xl px-3 py-1.5 transition-all ${
                       on
                         ? "border border-red/15 bg-gradient-to-r from-red/10 to-red/[0.02] font-semibold text-red shadow-sm"
                         : "text-ink-secondary hover:bg-surface-sunk hover:text-ink"
                     }`}
                   >
                     {on && <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r bg-red" />}
-                    <span className={`mt-0.5 shrink-0 transition-transform group-hover/nav:scale-105 ${on ? "text-red" : "text-ink-muted"}`}>
+                    <span className={`shrink-0 transition-transform group-hover/nav:scale-105 ${on ? "text-red" : "text-ink-muted"}`}>
                       {item.icon}
                     </span>
                     <div className="min-w-0 flex-1">
@@ -457,7 +446,7 @@ export default function AppShell({
                         {item.title}
                       </p>
                       {item.sub && (
-                        <p className="mt-0.5 truncate text-[11px] leading-tight text-ink-muted">
+                        <p className="truncate text-[11px] leading-tight text-ink-muted">
                           {item.sub}
                         </p>
                       )}
