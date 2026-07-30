@@ -1,4 +1,5 @@
 import AppShell from "@/components/AppShell";
+import Footer from "@/components/Footer";
 import { getPublicSettings } from "@/lib/settings";
 import { MANAN_WHATSAPP_NUMBER, MANAN_WHATSAPP_PREFILL } from "@/lib/settings-meta";
 import { getMyProfileSummary } from "@/lib/dashboard";
@@ -38,7 +39,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       unread={unread}
       isAdmin={admin.isAdmin}
     >
-      {children}
+      <div className="flex min-h-full flex-1 flex-col">
+        <div className="flex-1">{children}</div>
+        <Footer className="mt-8" />
+      </div>
     </AppShell>
   );
 }
