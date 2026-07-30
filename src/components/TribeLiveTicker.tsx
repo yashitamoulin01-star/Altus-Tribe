@@ -43,9 +43,9 @@ export default function TribeLiveTicker({ items }: { items: TickerItem[] }) {
     ));
 
   return (
-    <div className="group sticky top-16 z-30 flex items-center overflow-hidden border-b border-hairline bg-white/95 backdrop-blur sm:top-20 dark:bg-surface/95">
+    <div className="group fixed inset-x-0 top-16 z-40 flex h-9 items-center overflow-hidden border-b border-hairline bg-white/95 backdrop-blur sm:top-20 dark:bg-surface/95">
       {/* Fixed TRIBE LIVE badge */}
-      <div className="z-10 flex shrink-0 items-center gap-1.5 border-r border-hairline bg-white px-3 py-1.5 dark:bg-surface">
+      <div className="z-10 flex h-full shrink-0 items-center gap-1.5 border-r border-hairline bg-white px-3 dark:bg-surface">
         <span className="relative flex h-2 w-2">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red opacity-75" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-red" />
@@ -54,7 +54,7 @@ export default function TribeLiveTicker({ items }: { items: TickerItem[] }) {
       </div>
 
       {/* Marquee */}
-      <div className="relative flex-1 overflow-hidden py-1.5">
+      <div className="relative flex h-full flex-1 items-center overflow-hidden">
         <div className="flex w-max animate-tribe-ticker whitespace-nowrap group-hover:[animation-play-state:paused]">
           <div className="flex shrink-0">{row("a")}</div>
           <div className="flex shrink-0">{row("b")}</div>

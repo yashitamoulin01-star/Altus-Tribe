@@ -271,6 +271,9 @@ export default function AppShell({
 
   // Account Dock — profile is only viewable once the required fields are done.
   const roleLabel = isAdmin ? "Admin" : "Participant";
+  // The ticker is a full-width fixed bar (h-9) under the header; when present the
+  // sidebar + content start below it (header 4rem/5rem + ticker 2.25rem).
+  const hasTicker = tickerItems.length > 0;
   const li = (d: string) => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: d }} />
   );
@@ -418,9 +421,12 @@ export default function AppShell({
         </div>
       </header>
 
+      {/* Tribe Live — full-width announcement ribbon attached under the header */}
+      <TribeLiveTicker items={tickerItems} />
+
       {/* ── Collapsible Left Sidebar (Desktop >= 1024px) ── */}
       <aside
-        className={`fixed left-0 top-16 sm:top-20 bottom-0 z-30 hidden border-r border-hairline bg-white p-3 overflow-y-auto transition-all duration-300 ease-in-out lg:flex lg:flex-col dark:bg-surface ${
+        className={`fixed left-0 ${hasTicker ? "top-[6.25rem] sm:top-[7.25rem]" : "top-16 sm:top-20"} bottom-0 z-30 hidden border-r border-hairline bg-white p-3 overflow-y-auto transition-all duration-300 ease-in-out lg:flex lg:flex-col dark:bg-surface ${
           sidebarOpen ? "w-60 xl:w-64 translate-x-0 opacity-100" : "w-0 -translate-x-full opacity-0 p-0 border-none pointer-events-none"
         }`}
       >
@@ -467,12 +473,10 @@ export default function AppShell({
 
       {/* ── Main Content Area ── */}
       <div
-        className={`flex flex-1 flex-col pt-16 sm:pt-20 pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 transition-all duration-300 ease-in-out ${
+        className={`flex flex-1 flex-col ${hasTicker ? "pt-[6.25rem] sm:pt-[7.25rem]" : "pt-16 sm:pt-20"} pb-[calc(3.5rem+env(safe-area-inset-bottom))] lg:pb-0 transition-all duration-300 ease-in-out ${
           sidebarOpen ? "lg:pl-60 xl:pl-64" : "lg:pl-0"
         }`}
       >
-        {/* Tribe Live — announcement ribbon attached under the nav, always on */}
-        <TribeLiveTicker items={tickerItems} />
         {children}
       </div>
 
