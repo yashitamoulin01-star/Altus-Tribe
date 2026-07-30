@@ -290,7 +290,7 @@ export default function AppShell({
   return (
     <div className="min-h-screen bg-paper text-ink overflow-x-hidden">
       {/* ── Top Header ── */}
-      <header className={`fixed inset-x-0 top-0 z-40 h-16 border-b border-hairline bg-white/95 backdrop-blur sm:h-20 header-scroll-blend dark:bg-surface/95 ${
+      <header className={`fixed inset-x-0 top-0 z-50 h-16 border-b border-hairline bg-white/95 backdrop-blur sm:h-20 header-scroll-blend dark:bg-surface/95 ${
         scrolled ? "scrolled" : ""
       }`}>
         <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between px-3 sm:px-6 gap-3 sm:gap-6">
@@ -380,8 +380,8 @@ export default function AppShell({
 
               {accountOpen && (
                 <>
-                  <button type="button" aria-label="Close account menu" onClick={() => setAccountOpen(false)} className="fixed inset-0 z-10 cursor-default" tabIndex={-1} />
-                  <div className="absolute right-0 top-full z-20 mt-2 w-60 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg dark:bg-surface">
+                  <button type="button" aria-label="Close account menu" onClick={() => setAccountOpen(false)} className="fixed inset-0 z-40 cursor-default" tabIndex={-1} />
+                  <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-xl border border-hairline bg-white shadow-lg dark:bg-surface">
                     <div className="border-b border-hairline px-3.5 py-3">
                       <p className="truncate text-[14px] font-semibold text-ink">{userName}</p>
                       <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-ink-muted">
