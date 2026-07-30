@@ -60,15 +60,22 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // IMPORTANT: getUser() revalidates the token; do not run code between
-  // createServerClient and getUser or sessions may randomly log out.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // IMPORTANT: this call revalidates the session; do not run code between
+  // createServerClient and it or sessions may randomly log out.
+  //
+  // getClaims() internally calls getSession() first — which refreshes an expired
+  // access token and persists the rotated cookies via setAll() above — then
+  // verifies the JWT. Under asymmetric signing keys the verification is LOCAL (no
+  // Auth-server round-trip), which removes the per-request refresh race that was
+  // bouncing signed-in users to /login on a hard reload. Under legacy HS256 it
+  // falls back to getUser(), i.e. identical to the previous behaviour. Fail
+  // closed: no verified claims => treat as signed-out.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub ?? null;
 
   const pathname = request.nextUrl.pathname;
 
-  if (!user && isProtected(pathname)) {
+  if (!userId && isProtected(pathname)) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("redirect", pathname);
@@ -76,7 +83,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Signed-in gates for the member worlds.
-  if (user && isProtected(pathname)) {
+  if (userId && isProtected(pathname)) {
     // Invitation approval gate (ACCESS-2): a PENDING member must finish onboarding
     // (their application), then wait on /pending until an admin approves. Only
     // pending members are affected; active members and admins pass straight
@@ -85,7 +92,7 @@ export async function updateSession(request: NextRequest) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("role, status, onboarding_completed_at")
-        .eq("id", user.id)
+        .eq("id", userId)
         .maybeSingle();
       // Admins & consultants are trusted — never gate them, whatever their status.
       const trusted = profile?.role === "admin" || profile?.role === "consultant";

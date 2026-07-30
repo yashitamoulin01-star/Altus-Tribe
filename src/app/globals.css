@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Dark mode is driven by the `.dark` class (set by the pre-paint theme script and
+   the in-app toggle), NOT the OS `prefers-color-scheme`. Bind Tailwind's `dark:`
+   variant to that same class so `dark:` utilities and the CSS-variable tokens stay
+   in sync — otherwise the shell (which uses `bg-white dark:bg-surface`) follows the
+   OS while token-based content follows the class, producing a light/dark split. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
   ALTUS TRIBE — FAANG-Grade Dark-First Design System.
   Strict Palette: Black · White · Grey · Red accents ONLY.
